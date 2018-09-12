@@ -1,0 +1,6 @@
+
+# API
+
+```@autodocs
+Modules = [Mongoc]
+```
