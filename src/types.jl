@@ -1,9 +1,37 @@
 
 """
+Mirrors C struct `bson_oid_t`.
+
+`BSONObjectId` instances addresses are passed
+to libbson/libmongoc API using `Ref{BSONObjectId}(oid)`,
+and are owned by the Julia process.
+
+```c
+#include <bson.h>
+
+typedef struct {
+   uint8_t bytes[12];
+} bson_oid_t;
+```
+"""
+mutable struct BSONObjectId
+    bytes::NTuple{12, UInt8}
+
+    function BSONObjectId()
+        new_oid = new(tuple(zeros(UInt8, 12)...))
+        bson_oid_init(new_oid, C_NULL)
+        return new_oid
+    end
+end
+
+Base.:(==)(oid1::BSONObjectId, oid2::BSONObjectId) = oid1.bytes == oid2.bytes
+Base.hash(oid::BSONObjectId) = 1 + hash(oid.bytes)
+
+"""
 Mirrors C struct `bson_error_t`.
 
 `BSONError` instances addresses are passed
-to libmongoc API using `Ref{BSONError}(error)`,
+to libbson/libmongoc API using `Ref{BSONError}(error)`,
 and are owned by the Julia process.
 
 ```c
@@ -69,7 +97,7 @@ end
 "`Database` is a wrapper for C struct `mongoc_database_t`."
 mutable struct Database
     client::Client
-    db_name::String
+    name::String
     handle::Ptr{Cvoid}
 
     function Database(client::Client, db_name::String)
@@ -81,17 +109,12 @@ end
 
 "`Collection` is a wrapper for C struct `mongoc_collection_t`."
 mutable struct Collection
-    client::Client
-    db_name::String
-    coll_name::String
+    database::Database
+    name::String
     handle::Ptr{Cvoid}
 
-    function Collection(client::Client, db_name::String, coll_name::String)
-        coll_handle = mongoc_client_get_collection(client.handle, db_name, coll_name)
-        if coll_handle == C_NULL
-            error("Failed creating collection $coll_name on db $db_name.")
-        end
-        coll = new(client, db_name, coll_name, coll_handle)
+    function Collection(database::Database, coll_name::String, coll_handle::Ptr{Cvoid})
+        coll = new(database, coll_name, coll_handle)
         @compat finalizer(destroy!, coll)
         return coll
     end
@@ -111,13 +134,6 @@ end
 #
 # Basic functions for types
 #
-
-Base.show(io::IO, bson::BSON) = print(io, "BSON(\"", as_json(bson), "\")")
-Base.show(io::IO, err::BSONError) = print(io, replace(String([ i for i in err.message]), '\0' => ""))
-Base.show(io::IO, uri::URI) = print(io, "URI(\"", uri.uri, "\")")
-Base.show(io::IO, client::Client) = print(io, "Client(URI(\"", client.uri, "\"))")
-Base.show(io::IO, db::Database) = print(io, "Database($(db.client), \"", db.name, "\")")
-Base.show(io::IO, coll::Collection) = print(io, "Collection($(coll.client), \"", coll.db_name, "\", \"", coll.coll_name, "\")")
 
 function destroy!(bson::BSON)
     if bson.handle != C_NULL

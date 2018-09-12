@@ -21,32 +21,44 @@ const DB_NAME = "mongoc_tests"
 end
 
 @testset "Types" begin
+    bson = Mongoc.BSON()
     @test_throws ErrorException Mongoc.Client("////invalid-url")
     cli = Mongoc.Client()
     @test cli.uri == "mongodb://localhost:27017"
     Mongoc.set_appname!(cli, "Runtests")
-    db = Mongoc.Database(cli, DB_NAME)
-    coll = Mongoc.Collection(cli, DB_NAME, "new_collection")
+    db = cli[DB_NAME]
+    coll = db["new_collection"]
+
+    io = IOBuffer()
+    show(io, bson)
+    show(io, cli)
+    show(io, db)
+    show(io, coll)
 end
 
 @testset "Connection" begin
     cli = Mongoc.Client()
-    @test Mongoc.ping(cli) == "{ \"ok\" : 1.0 }"
+
+    @testset "ping" begin
+        bson_ping_result = Mongoc.ping(cli)
+        @test haskey(bson_ping_result, "ok")
+        @test Mongoc.as_json(Mongoc.ping(cli)) == "{ \"ok\" : 1.0 }"
+    end
 
     @testset "new_collection" begin
-        coll = Mongoc.Collection(cli, DB_NAME, "new_collection")
-        bson_result = Mongoc.insert_one(coll, Mongoc.BSON("{ \"hello\" : \"world\" }"))
-        @test Mongoc.as_json(bson_result) == "{ \"insertedCount\" : 1 }"
-        bson_result = Mongoc.insert_one(coll, Mongoc.BSON("{ \"hey\" : \"you\" }"))
-        @test Mongoc.as_json(bson_result) == "{ \"insertedCount\" : 1 }"
+        coll = cli[DB_NAME]["new_collection"]
+        result = push!(coll, Mongoc.BSON("{ \"hello\" : \"world\" }"))
+        @test Mongoc.as_json(result.reply) == "{ \"insertedCount\" : 1 }"
+        result = push!(coll, Mongoc.BSON("{ \"hey\" : \"you\" }"))
+        @test Mongoc.as_json(result.reply) == "{ \"insertedCount\" : 1 }"
 
         i = 0
         for bson in Mongoc.find(coll)
             i += 1
         end
-        @test i == length(coll)
+        @test i == Mongoc.count_documents(coll)
 
-        Mongoc.command_simple_as_json(coll, "{ \"collStats\" : \"new_collection\" }")
+        Mongoc.command_simple(coll, "{ \"collStats\" : \"new_collection\" }")
     end
 
     @testset "find_databases" begin

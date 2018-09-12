@@ -13,6 +13,8 @@ function BSON(json_string::String)
     return BSON(handle)
 end
 
+has_field(bson::BSON, key::String) = bson_has_field(bson.handle, key)
+
 """
     as_json(bson::BSON; canonical::Bool=false) :: String
 
@@ -46,11 +48,20 @@ function as_json(bson::BSON; canonical::Bool=false) :: String
     return unsafe_string(cstring)
 end
 
-function Base.deepcopy(bson::BSON) :: BSON
-    return BSON(bson_copy(bson.handle))
+Client(host::String="localhost", port::Int=27017) = Client(URI("mongodb://$host:$port"))
+
+function Collection(database::Database, coll_name::String)
+    coll_handle = mongoc_database_get_collection(database.handle, coll_name)
+    if coll_handle == C_NULL
+        error("Failed creating collection $coll_name on db $(database.name).")
+    end
+    return Collection(database, coll_name, coll_handle)
 end
 
-Client(host::String="localhost", port::Int=27017) = Client(URI("mongodb://$host:$port"))
+function Collection(client::Client, db_name::String, coll_name::String)
+    database = Database(client, db_name)
+    return Collection(database, coll_name)
+end
 
 """
     set_appname!(client::Client, appname::String)
@@ -93,7 +104,6 @@ BSON("{ "ok" : 1.0 }")
 
 * [`mongoc_client_command_simple`](http://mongoc.org/libmongoc/current/mongoc_client_command_simple.html)
 
-See also: `command_simple_as_json`.
 """
 function command_simple(client::Client, database::String, command::BSON) :: BSON
     reply = BSON()
@@ -123,37 +133,8 @@ function command_simple(collection::Collection, command::String) :: BSON
     return command_simple(collection, BSON(command))
 end
 
-"""
-    command_simple_as_json(client::Client, database::String, command::Union{String, BSON}) :: String
-
-Same as `command_simple`, but the result is returned as a JSON string.
-
-# Example
-
-```julia
-julia> client = Mongoc.Client() # connects to localhost at port 27017
-Client(URI("mongodb://localhost:27017"))
-
-julia> result = Mongoc.command_simple_as_json(client, "admin", "{ \"ping\" : 1 }")
-"{ \"ok\" : 1.0 }"
-```
-
-# C API
-
-* [`mongoc_client_command_simple`](http://mongoc.org/libmongoc/current/mongoc_client_command_simple.html)
-
-See also: `command_simple`.
-"""
-function command_simple_as_json(client::Client, database::String, command::Union{String, BSON}) :: String
-    return as_json(command_simple(client, database, command))
-end
-
-function command_simple_as_json(collection::Collection, command::Union{String, BSON}) :: String
-    return as_json(command_simple(collection, command))
-end
-
-function ping(client::Client) :: String
-    return command_simple_as_json(client, "admin", "{ \"ping\" : 1 }")
+function ping(client::Client) :: BSON
+    return command_simple(client, "admin", "{ \"ping\" : 1 }")
 end
 
 function find_databases(client::Client; options::Union{Nothing, BSON}=nothing) :: Cursor
@@ -165,7 +146,21 @@ function find_databases(client::Client; options::Union{Nothing, BSON}=nothing) :
     return Cursor(cursor_handle)
 end
 
-function insert_one(collection::Collection, document::BSON; options::Union{Nothing, BSON}=nothing) :: BSON
+struct InsertOneResult
+    reply::BSON
+    inserted_oid::Union{Nothing, BSONObjectId}
+end
+
+function insert_one(collection::Collection, document::BSON; options::Union{Nothing, BSON}=nothing) :: InsertOneResult
+    inserted_oid = nothing
+    if !has_field(document, "_id")
+        inserted_oid = BSONObjectId()
+        ok = bson_append_oid(document.handle, "_id", -1, inserted_oid)
+        if !ok
+            error("Couldn't append oid to BSON document.")
+        end
+    end
+
     reply = BSON()
     err = BSONError()
     options_handle = options == nothing ? C_NULL : options.handle
@@ -173,7 +168,7 @@ function insert_one(collection::Collection, document::BSON; options::Union{Nothi
     if !ok
         error("$err.")
     end
-    return reply
+    return InsertOneResult(reply, inserted_oid)
 end
 
 function find(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) :: Cursor
@@ -185,7 +180,7 @@ function find(collection::Collection, bson_filter::BSON=BSON(); options::Union{N
     return Cursor(cursor_handle)
 end
 
-function Base.length(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing)
+function count_documents(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing)
     err = BSONError()
     options_handle = options == nothing ? C_NULL : options.handle
     len = mongoc_collection_count_documents(collection.handle, bson_filter.handle, options_handle, C_NULL, C_NULL, err)
@@ -195,22 +190,36 @@ function Base.length(collection::Collection, bson_filter::BSON=BSON(); options::
     return Int(len)
 end
 
-#=
-v1.0
-next = iterate(iter)
-while next != nothing
-    (i, state) = next
-    # body
-    next = iterate(iter, state)
+function set_limit!(cursor::Cursor, limit::Int)
+    ok = mongoc_cursor_set_limit(cursor.handle, limit)
+    if !ok
+        error("Couldn't set cursor limit to $limit.")
+    end
+    nothing
 end
 
-v0.6
-state = start(I)
-while !done(I, state)
-    (i, state) = next(I, state)
-    # body
+"""
+    find_one(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}
+
+Execute a query to a collection and returns the first element of the result set.
+
+Returns `nothing` if the result set is empty.
+"""
+function find_one(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}
+    cursor = find(collection, bson_filter, options=options)
+    set_limit!(cursor, 1)
+    next = _iterate(cursor)
+    if next == nothing
+        return nothing
+    else
+        bson_document, _state = next
+        return bson_document
+    end
 end
-=#
+
+#
+# High-level API
+#
 
 function _iterate(cursor::Cursor, state::Nothing=nothing)
     next = BSON()
@@ -227,6 +236,8 @@ function _iterate(cursor::Cursor, state::Nothing=nothing)
 end
 
 @static if VERSION < v"0.7-"
+
+    # Iteration protocol for Julia v0.6
 
     struct CursorIteratorState
         element::Union{Nothing, BSON}
@@ -255,5 +266,23 @@ end
         end
     end
 else
+    # Iteration protocol for Julia v0.7 and v1.0
     Base.iterate(cursor::Cursor, state::Nothing=nothing) = _iterate(cursor, state)
 end
+
+function Base.deepcopy(bson::BSON) :: BSON
+    return BSON(bson_copy(bson.handle))
+end
+
+Base.show(io::IO, oid::BSONObjectId) = print(io, "BSONObjectId(\"", bson_oid_to_string(oid), "\")")
+Base.show(io::IO, bson::BSON) = print(io, "BSON(\"", as_json(bson), "\")")
+Base.show(io::IO, err::BSONError) = print(io, replace(String([ i for i in err.message]), '\0' => ""))
+Base.show(io::IO, uri::URI) = print(io, "URI(\"", uri.uri, "\")")
+Base.show(io::IO, client::Client) = print(io, "Client(URI(\"", client.uri, "\"))")
+Base.show(io::IO, db::Database) = print(io, "Database($(db.client), \"", db.name, "\")")
+Base.show(io::IO, coll::Collection) = print(io, "Collection($(coll.database), \"", coll.name, "\")")
+
+Base.haskey(bson::BSON, key::String) = has_field(bson, key)
+Base.getindex(client::Client, database::String) = Database(client, database)
+Base.getindex(database::Database, collection_name::String) = Collection(database, collection_name)
+Base.push!(collection::Collection, document::BSON; options::Union{Nothing, BSON}=nothing) = insert_one(collection, document; options=options)
