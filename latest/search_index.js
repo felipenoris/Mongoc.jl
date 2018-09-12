@@ -81,11 +81,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.as_json_string-Tuple{Mongoc.BSON}",
+    "location": "api.html#Mongoc.as_json-Tuple{Mongoc.BSON}",
     "page": "API",
-    "title": "Mongoc.as_json_string",
+    "title": "Mongoc.as_json",
     "category": "method",
-    "text": "as_json_string(bson::BSON; canonical::Bool=false) :: String\n\nConverts a bson object to a JSON string.\n\nExample\n\njulia> document = Mongoc.BSON(\"{ \"hey\" : 1 }\")\nMongoc.BSON(Ptr{Nothing} @0x00007fbc8e62cc30)\n\njulia> Mongoc.as_json_string(document)\n\"{ \"hey\" : 1 }\"\n\njulia> Mongoc.as_json_string(document, canonical=true)\n\"{ \"hey\" : { \"$numberInt\" : \"1\" } }\"\n\nC API\n\nbson_as_canonical_extended_json\n`bsonasrelaxedextendedjson\n\n\n\n\n\n"
+    "text": "as_json(bson::BSON; canonical::Bool=false) :: String\n\nConverts a bson object to a JSON string.\n\nExample\n\njulia> document = Mongoc.BSON(\"{ \"hey\" : 1 }\")\nBSON(\"{ \"hey\" : 1 }\")\n\njulia> Mongoc.as_json(document)\n\"{ \"hey\" : 1 }\"\n\njulia> Mongoc.as_json(document, canonical=true)\n\"{ \"hey\" : { \"$numberInt\" : \"1\" } }\"\n\nC API\n\nbson_as_canonical_extended_json\nbson_as_relaxed_extended_json\n\n\n\n\n\n"
 },
 
 {
@@ -93,7 +93,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API",
     "title": "Mongoc.command_simple",
     "category": "method",
-    "text": "command_simple(client::Client, database::String, command::Union{String, BSON}) :: BSON\n\nExecutes a command given by a JSON string or a BSON instance.\n\nExample\n\njulia> client = Mongoc.Client() # connects to localhost at port 27017\nClient(URI(\"mongodb://localhost:27017\"))\n\njulia> bson_result = Mongoc.command_simple(client, \"admin\", \"{ \"ping\" : 1 }\")\nMongoc.BSON(Ptr{Nothing} @0x00007f8663e0d8d0)\n\njulia> println(Mongoc.as_json_string(bson_result))\n{ \"ok\" : 1.0 }\n\nSee also: command_simple_as_json.\n\n\n\n\n\n"
+    "text": "command_simple(client::Client, database::String, command::Union{String, BSON}) :: BSON\n\nExecutes a command given by a JSON string or a BSON instance.\n\nIt returns the first document from the result cursor.\n\nExample\n\njulia> client = Mongoc.Client() # connects to localhost at port 27017\nClient(URI(\"mongodb://localhost:27017\"))\n\njulia> bson_result = Mongoc.command_simple(client, \"admin\", \"{ \"ping\" : 1 }\")\nBSON(\"{ \"ok\" : 1.0 }\")\n\nC API\n\nmongoc_client_command_simple\n\nSee also: command_simple_as_json.\n\n\n\n\n\n"
 },
 
 {
@@ -101,7 +101,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API",
     "title": "Mongoc.command_simple_as_json",
     "category": "method",
-    "text": "command_simple_as_json(client::Client, database::String, command::Union{String, BSON}) :: String\n\nSame as command_simple, but returns a JSON string.\n\nExample\n\njulia> client = Mongoc.Client() # connects to localhost at port 27017\nClient(URI(\"mongodb://localhost:27017\"))\n\njulia> result = Mongoc.command_simple_as_json(client, \"admin\", \"{ \"ping\" : 1 }\")\n\"{ \"ok\" : 1.0 }\"\n\n\n\n\n\n"
+    "text": "command_simple_as_json(client::Client, database::String, command::Union{String, BSON}) :: String\n\nSame as command_simple, but the result is returned as a JSON string.\n\nExample\n\njulia> client = Mongoc.Client() # connects to localhost at port 27017\nClient(URI(\"mongodb://localhost:27017\"))\n\njulia> result = Mongoc.command_simple_as_json(client, \"admin\", \"{ \"ping\" : 1 }\")\n\"{ \"ok\" : 1.0 }\"\n\nC API\n\nmongoc_client_command_simple\n\nSee also: command_simple.\n\n\n\n\n\n"
 },
 
 {
