@@ -171,6 +171,8 @@ function insert_one(collection::Collection, document::BSON; options::Union{Nothi
     return InsertOneResult(reply, inserted_oid)
 end
 
+insert_one(collection::Collection, document::String; options::Union{Nothing, BSON}=nothing) = insert_one(collection, BSON(document); options=options)
+
 function find(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) :: Cursor
     options_handle = options == nothing ? C_NULL : options.handle
     cursor_handle = mongoc_collection_find_with_opts(collection.handle, bson_filter.handle, options_handle, C_NULL)
@@ -189,6 +191,8 @@ function count_documents(collection::Collection, bson_filter::BSON=BSON(); optio
     end
     return Int(len)
 end
+
+count_documents(collection::Collection, bson_filter::String; options::Union{Nothing, BSON}=nothing) = count_documents(collection, BSON(bson_filter); options=options)
 
 function set_limit!(cursor::Cursor, limit::Int)
     ok = mongoc_cursor_set_limit(cursor.handle, limit)
@@ -217,6 +221,8 @@ function find_one(collection::Collection, bson_filter::BSON=BSON(); options::Uni
     end
 end
 
+find_one(collection::Collection, bson_filter::String; options::Union{Nothing, BSON}=nothing) = find_one(collection, BSON(bson_filter); options=options)
+
 #
 # High-level API
 #
@@ -229,6 +235,8 @@ function _iterate(cursor::Cursor, state::Nothing=nothing)
     next.handle = handle_ref[]
 
     if has_next
+        # The bson document is valid only until the next call to mongoc_cursor_next.
+        # So we should return a deepcopy.
         return deepcopy(next), nothing
     else
         return nothing
@@ -285,4 +293,4 @@ Base.show(io::IO, coll::Collection) = print(io, "Collection($(coll.database), \"
 Base.haskey(bson::BSON, key::String) = has_field(bson, key)
 Base.getindex(client::Client, database::String) = Database(client, database)
 Base.getindex(database::Database, collection_name::String) = Collection(database, collection_name)
-Base.push!(collection::Collection, document::BSON; options::Union{Nothing, BSON}=nothing) = insert_one(collection, document; options=options)
+Base.push!(collection::Collection, document::Union{String, BSON}; options::Union{Nothing, BSON}=nothing) = insert_one(collection, document; options=options)

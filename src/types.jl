@@ -3,7 +3,7 @@
 Mirrors C struct `bson_oid_t`.
 
 `BSONObjectId` instances addresses are passed
-to libbson/libmongoc API using `Ref{BSONObjectId}(oid)`,
+to libbson/libmongoc API using `Ref(oid)`,
 and are owned by the Julia process.
 
 ```c
@@ -31,7 +31,7 @@ Base.hash(oid::BSONObjectId) = 1 + hash(oid.bytes)
 Mirrors C struct `bson_error_t`.
 
 `BSONError` instances addresses are passed
-to libbson/libmongoc API using `Ref{BSONError}(error)`,
+to libbson/libmongoc API using `Ref(error)`,
 and are owned by the Julia process.
 
 ```c

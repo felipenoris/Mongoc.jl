@@ -18,6 +18,16 @@ const DB_NAME = "mongoc_tests"
     bson = Mongoc.BSON("{\"hey\" : 1}")
     @test Mongoc.as_json(bson) == "{ \"hey\" : 1 }"
     @test Mongoc.as_json(bson, canonical=true) == "{ \"hey\" : { \"\$numberInt\" : \"1\" } }"
+
+    @testset "BSONObjectId segfault issue" begin
+        io = IOBuffer()
+        v = Vector{Mongoc.BSONObjectId}()
+
+        for i in 1:5
+            push!(v, Mongoc.BSONObjectId())
+        end
+        show(io, v)
+    end
 end
 
 @testset "Types" begin
@@ -47,9 +57,9 @@ end
 
     @testset "new_collection" begin
         coll = cli[DB_NAME]["new_collection"]
-        result = push!(coll, Mongoc.BSON("{ \"hello\" : \"world\" }"))
+        result = push!(coll, "{ \"hello\" : \"world\" }")
         @test Mongoc.as_json(result.reply) == "{ \"insertedCount\" : 1 }"
-        result = push!(coll, Mongoc.BSON("{ \"hey\" : \"you\" }"))
+        result = push!(coll, "{ \"hey\" : \"you\" }")
         @test Mongoc.as_json(result.reply) == "{ \"insertedCount\" : 1 }"
 
         i = 0

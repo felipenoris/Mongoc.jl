@@ -8,18 +8,20 @@ https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/
 #
 
 function bson_oid_init(oid::BSONObjectId, context::Ptr{Cvoid})
-    ccall((:bson_oid_init, libbson), Cvoid, (Ref{BSONObjectId}, Ptr{Cvoid}), Ref{BSONObjectId}(oid), context)
+    ccall((:bson_oid_init, libbson), Cvoid, (Ref{BSONObjectId}, Ptr{Cvoid}), Ref(oid), context)
 end
 
-function bson_oid_to_string(oid::BSONObjectId) :: String
-    buffer = zeros(UInt8, 12)
-    ccall((:bson_oid_to_string, libbson), Cvoid, (Ref{BSONObjectId}, Ptr{UInt8}), Ref{BSONObjectId}(oid), buffer)
+function bson_oid_to_string(oid::BSONObjectId)
+    buffer_len = 25
+    buffer = zeros(UInt8, buffer_len)
+    ccall((:bson_oid_to_string, libbson), Cvoid, (Ref{BSONObjectId}, Ref{UInt8}), Ref(oid), Ref(buffer, 1))
+    @assert buffer[end] == 0
     return String(buffer)
 end
 
 function bson_append_oid(bson_document::Ptr{Cvoid}, key::String, key_length::Int, oid::BSONObjectId)
     oid_copy = deepcopy(oid) # you get a segfault if you pass an oid to bson_append_oid and reuse it after bson_document is freed
-    ccall((:bson_append_oid, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Ref{BSONObjectId}), bson_document, key, key_length, Ref{BSONObjectId}(oid_copy))
+    ccall((:bson_append_oid, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Ref{BSONObjectId}), bson_document, key, key_length, Ref(oid_copy))
 end
 
 function bson_new_from_json(data::String, len::Int=-1)
@@ -55,7 +57,7 @@ function mongoc_init()
 end
 
 function mongoc_uri_new_with_error(uri_string::String, bson_error::BSONError)
-    ccall((:mongoc_uri_new_with_error, libmongoc), Ptr{Cvoid}, (Cstring, Ref{BSONError}), uri_string, Ref{BSONError}(bson_error))
+    ccall((:mongoc_uri_new_with_error, libmongoc), Ptr{Cvoid}, (Cstring, Ref{BSONError}), uri_string, Ref(bson_error))
 end
 
 function mongoc_uri_destroy(uri_handle::Ptr{Cvoid})
@@ -87,7 +89,7 @@ function mongoc_database_get_collection(database_handle::Ptr{Cvoid}, collection_
 end
 
 function mongoc_client_command_simple(client_handle::Ptr{Cvoid}, db_name::String, bson_command::Ptr{Cvoid}, read_prefs::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_client_command_simple, libmongoc), Bool, (Ptr{Cvoid}, Cstring, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), client_handle, db_name, bson_command, read_prefs, bson_reply, Ref{BSONError}(bson_error))
+    ccall((:mongoc_client_command_simple, libmongoc), Bool, (Ptr{Cvoid}, Cstring, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), client_handle, db_name, bson_command, read_prefs, bson_reply, Ref(bson_error))
 end
 
 #function mongoc_client_get_collection(client_handle::Ptr{Cvoid}, db_name::String, coll_name::String)
@@ -99,7 +101,7 @@ function mongoc_client_find_databases_with_opts(client_handle::Ptr{Cvoid}, bson_
 end
 
 function mongoc_collection_command_simple(collection_handle::Ptr{Cvoid}, bson_command::Ptr{Cvoid}, read_prefs::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_collection_command_simple, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_command, read_prefs, bson_reply, Ref{BSONError}(bson_error))
+    ccall((:mongoc_collection_command_simple, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_command, read_prefs, bson_reply, Ref(bson_error))
 end
 
 function mongoc_collection_destroy(collection_handle::Ptr{Cvoid})
@@ -107,7 +109,7 @@ function mongoc_collection_destroy(collection_handle::Ptr{Cvoid})
 end
 
 function mongoc_collection_insert_one(collection_handle::Ptr{Cvoid}, bson_document::Ptr{Cvoid}, bson_options::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_collection_insert_one, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_document, bson_options, bson_reply, Ref{BSONError}(bson_error))
+    ccall((:mongoc_collection_insert_one, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_document, bson_options, bson_reply, Ref(bson_error))
 end
 
 function mongoc_collection_find_with_opts(collection_handle::Ptr{Cvoid}, bson_filter::Ptr{Cvoid}, bson_opts::Ptr{Cvoid}, read_prefs::Ptr{Cvoid})
@@ -115,7 +117,7 @@ function mongoc_collection_find_with_opts(collection_handle::Ptr{Cvoid}, bson_fi
 end
 
 function mongoc_collection_count_documents(collection_handle::Ptr{Cvoid}, bson_filter::Ptr{Cvoid}, bson_opts::Ptr{Cvoid}, read_prefs::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_collection_count_documents, libmongoc), Int64, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_filter, bson_opts, read_prefs, bson_reply, Ref{BSONError}(bson_error))
+    ccall((:mongoc_collection_count_documents, libmongoc), Int64, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_filter, bson_opts, read_prefs, bson_reply, Ref(bson_error))
 end
 
 function mongoc_cursor_destroy(cursor_handle::Ptr{Cvoid})
