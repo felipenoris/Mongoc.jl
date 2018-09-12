@@ -25,7 +25,7 @@ end
     cli = Mongoc.Client()
     @test cli.uri == "mongodb://localhost:27017"
     Mongoc.set_appname!(cli, "Runtests")
-    db = Mongoc.DB(cli, DB_NAME)
+    db = Mongoc.Database(cli, DB_NAME)
     coll = Mongoc.Collection(cli, DB_NAME, "new_collection")
 end
 
