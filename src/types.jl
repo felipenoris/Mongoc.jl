@@ -79,6 +79,7 @@ mutable struct Database
     end
 end
 
+"`Collection` is a wrapper for C struct `mongoc_collection_t`."
 mutable struct Collection
     client::Client
     db_name::String
@@ -96,6 +97,7 @@ mutable struct Collection
     end
 end
 
+"`Cursor` is a wrapper for C struct `mongoc_cursor_t`."
 mutable struct Cursor
     handle::Ptr{Cvoid}
 

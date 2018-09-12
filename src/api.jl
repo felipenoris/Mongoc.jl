@@ -13,6 +13,31 @@ function BSON(json_string::String)
     return BSON(handle)
 end
 
+"""
+    as_json_string(bson::BSON; canonical::Bool=false) :: String
+
+Converts a `bson` object to a JSON string.
+
+# Example
+
+```julia
+julia> document = Mongoc.BSON("{ \"hey\" : 1 }")
+Mongoc.BSON(Ptr{Nothing} @0x00007fbc8e62cc30)
+
+julia> Mongoc.as_json_string(document)
+"{ \"hey\" : 1 }"
+
+julia> Mongoc.as_json_string(document, canonical=true)
+"{ \"hey\" : { \"\$numberInt\" : \"1\" } }"
+```
+
+# C API
+
+* [`bson_as_canonical_extended_json`](http://mongoc.org/libbson/current/bson_as_canonical_extended_json.html)
+
+* [`bson_as_relaxed_extended_json](http://mongoc.org/libbson/current/bson_as_relaxed_extended_json.html)
+
+"""
 function as_json_string(bson::BSON; canonical::Bool=false) :: String
     cstring = canonical ? bson_as_canonical_extended_json(bson.handle) : bson_as_relaxed_extended_json(bson.handle)
     if cstring == C_NULL
@@ -27,6 +52,18 @@ end
 
 Client(host::String="localhost", port::Int=27017) = Client(URI("mongodb://$host:$port"))
 
+"""
+    set_appname!(client::Client, appname::String)
+
+Sets the application name for this client.
+
+This string, along with other internal driver details,
+is sent to the server as part of the initial connection handshake.
+
+# C API
+
+* [`mongoc_client_set_appname`](http://mongoc.org/libmongoc/current/mongoc_client_set_appname.html).
+"""
 function set_appname!(client::Client, appname::String)
     ok = mongoc_client_set_appname(client.handle, appname)
     if !ok
@@ -35,6 +72,26 @@ function set_appname!(client::Client, appname::String)
     nothing
 end
 
+"""
+    command_simple(client::Client, database::String, command::Union{String, BSON}) :: BSON
+
+Executes a `command` given by a JSON string or a BSON instance.
+
+# Example
+
+```julia
+julia> client = Mongoc.Client() # connects to localhost at port 27017
+Client(URI("mongodb://localhost:27017"))
+
+julia> bson_result = Mongoc.command_simple(client, "admin", "{ \"ping\" : 1 }")
+Mongoc.BSON(Ptr{Nothing} @0x00007f8663e0d8d0)
+
+julia> println(Mongoc.as_json_string(bson_result))
+{ "ok" : 1.0 }
+```
+
+See also: `command_simple_as_json`.
+"""
 function command_simple(client::Client, database::String, command::BSON) :: BSON
     reply = BSON()
     err = BSONError()
@@ -63,6 +120,21 @@ function command_simple(collection::Collection, command::String) :: BSON
     return command_simple(collection, BSON(command))
 end
 
+"""
+    command_simple_as_json(client::Client, database::String, command::Union{String, BSON}) :: String
+
+Same as `command_simple`, but returns a JSON string.
+
+# Example
+
+```julia
+julia> client = Mongoc.Client() # connects to localhost at port 27017
+Client(URI("mongodb://localhost:27017"))
+
+julia> result = Mongoc.command_simple_as_json(client, "admin", "{ \"ping\" : 1 }")
+"{ \"ok\" : 1.0 }"
+```
+"""
 function command_simple_as_json(client::Client, database::String, command::Union{String, BSON}) :: String
     return as_json_string(command_simple(client, database, command))
 end
