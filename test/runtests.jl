@@ -30,8 +30,8 @@ end
 end
 
 @testset "Connection" begin
-	cli = Mongoc.Client()
-	@test Mongoc.ping(cli) == "{ \"ok\" : 1.0 }"
+    cli = Mongoc.Client()
+    @test Mongoc.ping(cli) == "{ \"ok\" : 1.0 }"
     coll = Mongoc.Collection(cli, DB_NAME, "new_collection")
     bson_result = Mongoc.insert_one(coll, Mongoc.BSON("{ \"hello\" : \"world\" }"))
     @test Mongoc.as_json_string(bson_result) == "{ \"insertedCount\" : 1 }"

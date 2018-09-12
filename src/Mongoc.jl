@@ -27,9 +27,9 @@ end
 
 atexit() do
     @static if VERSION < v"0.7-"
-    	gc()
+        gc()
     else
-    	GC.gc()
+        GC.gc()
     end
 end
 
