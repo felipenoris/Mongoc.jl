@@ -1,7 +1,6 @@
 language: julia
 os:
   - linux
-  - osx
 services:
   - mongodb
 julia:
@@ -18,4 +17,4 @@ notifications:
   email: false
 after_success:
   - julia -e 'VERSION > v"0.7" && exit(); using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
-#  - julia -e 'VERSION > v"0.7" && exit(); using Pkg; Pkg.add("Documenter"); include(joinpath("docs", "make.jl"))'
+  - julia -e 'VERSION > v"0.7" && exit(); using Pkg; Pkg.add("Documenter"); include(joinpath("docs", "make.jl"))'
