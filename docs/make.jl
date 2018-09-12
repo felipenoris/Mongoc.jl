@@ -1,15 +1,15 @@
 
-using Documenter, XLSX
+using Documenter, Mongoc
 
 makedocs(
     format = :html,
-    sitename = "XLSX.jl",
-    modules = [ XLSX ],
+    sitename = "Mongoc.jl",
+    modules = [ Mongoc ],
     pages = [ "index.md", "api.md" ]
 )
 
 deploydocs(
-    repo = "github.com/felipenoris/XLSX.jl.git",
+    repo = "github.com/felipenoris/Mongoc.jl.git",
     target = "build",
     julia  = "1.0",
     deps   = nothing,
