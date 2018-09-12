@@ -1,0 +1,3 @@
+deps/deps.jl
+deps/usr/**
+deps/build.log
