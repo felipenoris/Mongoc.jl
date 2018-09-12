@@ -16,8 +16,8 @@ const DB_NAME = "mongoc_tests"
 
 @testset "BSON" begin
     bson = Mongoc.BSON("{\"hey\" : 1}")
-    @test Mongoc.as_json_string(bson) == "{ \"hey\" : 1 }"
-    @test Mongoc.as_json_string(bson, canonical=true) == "{ \"hey\" : { \"\$numberInt\" : \"1\" } }"
+    @test Mongoc.as_json(bson) == "{ \"hey\" : 1 }"
+    @test Mongoc.as_json(bson, canonical=true) == "{ \"hey\" : { \"\$numberInt\" : \"1\" } }"
 end
 
 @testset "Types" begin
@@ -32,18 +32,31 @@ end
 @testset "Connection" begin
     cli = Mongoc.Client()
     @test Mongoc.ping(cli) == "{ \"ok\" : 1.0 }"
-    coll = Mongoc.Collection(cli, DB_NAME, "new_collection")
-    bson_result = Mongoc.insert_one(coll, Mongoc.BSON("{ \"hello\" : \"world\" }"))
-    @test Mongoc.as_json_string(bson_result) == "{ \"insertedCount\" : 1 }"
 
-    bson_result = Mongoc.insert_one(coll, Mongoc.BSON("{ \"hey\" : \"you\" }"))
-    @test Mongoc.as_json_string(bson_result) == "{ \"insertedCount\" : 1 }"
+    @testset "new_collection" begin
+        coll = Mongoc.Collection(cli, DB_NAME, "new_collection")
+        bson_result = Mongoc.insert_one(coll, Mongoc.BSON("{ \"hello\" : \"world\" }"))
+        @test Mongoc.as_json(bson_result) == "{ \"insertedCount\" : 1 }"
+        bson_result = Mongoc.insert_one(coll, Mongoc.BSON("{ \"hey\" : \"you\" }"))
+        @test Mongoc.as_json(bson_result) == "{ \"insertedCount\" : 1 }"
 
-    i = 0
-    for bson in Mongoc.find(coll)
-        i += 1
+        i = 0
+        for bson in Mongoc.find(coll)
+            i += 1
+        end
+        @test i == length(coll)
+
+        Mongoc.command_simple_as_json(coll, "{ \"collStats\" : \"new_collection\" }")
     end
-    @test i == length(coll)
 
-    Mongoc.command_simple_as_json(coll, "{ \"collStats\" : \"new_collection\" }")
+    @testset "find_databases" begin
+        found = false
+        prefix = "{ \"name\" : \"mongoc_tests\""
+        for obj in Mongoc.find_databases(cli)
+            if startswith(Mongoc.as_json(obj), prefix)
+                found = true
+            end
+        end
+        @test found
+    end
 end

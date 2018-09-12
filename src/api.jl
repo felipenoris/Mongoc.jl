@@ -14,7 +14,7 @@ function BSON(json_string::String)
 end
 
 """
-    as_json_string(bson::BSON; canonical::Bool=false) :: String
+    as_json(bson::BSON; canonical::Bool=false) :: String
 
 Converts a `bson` object to a JSON string.
 
@@ -22,12 +22,12 @@ Converts a `bson` object to a JSON string.
 
 ```julia
 julia> document = Mongoc.BSON("{ \"hey\" : 1 }")
-Mongoc.BSON(Ptr{Nothing} @0x00007fbc8e62cc30)
+BSON("{ "hey" : 1 }")
 
-julia> Mongoc.as_json_string(document)
+julia> Mongoc.as_json(document)
 "{ \"hey\" : 1 }"
 
-julia> Mongoc.as_json_string(document, canonical=true)
+julia> Mongoc.as_json(document, canonical=true)
 "{ \"hey\" : { \"\$numberInt\" : \"1\" } }"
 ```
 
@@ -35,10 +35,10 @@ julia> Mongoc.as_json_string(document, canonical=true)
 
 * [`bson_as_canonical_extended_json`](http://mongoc.org/libbson/current/bson_as_canonical_extended_json.html)
 
-* [`bson_as_relaxed_extended_json](http://mongoc.org/libbson/current/bson_as_relaxed_extended_json.html)
+* [`bson_as_relaxed_extended_json`](http://mongoc.org/libbson/current/bson_as_relaxed_extended_json.html)
 
 """
-function as_json_string(bson::BSON; canonical::Bool=false) :: String
+function as_json(bson::BSON; canonical::Bool=false) :: String
     cstring = canonical ? bson_as_canonical_extended_json(bson.handle) : bson_as_relaxed_extended_json(bson.handle)
     if cstring == C_NULL
         error("Couldn't convert bson to json.")
@@ -77,6 +77,8 @@ end
 
 Executes a `command` given by a JSON string or a BSON instance.
 
+It returns the first document from the result cursor.
+
 # Example
 
 ```julia
@@ -84,11 +86,12 @@ julia> client = Mongoc.Client() # connects to localhost at port 27017
 Client(URI("mongodb://localhost:27017"))
 
 julia> bson_result = Mongoc.command_simple(client, "admin", "{ \"ping\" : 1 }")
-Mongoc.BSON(Ptr{Nothing} @0x00007f8663e0d8d0)
-
-julia> println(Mongoc.as_json_string(bson_result))
-{ "ok" : 1.0 }
+BSON("{ "ok" : 1.0 }")
 ```
+
+# C API
+
+* [`mongoc_client_command_simple`](http://mongoc.org/libmongoc/current/mongoc_client_command_simple.html)
 
 See also: `command_simple_as_json`.
 """
@@ -123,7 +126,7 @@ end
 """
     command_simple_as_json(client::Client, database::String, command::Union{String, BSON}) :: String
 
-Same as `command_simple`, but returns a JSON string.
+Same as `command_simple`, but the result is returned as a JSON string.
 
 # Example
 
@@ -134,17 +137,32 @@ Client(URI("mongodb://localhost:27017"))
 julia> result = Mongoc.command_simple_as_json(client, "admin", "{ \"ping\" : 1 }")
 "{ \"ok\" : 1.0 }"
 ```
+
+# C API
+
+* [`mongoc_client_command_simple`](http://mongoc.org/libmongoc/current/mongoc_client_command_simple.html)
+
+See also: `command_simple`.
 """
 function command_simple_as_json(client::Client, database::String, command::Union{String, BSON}) :: String
-    return as_json_string(command_simple(client, database, command))
+    return as_json(command_simple(client, database, command))
 end
 
 function command_simple_as_json(collection::Collection, command::Union{String, BSON}) :: String
-    return as_json_string(command_simple(collection, command))
+    return as_json(command_simple(collection, command))
 end
 
 function ping(client::Client) :: String
     return command_simple_as_json(client, "admin", "{ \"ping\" : 1 }")
+end
+
+function find_databases(client::Client; options::Union{Nothing, BSON}=nothing) :: Cursor
+    options_handle = options == nothing ? C_NULL : options.handle
+    cursor_handle = mongoc_client_find_databases_with_opts(client.handle, options_handle)
+    if cursor_handle == C_NULL
+        error("Couldn't execute query.")
+    end
+    return Cursor(cursor_handle)
 end
 
 function insert_one(collection::Collection, document::BSON; options::Union{Nothing, BSON}=nothing) :: BSON

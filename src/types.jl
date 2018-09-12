@@ -112,6 +112,7 @@ end
 # Basic functions for types
 #
 
+Base.show(io::IO, bson::BSON) = print(io, "BSON(\"", as_json(bson), "\")")
 Base.show(io::IO, err::BSONError) = print(io, replace(String([ i for i in err.message]), '\0' => ""))
 Base.show(io::IO, uri::URI) = print(io, "URI(\"", uri.uri, "\")")
 Base.show(io::IO, client::Client) = print(io, "Client(URI(\"", client.uri, "\"))")

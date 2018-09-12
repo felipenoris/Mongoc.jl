@@ -79,6 +79,10 @@ function mongoc_client_get_collection(client_handle::Ptr{Cvoid}, db_name::String
     ccall((:mongoc_client_get_collection, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Cstring, Cstring), client_handle, db_name, coll_name)
 end
 
+function mongoc_client_find_databases_with_opts(client_handle::Ptr{Cvoid}, bson_opts::Ptr{Cvoid})
+    ccall((:mongoc_client_find_databases_with_opts, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}), client_handle, bson_opts)
+end
+
 function mongoc_collection_command_simple(collection_handle::Ptr{Cvoid}, bson_command::Ptr{Cvoid}, read_prefs::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
     ccall((:mongoc_collection_command_simple, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_command, read_prefs, bson_reply, Ref{BSONError}(bson_error))
 end
