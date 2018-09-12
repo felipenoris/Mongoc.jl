@@ -37,7 +37,15 @@ var documenterSearchIndex = {"docs": [
     "page": "API",
     "title": "Mongoc.BSONError",
     "category": "type",
-    "text": "Mirrors C struct bson_error_t.\n\nBSONError instances addresses are passed to libmongoc API using Ref{BSONError}(error), and are owned by the Julia process.\n\ntypedef struct {\n   uint32_t domain;\n   uint32_t code;\n   char message[504];\n} bson_error_t;\n\n\n\n\n\n"
+    "text": "Mirrors C struct bson_error_t.\n\nBSONError instances addresses are passed to libbson/libmongoc API using Ref{BSONError}(error), and are owned by the Julia process.\n\ntypedef struct {\n   uint32_t domain;\n   uint32_t code;\n   char message[504];\n} bson_error_t;\n\n\n\n\n\n"
+},
+
+{
+    "location": "api.html#Mongoc.BSONObjectId",
+    "page": "API",
+    "title": "Mongoc.BSONObjectId",
+    "category": "type",
+    "text": "Mirrors C struct bson_oid_t.\n\nBSONObjectId instances addresses are passed to libbson/libmongoc API using Ref{BSONObjectId}(oid), and are owned by the Julia process.\n\n#include <bson.h>\n\ntypedef struct {\n   uint8_t bytes[12];\n} bson_oid_t;\n\n\n\n\n\n"
 },
 
 {
@@ -93,15 +101,15 @@ var documenterSearchIndex = {"docs": [
     "page": "API",
     "title": "Mongoc.command_simple",
     "category": "method",
-    "text": "command_simple(client::Client, database::String, command::Union{String, BSON}) :: BSON\n\nExecutes a command given by a JSON string or a BSON instance.\n\nIt returns the first document from the result cursor.\n\nExample\n\njulia> client = Mongoc.Client() # connects to localhost at port 27017\nClient(URI(\"mongodb://localhost:27017\"))\n\njulia> bson_result = Mongoc.command_simple(client, \"admin\", \"{ \"ping\" : 1 }\")\nBSON(\"{ \"ok\" : 1.0 }\")\n\nC API\n\nmongoc_client_command_simple\n\nSee also: command_simple_as_json.\n\n\n\n\n\n"
+    "text": "command_simple(client::Client, database::String, command::Union{String, BSON}) :: BSON\n\nExecutes a command given by a JSON string or a BSON instance.\n\nIt returns the first document from the result cursor.\n\nExample\n\njulia> client = Mongoc.Client() # connects to localhost at port 27017\nClient(URI(\"mongodb://localhost:27017\"))\n\njulia> bson_result = Mongoc.command_simple(client, \"admin\", \"{ \"ping\" : 1 }\")\nBSON(\"{ \"ok\" : 1.0 }\")\n\nC API\n\nmongoc_client_command_simple\n\n\n\n\n\n"
 },
 
 {
-    "location": "api.html#Mongoc.command_simple_as_json-Tuple{Mongoc.Client,String,Union{String, BSON}}",
+    "location": "api.html#Mongoc.find_one",
     "page": "API",
-    "title": "Mongoc.command_simple_as_json",
-    "category": "method",
-    "text": "command_simple_as_json(client::Client, database::String, command::Union{String, BSON}) :: String\n\nSame as command_simple, but the result is returned as a JSON string.\n\nExample\n\njulia> client = Mongoc.Client() # connects to localhost at port 27017\nClient(URI(\"mongodb://localhost:27017\"))\n\njulia> result = Mongoc.command_simple_as_json(client, \"admin\", \"{ \"ping\" : 1 }\")\n\"{ \"ok\" : 1.0 }\"\n\nC API\n\nmongoc_client_command_simple\n\nSee also: command_simple.\n\n\n\n\n\n"
+    "title": "Mongoc.find_one",
+    "category": "function",
+    "text": "find_one(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}\n\nExecute a query to a collection and returns the first element of the result set.\n\nReturns nothing if the result set is empty.\n\n\n\n\n\n"
 },
 
 {
