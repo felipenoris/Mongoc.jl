@@ -14,6 +14,14 @@ end
 
 const DB_NAME = "mongoc_tests"
 
+function gc_on_osx_v6()
+    @static if VERSION < v"0.7-" && is_apple()
+            gc()
+    else
+        nothing
+    end
+end
+
 @testset "BSON" begin
 
     @testset "as_json" begin
@@ -103,6 +111,8 @@ end
         Mongoc.command_simple(coll, "{ \"collStats\" : \"new_collection\" }")
     end
 
+    gc_on_osx_v6() # avoid segfault on Cursor destroy
+
     @testset "find_databases" begin
         found = false
         prefix = "{ \"name\" : \"mongoc_tests\""
@@ -113,4 +123,6 @@ end
         end
         @test found
     end
+
+    gc_on_osx_v6() # avoid segfault on Cursor destroy
 end

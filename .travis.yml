@@ -1,20 +1,36 @@
 language: julia
+
 os:
   - linux
+  - osx
+
+before_install: # from https://github.com/mongodb/mongo-c-driver/blob/master/.travis.yml
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+  # https://github.com/Homebrew/homebrew-core/issues/26358
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink python; fi
+  # "brew install" can succeed but return 1 if it has "caveats".
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install mongodb || true; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services start mongodb; fi
+
 services:
   - mongodb
+
 julia:
   - 0.6
   - 0.7
   - 1.0
   - nightly
+
 matrix:
   allow_failures:
     - julia: nightly
+
 env:
   - JULIA_PROJECT="@."
+
 notifications:
   email: false
+
 after_success:
-  - julia -e 'ENV["TRAVIS_JULIA_VERSION"] != "1.0" && exit(); using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
-  - julia -e 'ENV["TRAVIS_JULIA_VERSION"] != "1.0" && exit(); using Pkg; Pkg.add("Documenter"); include(joinpath("docs", "make.jl"))'
+  - julia -e 'ENV["TRAVIS_JULIA_VERSION"] != "1.0" && ENV["TRAVIS_OS_NAME"] != "linux" && exit(); using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+  - julia -e 'ENV["TRAVIS_JULIA_VERSION"] != "1.0" && ENV["TRAVIS_OS_NAME"] != "linux" && exit(); using Pkg; Pkg.add("Documenter"); include(joinpath("docs", "make.jl"))'
