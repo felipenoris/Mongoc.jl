@@ -7,8 +7,8 @@ https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/
 # libbson
 #
 
-function bson_oid_init(oid::BSONObjectId, context::Ptr{Cvoid})
-    ccall((:bson_oid_init, libbson), Cvoid, (Ref{BSONObjectId}, Ptr{Cvoid}), Ref(oid), context)
+function bson_oid_init(oid_ref::Ref{BSONObjectId}, context::Ptr{Cvoid})
+    ccall((:bson_oid_init, libbson), Cvoid, (Ref{BSONObjectId}, Ptr{Cvoid}), oid_ref, context)
 end
 
 function bson_oid_to_string(oid::BSONObjectId)
@@ -24,7 +24,7 @@ function bson_oid_compare(oid1::BSONObjectId, oid2::BSONObjectId)
 end
 
 function bson_append_oid(bson_document::Ptr{Cvoid}, key::String, key_length::Int, oid::BSONObjectId)
-    oid_copy = deepcopy(oid) # you get a segfault if you pass an oid to bson_append_oid and reuse it after bson_document is freed
+    oid_copy = oid
     ccall((:bson_append_oid, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Ref{BSONObjectId}), bson_document, key, key_length, Ref(oid_copy))
 end
 
@@ -44,12 +44,74 @@ function bson_as_relaxed_extended_json(bson_document::Ptr{Cvoid})
     ccall((:bson_as_relaxed_extended_json, libbson), Cstring, (Ptr{Cvoid}, Ptr{Cvoid}), bson_document, C_NULL)
 end
 
-function bson_copy(bson_document::Ptr{Cvoid}) # (const bson_t *bson)
+function bson_copy(bson_document::Ptr{Cvoid})
     ccall((:bson_copy, libbson), Ptr{Cvoid}, (Ptr{Cvoid},), bson_document)
 end
 
 function bson_has_field(bson_document::Ptr{Cvoid}, key::String)
     ccall((:bson_has_field, libbson), Bool, (Ptr{Cvoid}, Cstring), bson_document, key)
+end
+
+function bson_iter_init(iter_ref::Ref{BSONIter}, bson_document::Ptr{Cvoid})
+    ccall((:bson_iter_init, libbson), Bool, (Ref{BSONIter}, Ptr{Cvoid}), iter_ref, bson_document)
+end
+
+function bson_iter_next(iter_ref::Ref{BSONIter})
+    ccall((:bson_iter_next, libbson), Bool, (Ref{BSONIter},), iter_ref)
+end
+
+function bson_iter_find(iter_ref::Ref{BSONIter}, key::String)
+    ccall((:bson_iter_find, libbson), Bool, (Ref{BSONIter}, Cstring), iter_ref, key)
+end
+
+function bson_iter_init_find(iter_ref::Ref{BSONIter}, bson_document::Ptr{Cvoid}, key::String)
+    ccall((:bson_iter_init_find, libbson), Bool, (Ref{BSONIter}, Ptr{Cvoid}, Cstring), iter_ref, bson_document, key)
+end
+
+function bson_iter_type(iter_ref::Ref{BSONIter})
+    ccall((:bson_iter_type, libbson), BSONType, (Ref{BSONIter},), iter_ref)
+end
+
+function bson_iter_key(iter_ref::Ref{BSONIter})
+    ccall((:bson_iter_key, libbson), Cstring, (Ref{BSONIter},), iter_ref)
+end
+
+function bson_iter_int32(iter_ref::Ref{BSONIter})
+    ccall((:bson_iter_int32, libbson), Int32, (Ref{BSONIter},), iter_ref)
+end
+
+function bson_iter_int64(iter_ref::Ref{BSONIter})
+    ccall((:bson_iter_int64, libbson), Int64, (Ref{BSONIter},), iter_ref)
+end
+
+function bson_iter_utf8(iter_ref::Ref{BSONIter})
+    ccall((:bson_iter_utf8, libbson), Cstring, (Ref{BSONIter}, Ptr{Cvoid}), iter_ref, C_NULL)
+end
+
+function bson_iter_bool(iter_ref::Ref{BSONIter})
+    ccall((:bson_iter_bool, libbson), Bool, (Ref{BSONIter},), iter_ref)
+end
+
+function bson_iter_double(iter_ref::Ref{BSONIter})
+    ccall((:bson_iter_double, libbson), Float64, (Ref{BSONIter},), iter_ref)
+end
+
+function bson_iter_oid(iter_ref::Ref{BSONIter})
+    ccall((:bson_iter_oid, libbson), Ptr{BSONObjectId}, (Ref{BSONIter},), iter_ref)
+end
+
+#=
+void
+bson_iter_array (const bson_iter_t *iter,
+                 uint32_t *array_len,
+                 const uint8_t **array);
+=#
+#function bson_iter_array(iter_ref::Ref{BSONIter}, array_len_ref::Ref{UInt32}, array::Ref{Ptr{UInt8}})
+#    ccall((:bson_iter_array, libbson), Cvoid, (Ref{BSONIter}, Ref{UInt32}, Ref{Ptr{UInt8}}), iter_ref, array_len_ref, array)
+#end
+
+function bson_iter_recurse(iter_ref::Ref{BSONIter}, child_iter_ref::Ref{BSONIter})
+    ccall((:bson_iter_recurse, libbson), Bool, (Ref{BSONIter}, Ref{BSONIter}), iter_ref, child_iter_ref)
 end
 
 #

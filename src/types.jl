@@ -1,66 +1,4 @@
 
-"""
-Mirrors C struct `bson_oid_t`.
-
-`BSONObjectId` instances addresses are passed
-to libbson/libmongoc API using `Ref(oid)`,
-and are owned by the Julia process.
-
-```c
-#include <bson.h>
-
-typedef struct {
-   uint8_t bytes[12];
-} bson_oid_t;
-```
-"""
-mutable struct BSONObjectId
-    bytes::NTuple{12, UInt8}
-
-    function BSONObjectId()
-        new_oid = new(tuple(zeros(UInt8, 12)...))
-        bson_oid_init(new_oid, C_NULL)
-        return new_oid
-    end
-end
-
-Base.:(==)(oid1::BSONObjectId, oid2::BSONObjectId) = oid1.bytes == oid2.bytes
-Base.hash(oid::BSONObjectId) = 1 + hash(oid.bytes)
-
-"""
-Mirrors C struct `bson_error_t`.
-
-`BSONError` instances addresses are passed
-to libbson/libmongoc API using `Ref(error)`,
-and are owned by the Julia process.
-
-```c
-typedef struct {
-   uint32_t domain;
-   uint32_t code;
-   char message[504];
-} bson_error_t;
-```
-"""
-mutable struct BSONError
-    domain::UInt32
-    code::UInt32
-    message::NTuple{504, UInt8}
-
-    BSONError() = new(0, 0, tuple(zeros(UInt8, 504)...))
-end
-
-"`BSON` is a wrapper for C struct `bson_t`."
-mutable struct BSON
-    handle::Ptr{Cvoid}
-
-    function BSON(handle::Ptr{Cvoid})
-        new_bson = new(handle)
-        @compat finalizer(destroy!, new_bson)
-        return new_bson
-    end
-end
-
 "`URI` is a wrapper for C struct `mongoc_uri_t`."
 mutable struct URI
     uri::String
@@ -135,14 +73,6 @@ end
 # Basic functions for types
 #
 
-function destroy!(bson::BSON)
-    if bson.handle != C_NULL
-        bson_destroy(bson.handle)
-        bson.handle = C_NULL
-    end
-    nothing
-end
-
 function destroy!(uri::URI)
     if uri.handle != C_NULL
         mongoc_uri_destroy(uri.handle)
@@ -181,4 +111,9 @@ function destroy!(cursor::Cursor)
         cursor.handle = C_NULL
     end
     nothing
+end
+
+struct InsertOneResult
+    reply::BSON
+    inserted_oid::Union{Nothing, BSONObjectId}
 end

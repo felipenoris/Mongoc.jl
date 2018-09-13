@@ -30,16 +30,6 @@ end
         @test Mongoc.as_json(bson, canonical=true) == "{ \"hey\" : { \"\$numberInt\" : \"1\" } }"
     end
 
-    @testset "BSONObjectId segfault issue" begin
-        io = IOBuffer()
-        v = Vector{Mongoc.BSONObjectId}()
-
-        for i in 1:5
-            push!(v, Mongoc.BSONObjectId())
-        end
-        show(io, v)
-    end
-
     @testset "oid compare" begin
         x = Mongoc.BSONObjectId()
         y = Mongoc.BSONObjectId()
@@ -55,18 +45,67 @@ end
         @test Mongoc.bson_oid_compare(y, y) == 0
     end
 
-    @testset "oid sort" begin
-        v = Vector{Mongoc.BSONObjectId}()
-        for i in 1:10_000
-            push!(v, Mongoc.BSONObjectId())
-        end
-        @test length(v) == length(unique(v))
+    # https://github.com/JuliaLang/julia/issues/29193
+    #=
+    if VERSION < v"0.7-"
+        @testset "BSONObjectId segfault issue" begin
+            io = IOBuffer()
+            v = Vector{Mongoc.BSONObjectId}()
 
-        v_sorted = sort(v, lt = (a,b) -> Mongoc.bson_oid_compare(a,b) < 0)
-        @test length(v_sorted) == length(v)
-        for i in 1:length(v_sorted)
-            @test v_sorted[i] == v[i]
+            for i in 1:5
+                push!(v, Mongoc.BSONObjectId())
+            end
+            show(io, v)
         end
+
+        @testset "oid sort" begin
+            v = Vector{Mongoc.BSONObjectId}()
+            for i in 1:10_000
+                push!(v, Mongoc.BSONObjectId())
+            end
+            @test length(v) == length(unique(v))
+
+            v_sorted = sort(v, lt = (a,b) -> Mongoc.bson_oid_compare(a,b) < 0)
+            @test length(v_sorted) == length(v)
+            for i in 1:length(v_sorted)
+                @test v_sorted[i] == v[i]
+            end
+        end
+    end
+    =#
+
+    @testset "BSON Iterator" begin
+        doc = Mongoc.BSON("""{ "a" : 1, "b" : 2.2, "str" : "my string", "bool_t" : true, "bool_f" : false, "array" : [1, 2, false, "inner_string"], "document" : { "a" : 1, "b" : "b_string"}  }""")
+
+        new_id = Mongoc.BSONObjectId()
+        doc["_id"] = new_id
+
+        @test haskey(doc, "a")
+        @test haskey(doc, "b")
+        @test !haskey(doc, "c")
+        @test haskey(doc, "str")
+        @test haskey(doc, "_id")
+        @test haskey(doc, "array")
+        @test haskey(doc, "document")
+
+        @test doc["a"] == 1
+        @test doc["b"] == 2.2
+        @test doc["str"] == "my string"
+        @test doc["bool_t"]
+        @test !doc["bool_f"]
+        @test doc["_id"] == new_id
+        @test doc["array"] == [1, 2, false, "inner_string"]
+        @test doc["document"] == Dict("a"=>1, "b"=>"b_string")
+
+        doc_dict = Mongoc.as_dict(doc)
+        @test doc_dict["a"] == 1
+        @test doc_dict["b"] == 2.2
+        @test doc_dict["str"] == "my string"
+        @test doc_dict["bool_t"]
+        @test !doc_dict["bool_f"]
+        @test doc_dict["_id"] == new_id
+        @test doc_dict["array"] == [1, 2, false, "inner_string"]
+        @test doc_dict["document"] == Dict("a"=>1, "b"=>"b_string")
     end
 end
 

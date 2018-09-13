@@ -16,6 +16,7 @@ end
 include(libmongocpath)
 
 include("compat.jl")
+include("bson.jl")
 include("types.jl")
 include("c_api.jl")
 include("api.jl")

@@ -3,51 +3,6 @@
 # Public API
 #
 
-BSON() = BSON("{}")
-
-function BSON(json_string::String)
-    handle = bson_new_from_json(json_string)
-    if handle == C_NULL
-        error("Failed parsing JSON to BSON. $json_string.")
-    end
-    return BSON(handle)
-end
-
-has_field(bson::BSON, key::String) = bson_has_field(bson.handle, key)
-
-"""
-    as_json(bson::BSON; canonical::Bool=false) :: String
-
-Converts a `bson` object to a JSON string.
-
-# Example
-
-```julia
-julia> document = Mongoc.BSON("{ \"hey\" : 1 }")
-BSON("{ "hey" : 1 }")
-
-julia> Mongoc.as_json(document)
-"{ \"hey\" : 1 }"
-
-julia> Mongoc.as_json(document, canonical=true)
-"{ \"hey\" : { \"\$numberInt\" : \"1\" } }"
-```
-
-# C API
-
-* [`bson_as_canonical_extended_json`](http://mongoc.org/libbson/current/bson_as_canonical_extended_json.html)
-
-* [`bson_as_relaxed_extended_json`](http://mongoc.org/libbson/current/bson_as_relaxed_extended_json.html)
-
-"""
-function as_json(bson::BSON; canonical::Bool=false) :: String
-    cstring = canonical ? bson_as_canonical_extended_json(bson.handle) : bson_as_relaxed_extended_json(bson.handle)
-    if cstring == C_NULL
-        error("Couldn't convert bson to json.")
-    end
-    return unsafe_string(cstring)
-end
-
 Client(host::String="localhost", port::Int=27017) = Client(URI("mongodb://$host:$port"))
 
 function Collection(database::Database, coll_name::String)
@@ -146,19 +101,12 @@ function find_databases(client::Client; options::Union{Nothing, BSON}=nothing) :
     return Cursor(cursor_handle)
 end
 
-struct InsertOneResult
-    reply::BSON
-    inserted_oid::Union{Nothing, BSONObjectId}
-end
-
 function insert_one(collection::Collection, document::BSON; options::Union{Nothing, BSON}=nothing) :: InsertOneResult
+
     inserted_oid = nothing
     if !has_field(document, "_id")
         inserted_oid = BSONObjectId()
-        ok = bson_append_oid(document.handle, "_id", -1, inserted_oid)
-        if !ok
-            error("Couldn't append oid to BSON document.")
-        end
+        document["_id"] = inserted_oid
     end
 
     reply = BSON()
@@ -282,15 +230,11 @@ function Base.deepcopy(bson::BSON) :: BSON
     return BSON(bson_copy(bson.handle))
 end
 
-Base.show(io::IO, oid::BSONObjectId) = print(io, "BSONObjectId(\"", bson_oid_to_string(oid), "\")")
-Base.show(io::IO, bson::BSON) = print(io, "BSON(\"", as_json(bson), "\")")
-Base.show(io::IO, err::BSONError) = print(io, replace(String([ i for i in err.message]), '\0' => ""))
 Base.show(io::IO, uri::URI) = print(io, "URI(\"", uri.uri, "\")")
 Base.show(io::IO, client::Client) = print(io, "Client(URI(\"", client.uri, "\"))")
 Base.show(io::IO, db::Database) = print(io, "Database($(db.client), \"", db.name, "\")")
 Base.show(io::IO, coll::Collection) = print(io, "Collection($(coll.database), \"", coll.name, "\")")
 
-Base.haskey(bson::BSON, key::String) = has_field(bson, key)
 Base.getindex(client::Client, database::String) = Database(client, database)
 Base.getindex(database::Database, collection_name::String) = Collection(database, collection_name)
 Base.push!(collection::Collection, document::Union{String, BSON}; options::Union{Nothing, BSON}=nothing) = insert_one(collection, document; options=options)
