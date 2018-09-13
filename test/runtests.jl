@@ -15,9 +15,12 @@ end
 const DB_NAME = "mongoc_tests"
 
 @testset "BSON" begin
-    bson = Mongoc.BSON("{\"hey\" : 1}")
-    @test Mongoc.as_json(bson) == "{ \"hey\" : 1 }"
-    @test Mongoc.as_json(bson, canonical=true) == "{ \"hey\" : { \"\$numberInt\" : \"1\" } }"
+
+    @testset "as_json" begin
+        bson = Mongoc.BSON("{\"hey\" : 1}")
+        @test Mongoc.as_json(bson) == "{ \"hey\" : 1 }"
+        @test Mongoc.as_json(bson, canonical=true) == "{ \"hey\" : { \"\$numberInt\" : \"1\" } }"
+    end
 
     @testset "BSONObjectId segfault issue" begin
         io = IOBuffer()
@@ -27,6 +30,35 @@ const DB_NAME = "mongoc_tests"
             push!(v, Mongoc.BSONObjectId())
         end
         show(io, v)
+    end
+
+    @testset "oid compare" begin
+        x = Mongoc.BSONObjectId()
+        y = Mongoc.BSONObjectId()
+        @test x != y
+        @test x == x
+        @test y == y
+        @test hash(x) == hash(x)
+        @test hash(y) == hash(y)
+        @test hash(x) != hash(y)
+        @test Mongoc.bson_oid_compare(x, y) < 0
+        @test Mongoc.bson_oid_compare(y, x) > 0
+        @test Mongoc.bson_oid_compare(x, x) == 0
+        @test Mongoc.bson_oid_compare(y, y) == 0
+    end
+
+    @testset "oid sort" begin
+        v = Vector{Mongoc.BSONObjectId}()
+        for i in 1:10_000
+            push!(v, Mongoc.BSONObjectId())
+        end
+        @test length(v) == length(unique(v))
+
+        v_sorted = sort(v, lt = (a,b) -> Mongoc.bson_oid_compare(a,b) < 0)
+        @test length(v_sorted) == length(v)
+        for i in 1:length(v_sorted)
+            @test v_sorted[i] == v[i]
+        end
     end
 end
 

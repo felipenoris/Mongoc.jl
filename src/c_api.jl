@@ -19,6 +19,10 @@ function bson_oid_to_string(oid::BSONObjectId)
     return String(buffer)
 end
 
+function bson_oid_compare(oid1::BSONObjectId, oid2::BSONObjectId)
+    ccall((:bson_oid_compare, libbson), Cint, (Ref{BSONObjectId}, Ref{BSONObjectId}), Ref(oid1), Ref(oid2))
+end
+
 function bson_append_oid(bson_document::Ptr{Cvoid}, key::String, key_length::Int, oid::BSONObjectId)
     oid_copy = deepcopy(oid) # you get a segfault if you pass an oid to bson_append_oid and reuse it after bson_document is freed
     ccall((:bson_append_oid, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Ref{BSONObjectId}), bson_document, key, key_length, Ref(oid_copy))
