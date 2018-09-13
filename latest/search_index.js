@@ -37,7 +37,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API",
     "title": "Mongoc.BSONError",
     "category": "type",
-    "text": "Mirrors C struct bson_error_t.\n\nBSONError instances addresses are passed to libbson/libmongoc API using Ref{BSONError}(error), and are owned by the Julia process.\n\ntypedef struct {\n   uint32_t domain;\n   uint32_t code;\n   char message[504];\n} bson_error_t;\n\n\n\n\n\n"
+    "text": "Mirrors C struct bson_error_t.\n\nBSONError instances addresses are passed to libbson/libmongoc API using Ref(error), and are owned by the Julia process.\n\ntypedef struct {\n   uint32_t domain;\n   uint32_t code;\n   char message[504];\n} bson_error_t;\n\n\n\n\n\n"
 },
 
 {
@@ -45,7 +45,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API",
     "title": "Mongoc.BSONObjectId",
     "category": "type",
-    "text": "Mirrors C struct bson_oid_t.\n\nBSONObjectId instances addresses are passed to libbson/libmongoc API using Ref{BSONObjectId}(oid), and are owned by the Julia process.\n\n#include <bson.h>\n\ntypedef struct {\n   uint8_t bytes[12];\n} bson_oid_t;\n\n\n\n\n\n"
+    "text": "Mirrors C struct bson_oid_t.\n\nBSONObjectId instances addresses are passed to libbson/libmongoc API using Ref(oid), and are owned by the Julia process.\n\n#include <bson.h>\n\ntypedef struct {\n   uint8_t bytes[12];\n} bson_oid_t;\n\n\n\n\n\n"
 },
 
 {
