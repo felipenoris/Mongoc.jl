@@ -17,6 +17,30 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "index.html#Requirements-1",
+    "page": "Mongoc.jl",
+    "title": "Requirements",
+    "category": "section",
+    "text": "MongoDB 3.0 or newer\nOn Linux x64: Julia v0.6, v0.7, v1.0.\nOn Mac: Julia v0.7, v1.0."
+},
+
+{
+    "location": "index.html#MongoDB-C-Driver-1",
+    "page": "Mongoc.jl",
+    "title": "MongoDB C Driver",
+    "category": "section",
+    "text": "This packages downloads precompiled binaries for MongoDB C Driver v1.12.0 from mongo-c-driver-builder.The binaries are compiled by Travis CI, using BinaryBuilder.jl.Windows is currently not supported because the C driver requires Visual Studio to be compiled.If your platform is not supported and can be compiled by BinaryBuilder.jl, please open an issue."
+},
+
+{
+    "location": "index.html#Instructions-1",
+    "page": "Mongoc.jl",
+    "title": "Instructions",
+    "category": "section",
+    "text": "The public API for this package is available at api.jl source file.Check tests/runtests.jl for code examples."
+},
+
+{
     "location": "api.html#",
     "page": "API",
     "title": "API",
