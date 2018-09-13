@@ -25,12 +25,4 @@ function __init__()
     mongoc_init()
 end
 
-atexit() do
-    @static if VERSION < v"0.7-"
-        gc()
-    else
-        GC.gc()
-    end
-end
-
 end # module Mongoc
