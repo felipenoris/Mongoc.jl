@@ -61,7 +61,15 @@ var documenterSearchIndex = {"docs": [
     "page": "API",
     "title": "Mongoc.BSONError",
     "category": "type",
-    "text": "Mirrors C struct bson_error_t.\n\nBSONError instances addresses are passed to libbson/libmongoc API using Ref(error), and are owned by the Julia process.\n\ntypedef struct {\n   uint32_t domain;\n   uint32_t code;\n   char message[504];\n} bson_error_t;\n\n\n\n\n\n"
+    "text": "Mirrors C struct bson_error_t and can be allocated in the stack.\n\nBSONError instances addresses are passed to libbson/libmongoc API using Ref(error), and are owned by the Julia process.\n\ntypedef struct {\n   uint32_t domain;\n   uint32_t code;\n   char message[504];\n} bson_error_t;\n\n\n\n\n\n"
+},
+
+{
+    "location": "api.html#Mongoc.BSONIter",
+    "page": "API",
+    "title": "Mongoc.BSONIter",
+    "category": "type",
+    "text": "BSONIter mirrors C struct bsonitert and can be allocated in the stack.\n\nAccording to libbson documentation, it is meant to be used on the stack and can be discarded at any time as it contains no external allocation. The contents of the structure should be considered private and may change between releases, however the structure size will not change.\n\nInspecting its size in C, we get:\n\nsizeof(bson_iter_t) == 80\n\n\n\n\n\n"
 },
 
 {
@@ -69,7 +77,15 @@ var documenterSearchIndex = {"docs": [
     "page": "API",
     "title": "Mongoc.BSONObjectId",
     "category": "type",
-    "text": "Mirrors C struct bson_oid_t.\n\nBSONObjectId instances addresses are passed to libbson/libmongoc API using Ref(oid), and are owned by the Julia process.\n\n#include <bson.h>\n\ntypedef struct {\n   uint8_t bytes[12];\n} bson_oid_t;\n\n\n\n\n\n"
+    "text": "Mirrors C struct bson_oid_t.\n\nBSONObjectId instances addresses are passed to libbson/libmongoc API using Ref(oid), and are owned by the Julia process.\n\ntypedef struct {\n   uint8_t bytes[12];\n} bson_oid_t;\n\n\n\n\n\n"
+},
+
+{
+    "location": "api.html#Mongoc.BSONType",
+    "page": "API",
+    "title": "Mongoc.BSONType",
+    "category": "type",
+    "text": "BSONType mirrors C enum bsontypet.\n\n\n\n\n\n"
 },
 
 {
