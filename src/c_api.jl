@@ -100,16 +100,6 @@ function bson_iter_oid(iter_ref::Ref{BSONIter})
     ccall((:bson_iter_oid, libbson), Ptr{BSONObjectId}, (Ref{BSONIter},), iter_ref)
 end
 
-#=
-void
-bson_iter_array (const bson_iter_t *iter,
-                 uint32_t *array_len,
-                 const uint8_t **array);
-=#
-#function bson_iter_array(iter_ref::Ref{BSONIter}, array_len_ref::Ref{UInt32}, array::Ref{Ptr{UInt8}})
-#    ccall((:bson_iter_array, libbson), Cvoid, (Ref{BSONIter}, Ref{UInt32}, Ref{Ptr{UInt8}}), iter_ref, array_len_ref, array)
-#end
-
 function bson_iter_recurse(iter_ref::Ref{BSONIter}, child_iter_ref::Ref{BSONIter})
     ccall((:bson_iter_recurse, libbson), Bool, (Ref{BSONIter}, Ref{BSONIter}), iter_ref, child_iter_ref)
 end

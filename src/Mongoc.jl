@@ -5,7 +5,6 @@ module Mongoc
 @static if VERSION < v"0.7-"
     const Nothing = Void
     const Cvoid   = Void
-    Base.replace(s::AbstractString, pair::Pair) = replace(s, pair[1], pair[2])
 end
 
 # load libmongoc

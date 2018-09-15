@@ -121,20 +121,19 @@ const BSON_TYPE_MINKEY     = BSONType(0xFF)
 # API
 #
 
-# BSONType
-
-
-# OID
-#Base.:(==)(oid1::BSONObjectId, oid2::BSONObjectId) = oid1.bytes == oid2.bytes
-#Base.hash(oid::BSONObjectId) = 1 + hash(oid.bytes)
-
-function Base.show(io::IO, iter::BSONIter)
-
-end
-
-Base.show(io::IO, oid::BSONObjectId) = print(io, "BSONObjectId(#)")#print(io, "BSONObjectId(\"", bson_oid_to_string(oid), "\")")
+Base.show(io::IO, oid::BSONObjectId) = print(io, "BSONObjectId(\"", bson_oid_to_string(oid), "\")")
 Base.show(io::IO, bson::BSON) = print(io, "BSON(\"", as_json(bson), "\")")
-Base.show(io::IO, err::BSONError) = print(io, replace(String([ i for i in err.message]), '\0' => ""))
+
+function Base.show(io::IO, err::BSONError)
+    for c in err.message
+        c_char = Char(c)
+        if c_char == '\0'
+            break
+        else
+            print(io, c_char)
+        end
+    end
+end
 
 BSON() = BSON("{}")
 

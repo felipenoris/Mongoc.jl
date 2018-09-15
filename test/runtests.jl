@@ -25,9 +25,10 @@ end
 @testset "BSON" begin
 
     @testset "as_json" begin
-        bson = Mongoc.BSON("{\"hey\" : 1}")
-        @test Mongoc.as_json(bson) == "{ \"hey\" : 1 }"
-        @test Mongoc.as_json(bson, canonical=true) == "{ \"hey\" : { \"\$numberInt\" : \"1\" } }"
+        @test_throws ErrorException Mongoc.BSON(""" { ajskdla sdjsafd } """)
+        bson = Mongoc.BSON("""{"hey" : 1}""")
+        @test Mongoc.as_json(bson) == """{ "hey" : 1 }"""
+        @test Mongoc.as_json(bson, canonical=true) == """{ "hey" : { "\$numberInt" : "1" } }"""
     end
 
     @testset "oid compare" begin
@@ -131,23 +132,36 @@ end
     @testset "ping" begin
         bson_ping_result = Mongoc.ping(cli)
         @test haskey(bson_ping_result, "ok")
-        @test Mongoc.as_json(Mongoc.ping(cli)) == "{ \"ok\" : 1.0 }"
+        @test Mongoc.as_json(Mongoc.ping(cli)) == """{ "ok" : 1.0 }"""
+    end
+
+    @testset "error print" begin
+        error_happened = false
+        try
+            Mongoc.command_simple(cli, "hey", """{ "you":1 }""")
+        catch e
+            println(IOBuffer(), e)
+            error_happened = true
+        end
+
+        @test error_happened
     end
 
     @testset "new_collection" begin
         coll = cli[DB_NAME]["new_collection"]
-        result = push!(coll, "{ \"hello\" : \"world\" }")
-        @test Mongoc.as_json(result.reply) == "{ \"insertedCount\" : 1 }"
-        result = push!(coll, "{ \"hey\" : \"you\" }")
-        @test Mongoc.as_json(result.reply) == "{ \"insertedCount\" : 1 }"
+        result = push!(coll, """{ "hello" : "world" }""")
+        @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
+        result = push!(coll, """{ "hey" : "you" }""")
+        @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
 
         i = 0
         for bson in Mongoc.find(coll)
+            @test haskey(bson, "hello") || haskey(bson, "hey")
             i += 1
         end
         @test i == Mongoc.count_documents(coll)
 
-        Mongoc.command_simple(coll, "{ \"collStats\" : \"new_collection\" }")
+        Mongoc.command_simple(coll, """{ "collStats" : "new_collection" }""")
     end
 
     gc_on_osx_v6() # avoid segfault on Cursor destroy
