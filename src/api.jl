@@ -226,10 +226,6 @@ else
     Base.iterate(cursor::Cursor, state::Nothing=nothing) = _iterate(cursor, state)
 end
 
-function Base.deepcopy(bson::BSON) :: BSON
-    return BSON(bson_copy(bson.handle))
-end
-
 Base.show(io::IO, uri::URI) = print(io, "URI(\"", uri.uri, "\")")
 Base.show(io::IO, client::Client) = print(io, "Client(URI(\"", client.uri, "\"))")
 Base.show(io::IO, db::Database) = print(io, "Database($(db.client), \"", db.name, "\")")
@@ -237,4 +233,5 @@ Base.show(io::IO, coll::Collection) = print(io, "Collection($(coll.database), \"
 
 Base.getindex(client::Client, database::String) = Database(client, database)
 Base.getindex(database::Database, collection_name::String) = Collection(database, collection_name)
+
 Base.push!(collection::Collection, document::Union{String, BSON}; options::Union{Nothing, BSON}=nothing) = insert_one(collection, document; options=options)

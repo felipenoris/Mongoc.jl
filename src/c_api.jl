@@ -11,21 +11,69 @@ function bson_oid_init(oid_ref::Ref{BSONObjectId}, context::Ptr{Cvoid})
     ccall((:bson_oid_init, libbson), Cvoid, (Ref{BSONObjectId}, Ptr{Cvoid}), oid_ref, context)
 end
 
+function bson_oid_init_from_string(oid_ref::Ref{BSONObjectId}, oid_string::String)
+    ccall((:bson_oid_init_from_string, libbson), Cvoid, (Ref{BSONObjectId}, Cstring), oid_ref, oid_string)
+end
+
 function bson_oid_to_string(oid::BSONObjectId)
     buffer_len = 25
     buffer = zeros(UInt8, buffer_len)
     ccall((:bson_oid_to_string, libbson), Cvoid, (Ref{BSONObjectId}, Ref{UInt8}), Ref(oid), Ref(buffer, 1))
     @assert buffer[end] == 0
-    return String(buffer)
+    return String(buffer[1:end-1])
 end
 
 function bson_oid_compare(oid1::BSONObjectId, oid2::BSONObjectId)
     ccall((:bson_oid_compare, libbson), Cint, (Ref{BSONObjectId}, Ref{BSONObjectId}), Ref(oid1), Ref(oid2))
 end
 
-function bson_append_oid(bson_document::Ptr{Cvoid}, key::String, key_length::Int, oid::BSONObjectId)
-    oid_copy = oid
-    ccall((:bson_append_oid, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Ref{BSONObjectId}), bson_document, key, key_length, Ref(oid_copy))
+function bson_oid_get_time_t(oid::BSONObjectId)
+    ccall((:bson_oid_get_time_t, libbson), Clong, (Ref{BSONObjectId},), Ref(oid))
+end
+
+function bson_oid_is_valid(str::String)
+    str_length = Csize_t(length(str))
+    ccall((:bson_oid_is_valid, libbson), Bool, (Cstring, Csize_t), str, str_length)
+end
+
+function bson_append_oid(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::BSONObjectId)
+    ccall((:bson_append_oid, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Ref{BSONObjectId}), bson_document, key, key_length, value)
+end
+
+function bson_append_int32(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Int32)
+    ccall((:bson_append_int32, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Cint), bson_document, key, key_length, value)
+end
+
+function bson_append_int64(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Int64)
+    ccall((:bson_append_int64, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Clonglong), bson_document, key, key_length, value)
+end
+
+function bson_append_utf8(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::String, len::Int)
+    ccall((:bson_append_utf8, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Cstring, Cint), bson_document, key, key_length, value, len)
+end
+
+function bson_append_bool(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Bool)
+    ccall((:bson_append_bool, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Bool), bson_document, key, key_length, value)
+end
+
+function bson_append_double(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Float64)
+    ccall((:bson_append_double, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Cdouble), bson_document, key, key_length, value)
+end
+
+function bson_append_date_time(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Int64)
+    ccall((:bson_append_date_time, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Clonglong), bson_document, key, key_length, value)
+end
+
+function bson_append_document(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Ptr{Cvoid})
+    ccall((:bson_append_document, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Ptr{Cvoid}), bson_document, key, key_length, value)
+end
+
+function bson_append_array(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Ptr{Cvoid})
+    ccall((:bson_append_array, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Ptr{Cvoid}), bson_document, key, key_length, value)
+end
+
+function bson_new()
+    ccall((:bson_new, libbson), Ptr{Cvoid}, ())
 end
 
 function bson_new_from_json(data::String, len::Int=-1)
@@ -98,6 +146,10 @@ end
 
 function bson_iter_oid(iter_ref::Ref{BSONIter})
     ccall((:bson_iter_oid, libbson), Ptr{BSONObjectId}, (Ref{BSONIter},), iter_ref)
+end
+
+function bson_iter_date_time(iter_ref::Ref{BSONIter})
+    ccall((:bson_iter_date_time, libbson), Clonglong, (Ref{BSONIter},), iter_ref)
 end
 
 function bson_iter_recurse(iter_ref::Ref{BSONIter}, child_iter_ref::Ref{BSONIter})

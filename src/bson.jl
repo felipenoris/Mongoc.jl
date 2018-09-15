@@ -48,6 +48,15 @@ function BSONObjectId()
     return oid_ref[]
 end
 
+function BSONObjectId(oid_string::String)
+    if !bson_oid_is_valid(oid_string)
+        error("'$oid_string' is not a valid ObjectId.")
+    end
+    oid_ref = Ref{BSONObjectId}()
+    bson_oid_init_from_string(oid_ref, oid_string)
+    return oid_ref[]
+end
+
 """
 Mirrors C struct `bson_error_t` and can be allocated in the stack.
 
@@ -90,6 +99,10 @@ function destroy!(bson::BSON)
     nothing
 end
 
+function Base.deepcopy(bson::BSON) :: BSON
+    return BSON(bson_copy(bson.handle))
+end
+
 #
 # Constants
 #
@@ -121,7 +134,8 @@ const BSON_TYPE_MINKEY     = BSONType(0xFF)
 # API
 #
 
-Base.show(io::IO, oid::BSONObjectId) = print(io, "BSONObjectId(\"", bson_oid_to_string(oid), "\")")
+Base.string(oid::BSONObjectId) = bson_oid_to_string(oid)
+Base.show(io::IO, oid::BSONObjectId) = print(io, "BSONObjectId(\"", string(oid), "\")")
 Base.show(io::IO, bson::BSON) = print(io, "BSON(\"", as_json(bson), "\")")
 
 function Base.show(io::IO, err::BSONError)
@@ -135,7 +149,17 @@ function Base.show(io::IO, err::BSONError)
     end
 end
 
-BSON() = BSON("{}")
+function get_time(oid::BSONObjectId)
+    return Dates.unix2datetime(bson_oid_get_time_t(oid))
+end
+
+function BSON()
+    handle = bson_new()
+    if handle == C_NULL
+        error("Failed to create a new BSON document.")
+    end
+    return BSON(handle)
+end
 
 function BSON(json_string::String)
     handle = bson_new_from_json(json_string)
@@ -143,6 +167,26 @@ function BSON(json_string::String)
         error("Failed parsing JSON to BSON. $json_string.")
     end
     return BSON(handle)
+end
+
+function BSON(dict::Dict)
+    result = BSON()
+
+    for (k, v) in pairs(dict)
+        result[k] = v
+    end
+
+    return result
+end
+
+function BSON(vector::Vector)
+    result = BSON()
+
+    for (i, v) in enumerate(vector)
+        result[string(i-1)] = v
+    end
+
+    return result
 end
 
 """
@@ -223,6 +267,9 @@ function get_value(iter_ref::Ref{BSONIter})
         return unsafe_load(bson_iter_oid(iter_ref)) # converts Ptr{BSONObjectId} to BSONObjectId
     elseif bson_type == BSON_TYPE_BOOL
         return bson_iter_bool(iter_ref)
+    elseif bson_type == BSON_TYPE_DATE_TIME
+        millis = Int64(bson_iter_date_time(iter_ref))
+        return isodate2datetime(millis)
 
     elseif bson_type == BSON_TYPE_ARRAY || bson_type == BSON_TYPE_DOCUMENT
 
@@ -264,6 +311,73 @@ function Base.setindex!(document::BSON, value::BSONObjectId, key::String)
     ok = bson_append_oid(document.handle, key, -1, value)
     if !ok
         error("Couldn't append oid to BSON document.")
+    end
+    nothing
+end
+
+function Base.setindex!(document::BSON, value::Int64, key::String)
+    ok = bson_append_int64(document.handle, key, -1, value)
+    if !ok
+        error("Couldn't append Int64 to BSON document.")
+    end
+    nothing
+end
+
+function Base.setindex!(document::BSON, value::Int32, key::String)
+    ok = bson_append_int32(document.handle, key, -1, value)
+    if !ok
+        error("Couldn't append Int32 to BSON document.")
+    end
+    nothing
+end
+
+function Base.setindex!(document::BSON, value::String, key::String)
+    ok = bson_append_utf8(document.handle, key, -1, value, -1)
+    if !ok
+        error("Couldn't append String to BSON document.")
+    end
+    nothing
+end
+
+function Base.setindex!(document::BSON, value::Bool, key::String)
+    ok = bson_append_bool(document.handle, key, -1, value)
+    if !ok
+        error("Couldn't append Bool to BSON document.")
+    end
+    nothing
+end
+
+function Base.setindex!(document::BSON, value::Float64, key::String)
+    ok = bson_append_double(document.handle, key, -1, value)
+    if !ok
+        error("Couldn't append Float64 to BSON document.")
+    end
+    nothing
+end
+
+function Base.setindex!(document::BSON, value::DateTime, key::String)
+    ok = bson_append_date_time(document.handle, key, -1, datetime2isodate(value))
+    if !ok
+        error("Couldn't append DateTime to BSON document.")
+    end
+    nothing
+end
+
+function Base.setindex!(document::BSON, value::BSON, key::String)
+    ok = bson_append_document(document.handle, key, -1, value.handle)
+    if !ok
+        error("Couldn't append Sub-Document BSON to BSON document.")
+    end
+    nothing
+end
+
+Base.setindex!(document::BSON, value::Dict, key::String) = setindex!(document, BSON(value), key)
+
+function Base.setindex!(document::BSON, value::Vector, key::String)
+    sub_document = BSON(value)
+    ok = bson_append_array(document.handle, key, -1, sub_document.handle)
+    if !ok
+        error("Couldn't append array to BSON document.")
     end
     nothing
 end

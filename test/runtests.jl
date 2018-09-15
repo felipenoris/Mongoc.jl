@@ -10,6 +10,7 @@ if VERSION < v"0.7-"
     using Base.Test
 else
     using Test
+    using Dates
 end
 
 const DB_NAME = "mongoc_tests"
@@ -27,6 +28,7 @@ end
     @testset "as_json" begin
         @test_throws ErrorException Mongoc.BSON(""" { ajskdla sdjsafd } """)
         bson = Mongoc.BSON("""{"hey" : 1}""")
+        @test bson["hey"] == 1
         @test Mongoc.as_json(bson) == """{ "hey" : 1 }"""
         @test Mongoc.as_json(bson, canonical=true) == """{ "hey" : { "\$numberInt" : "1" } }"""
     end
@@ -44,6 +46,18 @@ end
         @test Mongoc.bson_oid_compare(y, x) > 0
         @test Mongoc.bson_oid_compare(x, x) == 0
         @test Mongoc.bson_oid_compare(y, y) == 0
+    end
+
+    @testset "oid string" begin
+        x = Mongoc.BSONObjectId()
+        y = Mongoc.BSONObjectId(string(x))
+        @test x == y
+
+        @test_throws ErrorException Mongoc.BSONObjectId("invalid_objectid")
+    end
+
+    @testset "oid time" begin
+        Mongoc.get_time( Mongoc.BSONObjectId("5b9eaa2711c3dd0d6a46a5c4") ) == DateTime(2018, 9, 16, 19, 8, 23) # 2018-09-16T19:08:23
     end
 
     # https://github.com/JuliaLang/julia/issues/29193
@@ -108,6 +122,45 @@ end
         @test doc_dict["array"] == [1, 2, false, "inner_string"]
         @test doc_dict["document"] == Dict("a"=>1, "b"=>"b_string")
     end
+
+    @testset "BSON write" begin
+        bson = Mongoc.BSON()
+        new_oid = Mongoc.BSONObjectId()
+        bson["_id"] = new_oid
+        bson["int32"] = Int32(10)
+        bson["int64"] = Int64(20)
+        bson["string"] = "hey you"
+        bson["bool_true"] = true
+        bson["bool_false"] = false
+        bson["double"] = 2.3
+        bson["datetime"] = DateTime(2018, 2, 1, 10, 20, 35, 10)
+        bson["vector"] = collect(1:10)
+
+        let
+            sub_bson = Mongoc.BSON()
+            sub_bson["hey"] = "you"
+            sub_bson["num"] = 10
+            bson["sub_document"] = sub_bson
+        end
+
+        @test bson["_id"] == new_oid
+        @test bson["int32"] == Int32(10)
+        @test bson["int64"] == Int64(20)
+        @test bson["string"] == "hey you"
+        @test bson["bool_true"]
+        @test !bson["bool_false"]
+        @test bson["double"] == 2.3
+        @test bson["datetime"] == DateTime(2018, 2, 1, 10, 20, 35, 10)
+        @test bson["sub_document"]["hey"] == "you"
+        @test bson["sub_document"]["num"] == 10
+        @test bson["vector"] == collect(1:10)
+
+        let
+            sub_bson = bson["sub_document"]
+            @test sub_bson["hey"] == "you"
+            @test sub_bson["num"] == 10
+        end
+    end
 end
 
 @testset "Types" begin
@@ -152,6 +205,15 @@ end
         result = push!(coll, """{ "hello" : "world" }""")
         @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
         result = push!(coll, """{ "hey" : "you" }""")
+        @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
+
+        bson = Mongoc.BSON()
+        bson["hey"] = "you"
+
+        bson["zero_date"] = DateTime(0)
+        bson["date_2018"] = DateTime(2018)
+
+        result = push!(coll, bson)
         @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
 
         i = 0
