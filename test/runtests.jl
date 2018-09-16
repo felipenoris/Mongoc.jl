@@ -112,6 +112,8 @@ end
         @test doc["array"] == [1, 2, false, "inner_string"]
         @test doc["document"] == Dict("a"=>1, "b"=>"b_string")
 
+        @test_throws ErrorException doc["invalid key"]
+
         doc_dict = Mongoc.as_dict(doc)
         @test doc_dict["a"] == 1
         @test doc_dict["b"] == 2.2
@@ -163,81 +165,100 @@ end
     end
 end
 
-@testset "Types" begin
-    bson = Mongoc.BSON()
-    @test_throws ErrorException Mongoc.Client("////invalid-url")
-    cli = Mongoc.Client()
-    @test cli.uri == "mongodb://localhost:27017"
-    Mongoc.set_appname!(cli, "Runtests")
-    db = cli[DB_NAME]
-    coll = db["new_collection"]
-
-    io = IOBuffer()
-    show(io, bson)
-    show(io, cli)
-    show(io, db)
-    show(io, coll)
-end
-
-@testset "Connection" begin
-    cli = Mongoc.Client()
-
-    @testset "ping" begin
-        bson_ping_result = Mongoc.ping(cli)
-        @test haskey(bson_ping_result, "ok")
-        @test Mongoc.as_json(Mongoc.ping(cli)) == """{ "ok" : 1.0 }"""
-    end
-
-    @testset "error print" begin
-        error_happened = false
-        try
-            Mongoc.command_simple(cli, "hey", """{ "you":1 }""")
-        catch e
-            println(IOBuffer(), e)
-            error_happened = true
-        end
-
-        @test error_happened
-    end
-
-    @testset "new_collection" begin
-        coll = cli[DB_NAME]["new_collection"]
-        result = push!(coll, """{ "hello" : "world" }""")
-        @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
-        result = push!(coll, """{ "hey" : "you" }""")
-        @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
-
+@testset "MongoDB" begin
+    @testset "Types" begin
         bson = Mongoc.BSON()
-        bson["hey"] = "you"
+        @test_throws ErrorException Mongoc.Client("////invalid-url")
+        cli = Mongoc.Client()
+        @test cli.uri == "mongodb://localhost:27017"
+        Mongoc.set_appname!(cli, "Runtests")
+        db = cli[DB_NAME]
+        coll = db["new_collection"]
 
-        bson["zero_date"] = DateTime(0)
-        bson["date_2018"] = DateTime(2018)
-
-        result = push!(coll, bson)
-        @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
-
-        i = 0
-        for bson in Mongoc.find(coll)
-            @test haskey(bson, "hello") || haskey(bson, "hey")
-            i += 1
-        end
-        @test i == Mongoc.count_documents(coll)
-
-        Mongoc.command_simple(coll, """{ "collStats" : "new_collection" }""")
+        io = IOBuffer()
+        show(io, bson)
+        show(io, cli)
+        show(io, db)
+        show(io, coll)
     end
 
-    gc_on_osx_v6() # avoid segfault on Cursor destroy
+    @testset "Connection" begin
+        cli = Mongoc.Client()
 
-    @testset "find_databases" begin
-        found = false
-        prefix = "{ \"name\" : \"mongoc_tests\""
-        for obj in Mongoc.find_databases(cli)
-            if startswith(Mongoc.as_json(obj), prefix)
-                found = true
+        @testset "ping" begin
+            bson_ping_result = Mongoc.ping(cli)
+            @test haskey(bson_ping_result, "ok")
+            @test Mongoc.as_json(Mongoc.ping(cli)) == """{ "ok" : 1.0 }"""
+        end
+
+        @testset "error print" begin
+            error_happened = false
+            try
+                Mongoc.command_simple(cli, "hey", """{ "you":1 }""")
+            catch e
+                println(IOBuffer(), e)
+                error_happened = true
             end
-        end
-        @test found
-    end
 
-    gc_on_osx_v6() # avoid segfault on Cursor destroy
+            @test error_happened
+        end
+
+        @testset "new_collection" begin
+            coll = cli[DB_NAME]["new_collection"]
+            result = push!(coll, Mongoc.BSON("""{ "hello" : "world" }"""))
+            @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
+            result = push!(coll, Mongoc.BSON("""{ "hey" : "you" }"""))
+            @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
+
+            bson = Mongoc.BSON()
+            bson["hey"] = "you"
+
+            bson["zero_date"] = DateTime(0)
+            bson["date_2018"] = DateTime(2018)
+
+            result = push!(coll, bson)
+            @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
+
+            i = 0
+            for bson in Mongoc.find(coll)
+                @test haskey(bson, "hello") || haskey(bson, "hey")
+                i += 1
+            end
+            @test i == Mongoc.count_documents(coll)
+
+            Mongoc.command_simple(coll, Mongoc.BSON("""{ "collStats" : "new_collection" }"""))
+        end
+
+        gc_on_osx_v6() # avoid segfault on Cursor destroy
+
+        @testset "find_databases" begin
+            found = false
+            prefix = "{ \"name\" : \"mongoc_tests\""
+            for obj in Mongoc.find_databases(cli)
+                if startswith(Mongoc.as_json(obj), prefix)
+                    found = true
+                end
+            end
+            @test found
+        end
+
+        @testset "bulk" begin
+            coll = cli[DB_NAME]["new_collection"]
+            bulk_operation = Mongoc.BulkOperation(coll)
+            Mongoc.destroy!(bulk_operation)
+            bulk_2 = Mongoc.BulkOperation(coll) # will be freed by GC
+        end
+
+        @testset "insert_many" begin
+            collection = cli[DB_NAME]["insert_many"]
+            vector = Vector{Mongoc.BSON}()
+            push!(vector, Mongoc.BSON("""{ "hey" : "you" }"""))
+            push!(vector, Mongoc.BSON("""{ "out" : "there" }"""))
+            push!(vector, Mongoc.BSON("""{ "count" : 3 }"""))
+
+            append!(collection, vector)
+        end
+
+        gc_on_osx_v6() # avoid segfault on Cursor destroy
+    end
 end

@@ -228,6 +228,10 @@ function mongoc_collection_count_documents(collection_handle::Ptr{Cvoid}, bson_f
     ccall((:mongoc_collection_count_documents, libmongoc), Int64, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_filter, bson_opts, read_prefs, bson_reply, Ref(bson_error))
 end
 
+function mongoc_collection_create_bulk_operation_with_opts(collection_handle::Ptr{Cvoid}, bson_opts::Ptr{Cvoid})
+    ccall((:mongoc_collection_create_bulk_operation_with_opts, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}), collection_handle, bson_opts)
+end
+
 function mongoc_cursor_destroy(cursor_handle::Ptr{Cvoid})
     ccall((:mongoc_cursor_destroy, libmongoc), Cvoid, (Ptr{Cvoid},), cursor_handle)
 end
@@ -238,4 +242,16 @@ end
 
 function mongoc_cursor_set_limit(cursor_handle::Ptr{Cvoid}, limit::Int)
     ccall((:mongoc_cursor_set_limit, libmongoc), Bool, (Ptr{Cvoid}, Int64), cursor_handle, limit)
+end
+
+function mongoc_bulk_operation_destroy(bulk_operation_handle::Ptr{Cvoid})
+    ccall((:mongoc_bulk_operation_destroy, libmongoc), Cvoid, (Ptr{Cvoid},), bulk_operation_handle)
+end
+
+function mongoc_bulk_operation_insert_with_opts(bulk_operation_handle::Ptr{Cvoid}, bson_document::Ptr{Cvoid}, bson_options::Ptr{Cvoid}, bson_error::BSONError)
+    ccall((:mongoc_bulk_operation_insert_with_opts, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), bulk_operation_handle, bson_document, bson_options, Ref(bson_error))
+end
+
+function mongoc_bulk_operation_execute(bulk_operation_handle::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
+    ccall((:mongoc_bulk_operation_execute, libmongoc), UInt32, (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), bulk_operation_handle, bson_reply, Ref(bson_error))
 end

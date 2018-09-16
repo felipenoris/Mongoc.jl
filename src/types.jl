@@ -69,6 +69,23 @@ mutable struct Cursor
     end
 end
 
+mutable struct BulkOperation
+    collection::Collection
+    handle::Ptr{Cvoid}
+    executed::Bool
+
+    function BulkOperation(collection::Collection; options::Union{Nothing, BSON}=nothing)
+        options_handle = options == nothing ? C_NULL : options.handle
+        handle = mongoc_collection_create_bulk_operation_with_opts(collection.handle, options_handle)
+        if handle == C_NULL
+            error("Failed to create a new bulk operation.")
+        end
+        bulk_operation = new(collection, handle, false)
+        @compat finalizer(destroy!, bulk_operation)
+        return bulk_operation
+    end
+end
+
 #
 # Basic functions for types
 #
@@ -113,7 +130,21 @@ function destroy!(cursor::Cursor)
     nothing
 end
 
+function destroy!(bulk_operation::BulkOperation)
+    if bulk_operation.handle != C_NULL
+        mongoc_bulk_operation_destroy(bulk_operation.handle)
+        bulk_operation.handle = C_NULL
+        bulk_operation.executed = true
+    end
+    nothing
+end
+
 struct InsertOneResult
     reply::BSON
     inserted_oid::Union{Nothing, BSONObjectId}
+end
+
+struct BulkOperationResult
+    reply::BSON
+    server_id::UInt32
 end

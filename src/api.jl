@@ -70,10 +70,6 @@ function command_simple(client::Client, database::String, command::BSON) :: BSON
     return reply
 end
 
-function command_simple(client::Client, database::String, command::String) :: BSON
-    return command_simple(client, database, BSON(command))
-end
-
 function command_simple(collection::Collection, command::BSON) :: BSON
     reply = BSON()
     err = BSONError()
@@ -84,12 +80,8 @@ function command_simple(collection::Collection, command::BSON) :: BSON
     return reply
 end
 
-function command_simple(collection::Collection, command::String) :: BSON
-    return command_simple(collection, BSON(command))
-end
-
 function ping(client::Client) :: BSON
-    return command_simple(client, "admin", "{ \"ping\" : 1 }")
+    return command_simple(client, "admin", BSON("""{ "ping" : 1 }"""))
 end
 
 function find_databases(client::Client; options::Union{Nothing, BSON}=nothing) :: Cursor
@@ -119,7 +111,41 @@ function insert_one(collection::Collection, document::BSON; options::Union{Nothi
     return InsertOneResult(reply, inserted_oid)
 end
 
-insert_one(collection::Collection, document::String; options::Union{Nothing, BSON}=nothing) = insert_one(collection, BSON(document); options=options)
+function execute!(bulk_operation::BulkOperation) :: BulkOperationResult
+    if bulk_operation.executed
+        error("Bulk operation was already executed.")
+    end
+
+    try
+        reply = BSON()
+        err = BSONError()
+        bulk_operation_result = mongoc_bulk_operation_execute(bulk_operation.handle, reply.handle, err)
+        if bulk_operation_result == 0
+            error("Bulk operation execution failed. $err.")
+        end
+        return BulkOperationResult(reply, bulk_operation_result)
+    finally
+        destroy!(bulk_operation)
+    end
+end
+
+function bulk_insert!(bulk_operation::BulkOperation, document::BSON; options::Union{Nothing, BSON}=nothing)
+    err = BSONError()
+    options_handle = options == nothing ? C_NULL : options.handle
+    ok = mongoc_bulk_operation_insert_with_opts(bulk_operation.handle, document.handle, options_handle, err)
+    if !ok
+        error("Bulk insert failed. $err.")
+    end
+    nothing
+end
+
+function insert_many(collection::Collection, documents::Vector{BSON}; bulk_options::Union{Nothing, BSON}=nothing, insert_options::Union{Nothing, BSON}=nothing)
+    bulk_operation = BulkOperation(collection, options=bulk_options)
+    for doc in documents
+        bulk_insert!(bulk_operation, doc, options=insert_options)
+    end
+    return execute!(bulk_operation)
+end
 
 function find(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) :: Cursor
     options_handle = options == nothing ? C_NULL : options.handle
@@ -139,8 +165,6 @@ function count_documents(collection::Collection, bson_filter::BSON=BSON(); optio
     end
     return Int(len)
 end
-
-count_documents(collection::Collection, bson_filter::String; options::Union{Nothing, BSON}=nothing) = count_documents(collection, BSON(bson_filter); options=options)
 
 function set_limit!(cursor::Cursor, limit::Int)
     ok = mongoc_cursor_set_limit(cursor.handle, limit)
@@ -168,8 +192,6 @@ function find_one(collection::Collection, bson_filter::BSON=BSON(); options::Uni
         return bson_document
     end
 end
-
-find_one(collection::Collection, bson_filter::String; options::Union{Nothing, BSON}=nothing) = find_one(collection, BSON(bson_filter); options=options)
 
 #
 # High-level API
@@ -234,4 +256,5 @@ Base.show(io::IO, coll::Collection) = print(io, "Collection($(coll.database), \"
 Base.getindex(client::Client, database::String) = Database(client, database)
 Base.getindex(database::Database, collection_name::String) = Collection(database, collection_name)
 
-Base.push!(collection::Collection, document::Union{String, BSON}; options::Union{Nothing, BSON}=nothing) = insert_one(collection, document; options=options)
+Base.push!(collection::Collection, document::BSON; options::Union{Nothing, BSON}=nothing) = insert_one(collection, document; options=options)
+Base.append!(collection::Collection, documents::Vector{BSON}; bulk_options::Union{Nothing, BSON}=nothing, insert_options::Union{Nothing, BSON}=nothing) = insert_many(collection, documents; bulk_options=bulk_options, insert_options=insert_options)
