@@ -134,7 +134,10 @@ const BSON_TYPE_MINKEY     = BSONType(0xFF)
 # API
 #
 
-Base.string(oid::BSONObjectId) = bson_oid_to_string(oid)
+Base.convert(::Type{String}, oid::BSONObjectId) = bson_oid_to_string(oid)
+Base.string(oid::BSONObjectId) = convert(String, oid)
+Base.convert(::Type{BSONObjectId}, oid_string::String) = BSONObjectId(oid_string)
+
 Base.show(io::IO, oid::BSONObjectId) = print(io, "BSONObjectId(\"", string(oid), "\")")
 Base.show(io::IO, bson::BSON) = print(io, "BSON(\"", as_json(bson), "\")")
 
@@ -168,6 +171,7 @@ function BSON(json_string::String)
     end
     return BSON(handle)
 end
+
 
 function BSON(dict::Dict)
     result = BSON()

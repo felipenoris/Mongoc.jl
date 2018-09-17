@@ -33,6 +33,11 @@ end
         @test Mongoc.as_json(bson, canonical=true) == """{ "hey" : { "\$numberInt" : "1" } }"""
     end
 
+    @testset "oid conversion" begin
+        local oid::Mongoc.BSONObjectId = "5b9fb22b3192e3fa155693a1"
+        local oid_str::String = oid
+    end
+
     @testset "oid compare" begin
         x = Mongoc.BSONObjectId()
         y = Mongoc.BSONObjectId()
@@ -162,6 +167,15 @@ end
             @test sub_bson["hey"] == "you"
             @test sub_bson["num"] == 10
         end
+    end
+
+    @testset "BSON to Dict conversion" begin
+        dict = Dict("a" => 1, "b" => false, "c" => "string")
+        doc = Mongoc.BSON(dict)
+        @test doc["a"] == 1
+        @test doc["b"] == false
+        @test doc["c"] == "string"
+        @test dict == Mongoc.as_dict(doc)
     end
 end
 
