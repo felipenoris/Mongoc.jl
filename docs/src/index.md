@@ -39,7 +39,8 @@ please open an [issue](https://github.com/felipenoris/Mongoc.jl/issues).
 
 ## Source Code
 
-The source code for this package is hosted at https://github.com/felipenoris/Mongoc.jl.
+The source code for this package is hosted at
+[https://github.com/felipenoris/Mongoc.jl](https://github.com/felipenoris/Mongoc.jl).
 
 ## References
 
