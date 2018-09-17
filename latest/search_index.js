@@ -13,7 +13,15 @@ var documenterSearchIndex = {"docs": [
     "page": "Mongoc.jl",
     "title": "Mongoc.jl",
     "category": "section",
-    "text": "MongoDB driver for the Julia Language.This is a thin wrapper around libmongoc, the official client library for C applications."
+    "text": ""
+},
+
+{
+    "location": "index.html#Introduction-1",
+    "page": "Mongoc.jl",
+    "title": "Introduction",
+    "category": "section",
+    "text": "Mongoc.jl is a MongoDB driver for the Julia Language.It is implemented as a thin wrapper around libmongoc, the official client library for C applications.Given that BSON is the document format for MongoDB, this package also implements a wrapper around libbson, which provides a way to create an manipulate BSON documents."
 },
 
 {
@@ -21,7 +29,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Mongoc.jl",
     "title": "Requirements",
     "category": "section",
-    "text": "MongoDB 3.0 or newer\nOn Linux x64: Julia v0.6, v0.7, v1.0.\nOn Mac: Julia v0.7, v1.0."
+    "text": "MongoDB 3.0 or newer\nJulia versions v0.6, v0.7 or v1.0.\nLinux or OSX.note: Note\nCurrently, this package might cause an error Julia garbage collection if using Julia v0.6 on OSX."
 },
 
 {
@@ -33,11 +41,91 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "index.html#Instructions-1",
+    "location": "index.html#References-1",
     "page": "Mongoc.jl",
-    "title": "Instructions",
+    "title": "References",
     "category": "section",
-    "text": "The public API for this package is available at api.jl source file.Check tests/runtests.jl for code examples."
+    "text": "libbson documentation\nlibmongoc documentation"
+},
+
+{
+    "location": "tutorial.html#",
+    "page": "Tutorial",
+    "title": "Tutorial",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "tutorial.html#Tutorial-1",
+    "page": "Tutorial",
+    "title": "Tutorial",
+    "category": "section",
+    "text": "This tutorial illustrates common use cases for accessing a MongoDB database with Mongoc.jl package."
+},
+
+{
+    "location": "tutorial.html#Setup-1",
+    "page": "Tutorial",
+    "title": "Setup",
+    "category": "section",
+    "text": "First, make sure you have Mongoc.jl package installed.julia> using Pkg\n\njulia> Pkg.clone(\"https://github.com/felipenoris/Mongoc.jl.git\")The following examples assumes that a MongoDB instance is running on the default host and port: localhost:27017.To start a new server instance on the default location use the following command on your shell.$ mongod"
+},
+
+{
+    "location": "tutorial.html#Connecting-to-MongoDB-1",
+    "page": "Tutorial",
+    "title": "Connecting to MongoDB",
+    "category": "section",
+    "text": "Connect with a MongoDB instance using a Client. Use the MongoDB URI format to set the server location.julia> import Mongoc\n\njulia> client = Mongoc.Client(\"mongodb://localhost:27017\")As a shorthard, you can also use:julia> client = Mongoc.Client(\"localhost\", 27017)To connect to the server at the default location localhost:27017 you can use the Client constructor with no arguments.julia> client = Mongoc.Client()"
+},
+
+{
+    "location": "tutorial.html#Getting-a-Database-1",
+    "page": "Tutorial",
+    "title": "Getting a Database",
+    "category": "section",
+    "text": "A MongoDB instance consists on a set of independent databases. You get a database reference using the following command.julia> database = client[\"my-database\"]If my-database does not exist on your MongoDB instance, it will be created in the first time you insert a document."
+},
+
+{
+    "location": "tutorial.html#Getting-a-Collection-1",
+    "page": "Tutorial",
+    "title": "Getting a Collection",
+    "category": "section",
+    "text": "A Collection is a set of documents in a MongoDB database. You get a collection reference using the following command.julia> collection = database[\"my-collection\"]Like databases, a Collection is also created if it does not exists in the first time you insert a document in it."
+},
+
+{
+    "location": "tutorial.html#BSON-Documents-1",
+    "page": "Tutorial",
+    "title": "BSON Documents",
+    "category": "section",
+    "text": "BSON is the document format for MongoDB.To create a BSON document instance in Mongoc.jl just use Dictionary syntax, using Strings as keys.julia> document = Mongoc.BSON()\n\njulia> document[\"name\"] = \"Felipe\"\n\njulia> document[\"age\"] = 35\n\njulia> document[\"preferences\"] = [ \"Music\", \"Computer\", \"Photography\" ]\n\njulia> using Dates; document[\"details\"] = Dict(\"birth date\" => DateTime(1983, 4, 16), \"location\" => \"Rio de Janeiro\")To convert a BSON to a JSON string, use:julia> Mongoc.as_json(document)\n\"{ \\\"name\\\" : \\\"Felipe\\\", \\\"age\\\" : 35, \\\"preferences\\\" : [ \\\"Music\\\", \\\"Computer\\\", \\\"Photography\\\" ], \\\"details\\\" : { \\\"location\\\" : \\\"Rio de Janeiro\\\", \\\"birth date\\\" : { \\\"\\$date\\\" : \\\"1983-04-16T00:00:00Z\\\" } } }\"You can also create a BSON document from a JSON string.julia> document = Mongoc.BSON(\"\"\"{ \"hey\" : \"you\" }\"\"\")"
+},
+
+{
+    "location": "tutorial.html#Inserting-Documents-1",
+    "page": "Tutorial",
+    "title": "Inserting Documents",
+    "category": "section",
+    "text": "To insert a single document into a collection, just Base.push! a BSON document to it.julia> push!(collection, document)\nMongoc.InsertOneResult(BSON(\"{ \"insertedCount\" : 1 }\"), BSONObjectId(\"5b9ef9cc11c3dd1da14675c3\"))Use Base.append! to insert a vector of documents to a collection.julia> doc1 = Mongoc.BSON(\"\"\"{ \"hey\" : \"you\", \"out\" : \"there\" }\"\"\")\nBSON(\"{ \"hey\" : \"you\", \"out\" : \"there\" }\")\n\njulia> doc2 = Mongoc.BSON(\"\"\"{ \"hey\" : \"others\", \"in the\" : \"cold\" }\"\"\")\nBSON(\"{ \"hey\" : \"others\", \"in the\" : \"cold\" }\")\n\njulia> vector = [ doc1, doc2 ]\n2-element Array{Mongoc.BSON,1}:\n BSON(\"{ \"hey\" : \"you\", \"out\" : \"there\" }\")\n BSON(\"{ \"hey\" : \"others\", \"in the\" : \"cold\" }\")\n\njulia> append!(collection, vector)\nMongoc.BulkOperationResult(BSON(\"{ \"nInserted\" : 2, \"nMatched\" : 0, \"nModified\" : 0, \"nRemoved\" : 0, \"nUpserted\" : 0, \"writeErrors\" : [  ] }\"), 0x00000001)"
+},
+
+{
+    "location": "tutorial.html#Querying-Documents-1",
+    "page": "Tutorial",
+    "title": "Querying Documents",
+    "category": "section",
+    "text": "To query a single document, use find_one. Pass a BSON argument as a query filter.julia> document = Mongoc.find_one(collection, Mongoc.BSON(\"\"\"{ \"hey\" : \"you\" }\"\"\"))\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9ef9cc11c3dd1da14675c3\" }, \"hey\" : \"you\" }\")To query multiple documents, use find. Pass a BSON query argument as a query filter. It returns a iterator of BSON documents that can be read using a for loop.julia> for document in Mongoc.find(collection)\n        println(document)\n       end\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e5\" }, \"hey\" : \"you\", \"out\" : \"there\" }\")\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e6\" }, \"hey\" : \"others\", \"in the\" : \"cold\" }\")"
+},
+
+{
+    "location": "tutorial.html#Counting-Documents-1",
+    "page": "Tutorial",
+    "title": "Counting Documents",
+    "category": "section",
+    "text": "Use Base.length function to count the number of documents in a collection. Pass a BSON argument as a query filter.julia> length(collection)\n2"
 },
 
 {
