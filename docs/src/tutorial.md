@@ -26,7 +26,7 @@ $ mongod --dbpath ./db --smallfiles
 
 ## Connecting to MongoDB
 
-Connect to a MongoDB instance using a `Client`.
+Connect to a MongoDB instance using a `Mongoc.Client`.
 Use the [MongoDB URI format](https://docs.mongodb.com/manual/reference/connection-string/) to set the server location.
 
 ```julia
@@ -42,7 +42,7 @@ julia> client = Mongoc.Client("localhost", 27017)
 ```
 
 To connect to the server at the default location `localhost:27017`
-you can use the `Client` constructor with no arguments.
+you can use the `Mongoc.Client` constructor with no arguments.
 
 ```julia
 julia> client = Mongoc.Client()
@@ -51,7 +51,7 @@ julia> client = Mongoc.Client()
 ## Getting a Database
 
 A MongoDB instance consists on a set of independent databases.
-You get a database reference using the following command.
+You get a Database reference using the following command.
 
 ```julia
 julia> database = client["my-database"]
@@ -62,7 +62,7 @@ in the first time you insert a document in it.
 
 ## Getting a Collection
 
-A `Collection` is a set of documents in a MongoDB database.
+A Collection is a set of documents in a MongoDB database.
 You get a collection reference using the following command.
 
 ```julia
@@ -104,6 +104,25 @@ You can also create a BSON document from a JSON string.
 julia> document = Mongoc.BSON("""{ "hey" : "you" }""")
 ```
 
+And also from a Dictionary.
+
+```julia
+julia> dict = Dict("hey" => "you")
+Dict{String,String} with 1 entry:
+  "hey" => "you"
+
+julia> document = Mongoc.BSON(dict)
+BSON("{ "hey" : "you" }")
+```
+
+To convert a BSON document to a Dictionary, use `Mongoc.as_dict`.
+
+```julia
+julia> Mongoc.as_dict(document)
+Dict{Any,Any} with 1 entry:
+  "hey" => "you"
+```
+
 ## Inserting Documents
 
 To insert a single document into a collection, just `Base.push!` a BSON document to it.
@@ -133,14 +152,14 @@ Mongoc.BulkOperationResult(BSON("{ "nInserted" : 2, "nMatched" : 0, "nModified" 
 
 ## Querying Documents
 
-To query a single document, use `find_one`. Pass a BSON argument as a query filter.
+To query a single document, use `Mongoc.find_one`. Pass a BSON argument as a query filter.
 
 ```julia
 julia> document = Mongoc.find_one(collection, Mongoc.BSON("""{ "hey" : "you" }"""))
 BSON("{ "_id" : { "$oid" : "5b9ef9cc11c3dd1da14675c3" }, "hey" : "you" }")
 ```
 
-To query multiple documents, use `find`. Pass a BSON query argument as a query filter.
+To query multiple documents, use `Mongoc.find`. Pass a BSON query argument as a query filter.
 It returns a iterator of BSON documents that can be read using a `for` loop.
 
 ```julia
