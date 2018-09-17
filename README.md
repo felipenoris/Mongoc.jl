@@ -25,9 +25,9 @@ This is a thin wrapper around [libmongoc](http://mongoc.org/), the official clie
 
 * MongoDB 3.0 or newer
 
-* On Linux x64: Julia v0.6, v0.7, v1.0.
+* Julia versions v0.6, v0.7 or v1.0.
 
-* On Mac: Julia v0.7, v1.0.
+* Linux or OSX.
 
 ## MongoDB C Driver
 
@@ -42,11 +42,9 @@ If your platform is not supported and can be compiled by
 [BinaryBuilder.jl](https://github.com/JuliaPackaging/BinaryBuilder.jl),
 please open an [issue](https://github.com/felipenoris/Mongoc.jl/issues).
 
-## Instructions
+## Documentation
 
-The public API for this package is available at `api.jl` source file.
-
-Check `tests/runtests.jl` for code examples.
+The documentation for this package is hosted at https://felipenoris.github.io/Mongoc.jl/latest/.
 
 ## Alternative Libraries
 

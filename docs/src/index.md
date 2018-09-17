@@ -9,7 +9,7 @@ It is implemented as a thin wrapper around [libmongoc](http://mongoc.org/), the 
 
 Given that [BSON](http://bsonspec.org/) is the document format for MongoDB,
 this package also implements a wrapper around [libbson](http://mongoc.org/libbson/current/index.html),
-which provides a way to create an manipulate BSON documents.
+which provides a way to create and manipulate BSON documents.
 
 ## Requirements
 
@@ -36,6 +36,10 @@ Windows is currently not supported because the C driver requires Visual Studio t
 If your platform is not supported and can be compiled by
 [BinaryBuilder.jl](https://github.com/JuliaPackaging/BinaryBuilder.jl),
 please open an [issue](https://github.com/felipenoris/Mongoc.jl/issues).
+
+## Source Code
+
+The source code for this package is hosted at https://github.com/felipenoris/Mongoc.jl.
 
 ## References
 
