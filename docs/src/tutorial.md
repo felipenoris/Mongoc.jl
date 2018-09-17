@@ -1,0 +1,160 @@
+
+# Tutorial
+
+This tutorial illustrates common use cases for accessing a MongoDB database with **Mongoc.jl** package.
+
+## Setup
+
+First, make sure you have **Mongoc.jl** package installed.
+
+```julia
+julia> using Pkg
+
+julia> Pkg.clone("https://github.com/felipenoris/Mongoc.jl.git")
+```
+
+The following examples assumes that a MongoDB instance is running on the
+default host and port: `localhost:27017`.
+
+To start a new server instance on the default location use the following command on your shell.
+
+```shell
+$ mongod
+```
+
+## Connecting to MongoDB
+
+Connect with a MongoDB instance using a `Client`.
+Use the [MongoDB URI format](https://docs.mongodb.com/manual/reference/connection-string/) to set the server location.
+
+```julia
+julia> import Mongoc
+
+julia> client = Mongoc.Client("mongodb://localhost:27017")
+```
+
+As a shorthard, you can also use:
+
+```julia
+julia> client = Mongoc.Client("localhost", 27017)
+```
+
+To connect to the server at the default location `localhost:27017`
+you can use the `Client` constructor with no arguments.
+
+```julia
+julia> client = Mongoc.Client()
+```
+
+## Getting a Database
+
+A MongoDB instance consists on a set of independent databases.
+You get a database reference using the following command.
+
+```julia
+julia> database = client["my-database"]
+```
+
+If `my-database` does not exist on your MongoDB instance, it will be created
+in the first time you insert a document.
+
+## Getting a Collection
+
+A `Collection` is a set of documents in a MongoDB database.
+You get a collection reference using the following command.
+
+```julia
+julia> collection = database["my-collection"]
+```
+
+Like databases, a Collection is also created if it does not exists
+in the first time you insert a document in it.
+
+## BSON Documents
+
+[BSON](http://bsonspec.org/) is the document format for MongoDB.
+
+To create a BSON document instance in **Mongoc.jl** just use Dictionary syntax,
+using `String`s as keys.
+
+```julia
+julia> document = Mongoc.BSON()
+
+julia> document["name"] = "Felipe"
+
+julia> document["age"] = 35
+
+julia> document["preferences"] = [ "Music", "Computer", "Photography" ]
+
+julia> using Dates; document["details"] = Dict("birth date" => DateTime(1983, 4, 16), "location" => "Rio de Janeiro")
+```
+
+To convert a BSON to a JSON string, use:
+
+```julia
+julia> Mongoc.as_json(document)
+"{ \"name\" : \"Felipe\", \"age\" : 35, \"preferences\" : [ \"Music\", \"Computer\", \"Photography\" ], \"details\" : { \"location\" : \"Rio de Janeiro\", \"birth date\" : { \"\$date\" : \"1983-04-16T00:00:00Z\" } } }"
+```
+
+You can also create a BSON document from a JSON string.
+
+```julia
+julia> document = Mongoc.BSON("""{ "hey" : "you" }""")
+```
+
+## Inserting Documents
+
+To insert a single document into a collection, just `Base.push!` a BSON document to it.
+
+```julia
+julia> push!(collection, document)
+Mongoc.InsertOneResult(BSON("{ "insertedCount" : 1 }"), BSONObjectId("5b9ef9cc11c3dd1da14675c3"))
+```
+
+Use `Base.append!` to insert a vector of documents to a collection.
+
+```julia
+julia> doc1 = Mongoc.BSON("""{ "hey" : "you", "out" : "there" }""")
+BSON("{ "hey" : "you", "out" : "there" }")
+
+julia> doc2 = Mongoc.BSON("""{ "hey" : "others", "in the" : "cold" }""")
+BSON("{ "hey" : "others", "in the" : "cold" }")
+
+julia> vector = [ doc1, doc2 ]
+2-element Array{Mongoc.BSON,1}:
+ BSON("{ "hey" : "you", "out" : "there" }")
+ BSON("{ "hey" : "others", "in the" : "cold" }")
+
+julia> append!(collection, vector)
+Mongoc.BulkOperationResult(BSON("{ "nInserted" : 2, "nMatched" : 0, "nModified" : 0, "nRemoved" : 0, "nUpserted" : 0, "writeErrors" : [  ] }"), 0x00000001)
+```
+
+## Querying Documents
+
+To query a single document, use `find_one`. Pass a BSON argument as a query filter.
+
+```julia
+julia> document = Mongoc.find_one(collection, Mongoc.BSON("""{ "hey" : "you" }"""))
+BSON("{ "_id" : { "$oid" : "5b9ef9cc11c3dd1da14675c3" }, "hey" : "you" }")
+```
+
+To query multiple documents, use `find`. Pass a BSON query argument as a query filter.
+It returns a iterator of BSON documents that can be read using a `for` loop.
+
+```julia
+julia> for document in Mongoc.find(collection)
+        println(document)
+       end
+BSON("{ "_id" : { "$oid" : "5b9f02fb11c3dd1f4f3e26e5" }, "hey" : "you", "out" : "there" }")
+BSON("{ "_id" : { "$oid" : "5b9f02fb11c3dd1f4f3e26e6" }, "hey" : "others", "in the" : "cold" }")
+```
+
+## Counting Documents
+
+Use `Base.length` function to count the number of documents in a collection.
+Pass a BSON argument as a query filter.
+
+```julia
+julia> length(collection)
+2
+```

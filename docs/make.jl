@@ -5,7 +5,7 @@ makedocs(
     format = :html,
     sitename = "Mongoc.jl",
     modules = [ Mongoc ],
-    pages = [ "index.md", "api.md" ]
+    pages = [ "index.md", "tutorial.md", "api.md" ]
 )
 
 deploydocs(

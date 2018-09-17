@@ -3,7 +3,9 @@
 # Public API
 #
 
-Client(host::String="localhost", port::Int=27017) = Client(URI("mongodb://$host:$port"))
+Client(host::String, port::Int) = Client(URI("mongodb://$host:$port"))
+Client(uri::String) = Client(URI(uri))
+Client() = Client("localhost", 27017)
 
 function Collection(database::Database, coll_name::String)
     coll_handle = mongoc_database_get_collection(database.handle, coll_name)
@@ -98,6 +100,7 @@ function insert_one(collection::Collection, document::BSON; options::Union{Nothi
     inserted_oid = nothing
     if !has_field(document, "_id")
         inserted_oid = BSONObjectId()
+        document = deepcopy(document) # copies it so this function doesn't have side effects
         document["_id"] = inserted_oid
     end
 
@@ -258,3 +261,5 @@ Base.getindex(database::Database, collection_name::String) = Collection(database
 
 Base.push!(collection::Collection, document::BSON; options::Union{Nothing, BSON}=nothing) = insert_one(collection, document; options=options)
 Base.append!(collection::Collection, documents::Vector{BSON}; bulk_options::Union{Nothing, BSON}=nothing, insert_options::Union{Nothing, BSON}=nothing) = insert_many(collection, documents; bulk_options=bulk_options, insert_options=insert_options)
+
+Base.length(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) = count_documents(collection, bson_filter; options=options)

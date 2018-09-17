@@ -224,7 +224,7 @@ end
                 @test haskey(bson, "hello") || haskey(bson, "hey")
                 i += 1
             end
-            @test i == Mongoc.count_documents(coll)
+            @test i == length(coll)
 
             Mongoc.command_simple(coll, Mongoc.BSON("""{ "collStats" : "new_collection" }"""))
         end
