@@ -77,7 +77,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "Connecting to MongoDB",
     "category": "section",
-    "text": "Connect to a MongoDB instance using a Client. Use the MongoDB URI format to set the server location.julia> import Mongoc\n\njulia> client = Mongoc.Client(\"mongodb://localhost:27017\")As a shorthand, you can also use:julia> client = Mongoc.Client(\"localhost\", 27017)To connect to the server at the default location localhost:27017 you can use the Client constructor with no arguments.julia> client = Mongoc.Client()"
+    "text": "Connect to a MongoDB instance using a Mongoc.Client. Use the MongoDB URI format to set the server location.julia> import Mongoc\n\njulia> client = Mongoc.Client(\"mongodb://localhost:27017\")As a shorthand, you can also use:julia> client = Mongoc.Client(\"localhost\", 27017)To connect to the server at the default location localhost:27017 you can use the Mongoc.Client constructor with no arguments.julia> client = Mongoc.Client()"
 },
 
 {
@@ -85,7 +85,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "Getting a Database",
     "category": "section",
-    "text": "A MongoDB instance consists on a set of independent databases. You get a database reference using the following command.julia> database = client[\"my-database\"]If \"my-database\" does not exist on your MongoDB instance, it will be created in the first time you insert a document in it."
+    "text": "A MongoDB instance consists on a set of independent databases. You get a Database reference using the following command.julia> database = client[\"my-database\"]If \"my-database\" does not exist on your MongoDB instance, it will be created in the first time you insert a document in it."
 },
 
 {
@@ -101,7 +101,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "BSON Documents",
     "category": "section",
-    "text": "BSON is the document format for MongoDB.To create a BSON document instance in Mongoc.jl just use Dictionary syntax, using Strings as keys.julia> document = Mongoc.BSON()\n\njulia> document[\"name\"] = \"Felipe\"\n\njulia> document[\"age\"] = 35\n\njulia> document[\"preferences\"] = [ \"Music\", \"Computer\", \"Photography\" ]\n\njulia> using Dates; document[\"details\"] = Dict(\"birth date\" => DateTime(1983, 4, 16), \"location\" => \"Rio de Janeiro\")To convert a BSON to a JSON string, use:julia> Mongoc.as_json(document)\n\"{ \\\"name\\\" : \\\"Felipe\\\", \\\"age\\\" : 35, \\\"preferences\\\" : [ \\\"Music\\\", \\\"Computer\\\", \\\"Photography\\\" ], \\\"details\\\" : { \\\"location\\\" : \\\"Rio de Janeiro\\\", \\\"birth date\\\" : { \\\"\\$date\\\" : \\\"1983-04-16T00:00:00Z\\\" } } }\"You can also create a BSON document from a JSON string.julia> document = Mongoc.BSON(\"\"\"{ \"hey\" : \"you\" }\"\"\")"
+    "text": "BSON is the document format for MongoDB.To create a BSON document instance in Mongoc.jl just use Dictionary syntax, using Strings as keys.julia> document = Mongoc.BSON()\n\njulia> document[\"name\"] = \"Felipe\"\n\njulia> document[\"age\"] = 35\n\njulia> document[\"preferences\"] = [ \"Music\", \"Computer\", \"Photography\" ]\n\njulia> using Dates; document[\"details\"] = Dict(\"birth date\" => DateTime(1983, 4, 16), \"location\" => \"Rio de Janeiro\")To convert a BSON to a JSON string, use:julia> Mongoc.as_json(document)\n\"{ \\\"name\\\" : \\\"Felipe\\\", \\\"age\\\" : 35, \\\"preferences\\\" : [ \\\"Music\\\", \\\"Computer\\\", \\\"Photography\\\" ], \\\"details\\\" : { \\\"location\\\" : \\\"Rio de Janeiro\\\", \\\"birth date\\\" : { \\\"\\$date\\\" : \\\"1983-04-16T00:00:00Z\\\" } } }\"You can also create a BSON document from a JSON string.julia> document = Mongoc.BSON(\"\"\"{ \"hey\" : \"you\" }\"\"\")And also from a Dictionary.julia> dict = Dict(\"hey\" => \"you\")\nDict{String,String} with 1 entry:\n  \"hey\" => \"you\"\n\njulia> document = Mongoc.BSON(dict)\nBSON(\"{ \"hey\" : \"you\" }\")To convert a BSON document to a Dictionary, use Mongoc.as_dict.julia> Mongoc.as_dict(document)\nDict{Any,Any} with 1 entry:\n  \"hey\" => \"you\""
 },
 
 {
@@ -117,7 +117,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "Querying Documents",
     "category": "section",
-    "text": "To query a single document, use find_one. Pass a BSON argument as a query filter.julia> document = Mongoc.find_one(collection, Mongoc.BSON(\"\"\"{ \"hey\" : \"you\" }\"\"\"))\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9ef9cc11c3dd1da14675c3\" }, \"hey\" : \"you\" }\")To query multiple documents, use find. Pass a BSON query argument as a query filter. It returns a iterator of BSON documents that can be read using a for loop.julia> for document in Mongoc.find(collection)\n        println(document)\n       end\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e5\" }, \"hey\" : \"you\", \"out\" : \"there\" }\")\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e6\" }, \"hey\" : \"others\", \"in the\" : \"cold\" }\")"
+    "text": "To query a single document, use Mongoc.find_one. Pass a BSON argument as a query filter.julia> document = Mongoc.find_one(collection, Mongoc.BSON(\"\"\"{ \"hey\" : \"you\" }\"\"\"))\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9ef9cc11c3dd1da14675c3\" }, \"hey\" : \"you\" }\")To query multiple documents, use Mongoc.find. Pass a BSON query argument as a query filter. It returns a iterator of BSON documents that can be read using a for loop.julia> for document in Mongoc.find(collection)\n        println(document)\n       end\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e5\" }, \"hey\" : \"you\", \"out\" : \"there\" }\")\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e6\" }, \"hey\" : \"others\", \"in the\" : \"cold\" }\")"
 },
 
 {
