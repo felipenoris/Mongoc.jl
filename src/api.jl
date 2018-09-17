@@ -41,7 +41,7 @@ function set_appname!(client::Client, appname::String)
 end
 
 """
-    command_simple(client::Client, database::String, command::Union{String, BSON}) :: BSON
+    command_simple(database::Database, command::Union{String, BSON}) :: BSON
 
 Executes a `command` given by a JSON string or a BSON instance.
 
@@ -53,19 +53,19 @@ It returns the first document from the result cursor.
 julia> client = Mongoc.Client() # connects to localhost at port 27017
 Client(URI("mongodb://localhost:27017"))
 
-julia> bson_result = Mongoc.command_simple(client, "admin", "{ \"ping\" : 1 }")
+julia> bson_result = Mongoc.command_simple(client[\"admin\"], "{ \"ping\" : 1 }")
 BSON("{ "ok" : 1.0 }")
 ```
 
 # C API
 
-* [`mongoc_client_command_simple`](http://mongoc.org/libmongoc/current/mongoc_client_command_simple.html)
+* [`mongoc_database_command_simple`](http://mongoc.org/libmongoc/current/mongoc_database_command_simple.html)
 
 """
-function command_simple(client::Client, database::String, command::BSON) :: BSON
+function command_simple(database::Database, command::BSON) :: BSON
     reply = BSON()
     err = BSONError()
-    ok = mongoc_client_command_simple(client.handle, database, command.handle, C_NULL, reply.handle, err)
+    ok = mongoc_database_command_simple(database.handle, command.handle, C_NULL, reply.handle, err)
     if !ok
         error("$err.")
     end
@@ -83,7 +83,7 @@ function command_simple(collection::Collection, command::BSON) :: BSON
 end
 
 function ping(client::Client) :: BSON
-    return command_simple(client, "admin", BSON("""{ "ping" : 1 }"""))
+    return command_simple(client["admin"], BSON("""{ "ping" : 1 }"""))
 end
 
 function find_databases(client::Client; options::Union{Nothing, BSON}=nothing) :: Cursor
@@ -93,6 +93,31 @@ function find_databases(client::Client; options::Union{Nothing, BSON}=nothing) :
         error("Couldn't execute query.")
     end
     return Cursor(cursor_handle)
+end
+
+function get_database_names(client::Client; options::Union{Nothing, BSON}=nothing) :: Vector{String}
+    result = Vector{String}()
+    for bson_database in find_databases(client, options=options)
+        push!(result, bson_database["name"])
+    end
+    return result
+end
+
+function find_collections(database::Database; options::Union{Nothing, BSON}=nothing) :: Cursor
+    options_handle = options == nothing ? C_NULL : options.handle
+    cursor_handle = mongoc_database_find_collections_with_opts(database.handle, options_handle)
+    if cursor_handle == C_NULL
+        error("Couldn't execute query.")
+    end
+    return Cursor(cursor_handle)
+end
+
+function get_collection_names(database::Database; options::Union{Nothing, BSON}=nothing) :: Vector{String}
+    result = Vector{String}()
+    for bson_collection in find_collections(database, options=options)
+        push!(result, bson_collection["name"])
+    end
+    return result
 end
 
 # Aux function to add _id field to document if it does not exist.
@@ -117,6 +142,50 @@ function insert_one(collection::Collection, document::BSON; options::Union{Nothi
         error("$err.")
     end
     return InsertOneResult(reply, string(inserted_oid))
+end
+
+function delete_one(collection::Collection, selector::BSON; options::Union{Nothing, BSON}=nothing)
+    reply = BSON()
+    err = BSONError()
+    options_handle = options == nothing ? C_NULL : options.handle
+    ok = mongoc_collection_delete_one(collection.handle, selector.handle, options_handle, reply.handle, err)
+    if !ok
+        error("$err.")
+    end
+    return reply
+end
+
+function delete_many(collection::Collection, selector::BSON; options::Union{Nothing, BSON}=nothing)
+    reply = BSON()
+    err = BSONError()
+    options_handle = options == nothing ? C_NULL : options.handle
+    ok = mongoc_collection_delete_many(collection.handle, selector.handle, options_handle, reply.handle, err)
+    if !ok
+        error("$err.")
+    end
+    return reply
+end
+
+function update_one(collection::Collection, selector::BSON, update::BSON; options::Union{Nothing, BSON}=nothing)
+    reply = BSON()
+    err = BSONError()
+    options_handle = options == nothing ? C_NULL : options.handle
+    ok = mongoc_collection_update_one(collection.handle, selector.handle, update.handle, options_handle, reply.handle, err)
+    if !ok
+        error("$err.")
+    end
+    return reply
+end
+
+function update_many(collection::Collection, selector::BSON, update::BSON; options::Union{Nothing, BSON}=nothing)
+    reply = BSON()
+    err = BSONError()
+    options_handle = options == nothing ? C_NULL : options.handle
+    ok = mongoc_collection_update_many(collection.handle, selector.handle, update.handle, options_handle, reply.handle, err)
+    if !ok
+        error("$err.")
+    end
+    return reply
 end
 
 BulkOperationResult(reply::BSON, server_id::UInt32) = BulkOperationResult(reply, server_id, Vector{Union{Nothing, BSONObjectId}}())
@@ -276,3 +345,4 @@ Base.push!(collection::Collection, document::BSON; options::Union{Nothing, BSON}
 Base.append!(collection::Collection, documents::Vector{BSON}; bulk_options::Union{Nothing, BSON}=nothing, insert_options::Union{Nothing, BSON}=nothing) = insert_many(collection, documents; bulk_options=bulk_options, insert_options=insert_options)
 
 Base.length(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) = count_documents(collection, bson_filter; options=options)
+Base.isempty(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) = count_documents(collection, bson_filter; options=options) == 0

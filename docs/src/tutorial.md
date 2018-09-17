@@ -126,13 +126,18 @@ Dict{Any,Any} with 1 entry:
 ## Inserting Documents
 
 To insert a single document into a collection, just `Base.push!` a BSON document to it.
+The result of this operation wraps the server reply and the inserted oid.
 
 ```julia
-julia> push!(collection, document)
+julia> result = push!(collection, document)
 Mongoc.InsertOneResult(BSON("{ "insertedCount" : 1 }"), "5b9f115311c3dd25383e0f32")
+
+julia> result.inserted_oid
+"5b9f115311c3dd25383e0f32"
 ```
 
 Use `Base.append!` to insert a vector of documents to a collection.
+The result of this operation also wraps the server reply and the inserted oids.
 
 ```julia
 julia> doc1 = Mongoc.BSON("""{ "hey" : "you", "out" : "there" }""")
@@ -168,6 +173,11 @@ julia> for document in Mongoc.find(collection)
        end
 BSON("{ "_id" : { "$oid" : "5b9f02fb11c3dd1f4f3e26e5" }, "hey" : "you", "out" : "there" }")
 BSON("{ "_id" : { "$oid" : "5b9f02fb11c3dd1f4f3e26e6" }, "hey" : "others", "in the" : "cold" }")
+
+julia> for document in Mongoc.find(collection, Mongoc.BSON("""{ "in the" : "cold" }"""))
+           println(document)
+       end
+BSON("{ "_id" : { "$oid" : "5b9f02fb11c3dd1f4f3e26e6" }, "hey" : "others", "in the" : "cold" }")
 ```
 
 ## Counting Documents
@@ -178,4 +188,7 @@ Pass a BSON argument as a query filter.
 ```julia
 julia> length(collection)
 2
+
+julia> length(collection, Mongoc.BSON("""{ "in the" : "cold" }"""))
+1
 ```

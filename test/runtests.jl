@@ -183,32 +183,32 @@ end
     @testset "Types" begin
         bson = Mongoc.BSON()
         @test_throws ErrorException Mongoc.Client("////invalid-url")
-        cli = Mongoc.Client()
-        @test cli.uri == "mongodb://localhost:27017"
-        Mongoc.set_appname!(cli, "Runtests")
-        db = cli[DB_NAME]
+        client = Mongoc.Client()
+        @test client.uri == "mongodb://localhost:27017"
+        Mongoc.set_appname!(client, "Runtests")
+        db = client[DB_NAME]
         coll = db["new_collection"]
 
         io = IOBuffer()
         show(io, bson)
-        show(io, cli)
+        show(io, client)
         show(io, db)
         show(io, coll)
     end
 
     @testset "Connection" begin
-        cli = Mongoc.Client()
+        client = Mongoc.Client()
 
         @testset "ping" begin
-            bson_ping_result = Mongoc.ping(cli)
+            bson_ping_result = Mongoc.ping(client)
             @test haskey(bson_ping_result, "ok")
-            @test Mongoc.as_json(Mongoc.ping(cli)) == """{ "ok" : 1.0 }"""
+            @test Mongoc.as_json(Mongoc.ping(client)) == """{ "ok" : 1.0 }"""
         end
 
         @testset "error print" begin
             error_happened = false
             try
-                Mongoc.command_simple(cli, "hey", """{ "you":1 }""")
+                Mongoc.command_simple(client, "hey", """{ "you":1 }""")
             catch e
                 println(IOBuffer(), e)
                 error_happened = true
@@ -218,7 +218,7 @@ end
         end
 
         @testset "new_collection" begin
-            coll = cli[DB_NAME]["new_collection"]
+            coll = client[DB_NAME]["new_collection"]
             result = push!(coll, Mongoc.BSON("""{ "hello" : "world" }"""))
             @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
             result = push!(coll, Mongoc.BSON("""{ "hey" : "you" }"""))
@@ -247,30 +247,97 @@ end
 
         @testset "find_databases" begin
             found = false
-            prefix = "{ \"name\" : \"mongoc_tests\""
-            for obj in Mongoc.find_databases(cli)
-                if startswith(Mongoc.as_json(obj), prefix)
+            for obj in Mongoc.find_databases(client)
+                if obj["name"] == "mongoc_tests"
                     found = true
                 end
             end
             @test found
+
+            @test "mongoc_tests" ∈ Mongoc.get_database_names(client)
+        end
+
+        @testset "find_collections" begin
+            for obj in Mongoc.find_collections(client["local"])
+                @test obj["name"] == "startup_log"
+            end
+
+            @test Mongoc.get_collection_names(client["local"]) == [ "startup_log" ]
         end
 
         @testset "bulk" begin
-            coll = cli[DB_NAME]["new_collection"]
+            coll = client[DB_NAME]["new_collection"]
             bulk_operation = Mongoc.BulkOperation(coll)
             Mongoc.destroy!(bulk_operation)
             bulk_2 = Mongoc.BulkOperation(coll) # will be freed by GC
         end
 
         @testset "insert_many" begin
-            collection = cli[DB_NAME]["insert_many"]
+            collection = client[DB_NAME]["insert_many"]
             vector = Vector{Mongoc.BSON}()
             push!(vector, Mongoc.BSON("""{ "hey" : "you" }"""))
             push!(vector, Mongoc.BSON("""{ "out" : "there" }"""))
             push!(vector, Mongoc.BSON("""{ "count" : 3 }"""))
 
             append!(collection, vector)
+        end
+
+        @testset "delete_one" begin
+            collection = client[DB_NAME]["delete_one"]
+            doc = Mongoc.BSON("""{ "to" : "delete", "hey" : "you" }""")
+            doc2 = Mongoc.BSON("""{ "to" : "keep", "out" : "there" }""")
+            insert_result = push!(collection, doc)
+            oid = Mongoc.BSONObjectId(insert_result.inserted_oid)
+            push!(collection, doc2)
+
+            selector = Mongoc.BSON()
+            selector["_id"] = oid
+            @test length(collection, selector) == 1
+            result = Mongoc.delete_one(collection, selector)
+            @test result["deletedCount"] == 1
+            @test length(collection, selector) == 0
+        end
+
+        @testset "delete_many" begin
+            collection = client[DB_NAME]["delete_many"]
+            append!(collection, [ Mongoc.BSON("""{ "first" : 1, "delete" : true }"""), Mongoc.BSON("""{ "second" : 2, "delete" : true }"""), Mongoc.BSON("""{ "third" : 3, "delete" : false }""") ])
+            @test length(collection) == 3
+            result = Mongoc.delete_many(collection, Mongoc.BSON("""{ "delete" : true }"""))
+            @test result["deletedCount"] == 2
+            @test length(collection) == 1
+            result = Mongoc.delete_many(collection, Mongoc.BSON())
+            @test result["deletedCount"] == 1
+            @test isempty(collection)
+        end
+
+        @testset "update_one, update_many" begin
+            collection = client[DB_NAME]["update_one"]
+            append!(collection, [ Mongoc.BSON("""{ "first" : 1, "delete" : true }"""), Mongoc.BSON("""{ "second" : 2, "delete" : true }"""), Mongoc.BSON("""{ "third" : 3, "delete" : false }""") ])
+            @test length(collection) == 3
+
+            selector = Mongoc.BSON("""{ "delete" : false }""")
+            update = Mongoc.BSON("""{ "\$set" : { "delete" : true, "new_field" : 1 } }""")
+            result = Mongoc.update_one(collection, selector, update)
+
+            @test result["modifiedCount"] == 1
+            @test result["matchedCount"] == 1
+            @test result["upsertedCount"] == 0
+
+            updated_bson = Mongoc.find_one(collection, Mongoc.BSON("""{ "third" : 3 }"""))
+            @test updated_bson != nothing
+            @test updated_bson["delete"] == true
+            @test updated_bson["new_field"] == 1
+
+            selector = Mongoc.BSON("""{ "delete" : true }""")
+            update = Mongoc.BSON("""{ "\$set" : { "delete" : false } }""")
+            result = Mongoc.update_many(collection, selector, update)
+            @test result["modifiedCount"] == 3
+            @test result["matchedCount"] == 3
+            @test result["upsertedCount"] == 0
+
+            for doc in Mongoc.find(collection)
+                @test doc["delete"] == false
+            end
         end
 
         gc_on_osx_v6() # avoid segfault on Cursor destroy

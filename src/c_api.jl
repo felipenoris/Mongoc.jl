@@ -188,6 +188,10 @@ function mongoc_client_get_database(client_handle::Ptr{Cvoid}, db_name::String)
     ccall((:mongoc_client_get_database, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Cstring), client_handle, db_name)
 end
 
+function mongoc_client_find_databases_with_opts(client_handle::Ptr{Cvoid}, bson_opts::Ptr{Cvoid})
+    ccall((:mongoc_client_find_databases_with_opts, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}), client_handle, bson_opts)
+end
+
 function mongoc_database_destroy(database_handle::Ptr{Cvoid})
     ccall((:mongoc_database_destroy, libmongoc), Cvoid, (Ptr{Cvoid},), database_handle)
 end
@@ -196,16 +200,12 @@ function mongoc_database_get_collection(database_handle::Ptr{Cvoid}, collection_
     ccall((:mongoc_database_get_collection, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Cstring), database_handle, collection_name)
 end
 
-function mongoc_client_command_simple(client_handle::Ptr{Cvoid}, db_name::String, bson_command::Ptr{Cvoid}, read_prefs::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_client_command_simple, libmongoc), Bool, (Ptr{Cvoid}, Cstring, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), client_handle, db_name, bson_command, read_prefs, bson_reply, Ref(bson_error))
+function mongoc_database_find_collections_with_opts(database_handle::Ptr{Cvoid}, bson_opts::Ptr{Cvoid})
+    ccall((:mongoc_database_find_collections_with_opts, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}), database_handle, bson_opts)
 end
 
-#function mongoc_client_get_collection(client_handle::Ptr{Cvoid}, db_name::String, coll_name::String)
-#    ccall((:mongoc_client_get_collection, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Cstring, Cstring), client_handle, db_name, coll_name)
-#end
-
-function mongoc_client_find_databases_with_opts(client_handle::Ptr{Cvoid}, bson_opts::Ptr{Cvoid})
-    ccall((:mongoc_client_find_databases_with_opts, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}), client_handle, bson_opts)
+function mongoc_database_command_simple(database_handle::Ptr{Cvoid}, bson_command::Ptr{Cvoid}, read_prefs::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
+    ccall((:mongoc_database_command_simple, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), database_handle, bson_command, read_prefs, bson_reply, Ref(bson_error))
 end
 
 function mongoc_collection_command_simple(collection_handle::Ptr{Cvoid}, bson_command::Ptr{Cvoid}, read_prefs::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
@@ -230,6 +230,22 @@ end
 
 function mongoc_collection_create_bulk_operation_with_opts(collection_handle::Ptr{Cvoid}, bson_opts::Ptr{Cvoid})
     ccall((:mongoc_collection_create_bulk_operation_with_opts, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}), collection_handle, bson_opts)
+end
+
+function mongoc_collection_delete_one(collection_handle::Ptr{Cvoid}, bson_selector::Ptr{Cvoid}, bson_opts::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
+    ccall((:mongoc_collection_delete_one, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_selector, bson_opts, bson_reply, Ref(bson_error))
+end
+
+function mongoc_collection_delete_many(collection_handle::Ptr{Cvoid}, bson_selector::Ptr{Cvoid}, bson_opts::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
+    ccall((:mongoc_collection_delete_many, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_selector, bson_opts, bson_reply, Ref(bson_error))
+end
+
+function mongoc_collection_update_one(collection_handle::Ptr{Cvoid}, bson_selector::Ptr{Cvoid}, bson_update::Ptr{Cvoid}, bson_opts::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
+    ccall((:mongoc_collection_update_one, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_selector, bson_update, bson_opts, bson_reply, Ref(bson_error))
+end
+
+function mongoc_collection_update_many(collection_handle::Ptr{Cvoid}, bson_selector::Ptr{Cvoid}, bson_update::Ptr{Cvoid}, bson_opts::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
+    ccall((:mongoc_collection_update_many, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_selector, bson_update, bson_opts, bson_reply, Ref(bson_error))
 end
 
 function mongoc_cursor_destroy(cursor_handle::Ptr{Cvoid})

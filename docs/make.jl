@@ -7,6 +7,7 @@ makedocs(
     modules = [ Mongoc ],
     pages = [ "Home" => "index.md",
               "Tutorial" => "tutorial.md",
+              "CRUD Operations" => "crud.md",
               "API Reference" => "api.md" ]
 )
 
