@@ -21,7 +21,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Introduction",
     "category": "section",
-    "text": "Mongoc.jl is a MongoDB driver for the Julia Language.It is implemented as a thin wrapper around libmongoc, the official client library for C applications.Given that BSON is the document format for MongoDB, this package also implements a wrapper around libbson, which provides a way to create an manipulate BSON documents."
+    "text": "Mongoc.jl is a MongoDB driver for the Julia Language.It is implemented as a thin wrapper around libmongoc, the official client library for C applications.Given that BSON is the document format for MongoDB, this package also implements a wrapper around libbson, which provides a way to create and manipulate BSON documents."
 },
 
 {
@@ -38,6 +38,14 @@ var documenterSearchIndex = {"docs": [
     "title": "MongoDB C Driver",
     "category": "section",
     "text": "This packages downloads precompiled binaries for MongoDB C Driver v1.12.0 from mongo-c-driver-builder.The binaries are compiled by Travis CI, using BinaryBuilder.jl.Windows is currently not supported because the C driver requires Visual Studio to be compiled.If your platform is not supported and can be compiled by BinaryBuilder.jl, please open an issue."
+},
+
+{
+    "location": "index.html#Source-Code-1",
+    "page": "Home",
+    "title": "Source Code",
+    "category": "section",
+    "text": "The source code for this package is hosted at https://github.com/felipenoris/Mongoc.jl."
 },
 
 {
