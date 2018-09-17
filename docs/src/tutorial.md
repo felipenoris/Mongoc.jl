@@ -13,18 +13,20 @@ julia> using Pkg
 julia> Pkg.clone("https://github.com/felipenoris/Mongoc.jl.git")
 ```
 
-The following examples assumes that a MongoDB instance is running on the
+The following tutorial assumes that a MongoDB instance is running on the
 default host and port: `localhost:27017`.
 
 To start a new server instance on the default location use the following command on your shell.
 
 ```shell
-$ mongod
+$ mkdir db
+
+$ mongod --dbpath ./db --smallfiles
 ```
 
 ## Connecting to MongoDB
 
-Connect with a MongoDB instance using a `Client`.
+Connect to a MongoDB instance using a `Client`.
 Use the [MongoDB URI format](https://docs.mongodb.com/manual/reference/connection-string/) to set the server location.
 
 ```julia
@@ -33,7 +35,7 @@ julia> import Mongoc
 julia> client = Mongoc.Client("mongodb://localhost:27017")
 ```
 
-As a shorthard, you can also use:
+As a shorthand, you can also use:
 
 ```julia
 julia> client = Mongoc.Client("localhost", 27017)
@@ -55,8 +57,8 @@ You get a database reference using the following command.
 julia> database = client["my-database"]
 ```
 
-If `my-database` does not exist on your MongoDB instance, it will be created
-in the first time you insert a document.
+If `"my-database"` does not exist on your MongoDB instance, it will be created
+in the first time you insert a document in it.
 
 ## Getting a Collection
 
@@ -67,8 +69,8 @@ You get a collection reference using the following command.
 julia> collection = database["my-collection"]
 ```
 
-Like databases, a Collection is also created if it does not exists
-in the first time you insert a document in it.
+If it does not exist inside your database, the Collection
+is created in the first time you insert a document in it.
 
 ## BSON Documents
 
@@ -108,7 +110,7 @@ To insert a single document into a collection, just `Base.push!` a BSON document
 
 ```julia
 julia> push!(collection, document)
-Mongoc.InsertOneResult(BSON("{ "insertedCount" : 1 }"), BSONObjectId("5b9ef9cc11c3dd1da14675c3"))
+Mongoc.InsertOneResult(BSON("{ "insertedCount" : 1 }"), "5b9f115311c3dd25383e0f32")
 ```
 
 Use `Base.append!` to insert a vector of documents to a collection.
@@ -126,7 +128,7 @@ julia> vector = [ doc1, doc2 ]
  BSON("{ "hey" : "others", "in the" : "cold" }")
 
 julia> append!(collection, vector)
-Mongoc.BulkOperationResult(BSON("{ "nInserted" : 2, "nMatched" : 0, "nModified" : 0, "nRemoved" : 0, "nUpserted" : 0, "writeErrors" : [  ] }"), 0x00000001)
+Mongoc.BulkOperationResult(BSON("{ "nInserted" : 2, "nMatched" : 0, "nModified" : 0, "nRemoved" : 0, "nUpserted" : 0, "writeErrors" : [  ] }"), 0x00000001, Union{Nothing, String}["5b9f11ba11c3dd25841c7dc2", "5b9f11ba11c3dd25841c7dc3"])
 ```
 
 ## Querying Documents

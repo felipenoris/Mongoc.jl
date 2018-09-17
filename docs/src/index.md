@@ -8,7 +8,8 @@
 It is implemented as a thin wrapper around [libmongoc](http://mongoc.org/), the official client library for C applications.
 
 Given that [BSON](http://bsonspec.org/) is the document format for MongoDB,
-this package also implements a wrapper around [libbson](http://mongoc.org/libbson/current/index.html), which provides a way to create an manipulate BSON documents.
+this package also implements a wrapper around [libbson](http://mongoc.org/libbson/current/index.html),
+which provides a way to create an manipulate BSON documents.
 
 ## Requirements
 
@@ -20,8 +21,8 @@ this package also implements a wrapper around [libbson](http://mongoc.org/libbso
 
 !!! note
 
-    Currently, this package might cause an error Julia garbage collection
-    if using Julia v0.6 on OSX.
+    Currently, this package might cause garbage collection
+    errors if using Julia v0.6 on OSX.
 
 ## MongoDB C Driver
 

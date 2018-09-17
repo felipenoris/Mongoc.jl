@@ -95,15 +95,20 @@ function find_databases(client::Client; options::Union{Nothing, BSON}=nothing) :
     return Cursor(cursor_handle)
 end
 
-function insert_one(collection::Collection, document::BSON; options::Union{Nothing, BSON}=nothing) :: InsertOneResult
-
-    inserted_oid = nothing
-    if !has_field(document, "_id")
+# Aux function to add _id field to document if it does not exist.
+function _new_id(document::BSON)
+    if haskey(document, "_id")
+        return document, nothing
+    else
         inserted_oid = BSONObjectId()
         document = deepcopy(document) # copies it so this function doesn't have side effects
         document["_id"] = inserted_oid
+        return document, inserted_oid
     end
+end
 
+function insert_one(collection::Collection, document::BSON; options::Union{Nothing, BSON}=nothing) :: InsertOneResult
+    document, inserted_oid = _new_id(document)
     reply = BSON()
     err = BSONError()
     options_handle = options == nothing ? C_NULL : options.handle
@@ -111,8 +116,10 @@ function insert_one(collection::Collection, document::BSON; options::Union{Nothi
     if !ok
         error("$err.")
     end
-    return InsertOneResult(reply, inserted_oid)
+    return InsertOneResult(reply, string(inserted_oid))
 end
+
+BulkOperationResult(reply::BSON, server_id::UInt32) = BulkOperationResult(reply, server_id, Vector{Union{Nothing, BSONObjectId}}())
 
 function execute!(bulk_operation::BulkOperation) :: BulkOperationResult
     if bulk_operation.executed
@@ -143,11 +150,17 @@ function bulk_insert!(bulk_operation::BulkOperation, document::BSON; options::Un
 end
 
 function insert_many(collection::Collection, documents::Vector{BSON}; bulk_options::Union{Nothing, BSON}=nothing, insert_options::Union{Nothing, BSON}=nothing)
+    inserted_oids = Vector{Union{Nothing, String}}()
+
     bulk_operation = BulkOperation(collection, options=bulk_options)
     for doc in documents
+        doc, inserted_oid = _new_id(doc)
         bulk_insert!(bulk_operation, doc, options=insert_options)
+        push!(inserted_oids, string(inserted_oid))
     end
-    return execute!(bulk_operation)
+    result = execute!(bulk_operation)
+    append!(result.inserted_oids, inserted_oids)
+    return result
 end
 
 function find(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) :: Cursor

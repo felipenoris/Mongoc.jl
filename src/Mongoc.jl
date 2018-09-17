@@ -6,7 +6,7 @@ module Mongoc
     const Nothing = Void
     const Cvoid   = Void
 else
-	using Dates
+    using Dates
 end
 
 # load libmongoc

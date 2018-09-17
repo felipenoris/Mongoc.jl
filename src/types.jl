@@ -141,10 +141,11 @@ end
 
 struct InsertOneResult
     reply::BSON
-    inserted_oid::Union{Nothing, BSONObjectId}
+    inserted_oid::Union{Nothing, String}
 end
 
 struct BulkOperationResult
     reply::BSON
     server_id::UInt32
+    inserted_oids::Vector{Union{Nothing, String}}
 end
