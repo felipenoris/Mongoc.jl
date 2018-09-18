@@ -29,7 +29,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Requirements",
     "category": "section",
-    "text": "MongoDB 3.0 or newer\nJulia versions v0.6, v0.7 or v1.0.\nLinux or OSX.note: Note\nCurrently, this package might cause garbage collection errors if using Julia v0.6 on OSX."
+    "text": "MongoDB 3.0 or newer.\nJulia versions v0.6, v0.7 or v1.0.\nLinux or OSX.note: Note\nCurrently, this package might cause garbage collection errors if using Julia v0.6 on OSX."
 },
 
 {
@@ -46,6 +46,14 @@ var documenterSearchIndex = {"docs": [
     "title": "Source Code",
     "category": "section",
     "text": "The source code for this package is hosted at https://github.com/felipenoris/Mongoc.jl."
+},
+
+{
+    "location": "index.html#License-1",
+    "page": "Home",
+    "title": "License",
+    "category": "section",
+    "text": "The source code for the package Mongoc.jl is licensed under the MIT License.This repository distributes binary assets built from mongo-c-driver source code, which is licensed under Apache-2.0."
 },
 
 {
