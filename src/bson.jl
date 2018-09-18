@@ -147,6 +147,10 @@ Base.convert(::Type{String}, code::BSONCode) = code.code
 Base.string(code::BSONCode) = convert(String, code)
 Base.convert(::Type{BSONCode}, code_string::String) = BSONCode(code_string)
 
+@static if VERSION < v"0.7-"
+    Base.:(==)(c1::BSONCode, c2::BSONCode) = c1.code == c2.code
+end
+
 Base.show(io::IO, oid::BSONObjectId) = print(io, "BSONObjectId(\"", string(oid), "\")")
 Base.show(io::IO, bson::BSON) = print(io, "BSON(\"", as_json(bson), "\")")
 Base.show(io::IO, code::BSONCode) = print(io::IO, "BSONCode(\"$(code.code)\")")
