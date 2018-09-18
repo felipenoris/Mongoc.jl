@@ -137,11 +137,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "tutorial.html#Aggregation-1",
+    "location": "tutorial.html#Aggregation-and-Map-Reduce-1",
     "page": "Tutorial",
-    "title": "Aggregation",
+    "title": "Aggregation and Map-Reduce",
     "category": "section",
-    "text": "Use Mongoc.aggregate to execute an aggregation command.The following reproduces the example from the MongoDB Tutorial.docs = [\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"A123\", \"amount\" : 500, \"status\" : \"A\" }\"\"\"),\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"A123\", \"amount\" : 250, \"status\" : \"A\" }\"\"\"),\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"B212\", \"amount\" : 200, \"status\" : \"A\" }\"\"\"),\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"A123\", \"amount\" : 300, \"status\" : \"D\" }\"\"\")\n]\n\ncollection = client[\"my-database\"][\"aggregation-collection\"]\nappend!(collection, docs)\n\n# Sets the pipeline command\nbson_pipeline = Mongoc.BSON(\"\"\"\n    [\n        { \"\\$match\" : { \"status\" : \"A\" } },\n        { \"\\$group\" : { \"_id\" : \"\\$cust_id\", \"total\" : { \"\\$sum\" : \"\\$amount\" } } }\n    ]\"\"\")\n\nfor doc in Mongoc.aggregate(collection, bson_pipeline)\n	println(doc)\nendThe result of the script above is:BSON(\"{ \"_id\" : \"B212\", \"total\" : 200 }\")\nBSON(\"{ \"_id\" : \"A123\", \"total\" : 750 }\")"
+    "text": "Use Mongoc.aggregate to execute an aggregation command.The following reproduces the example from the MongoDB Tutorial.docs = [\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"A123\", \"amount\" : 500, \"status\" : \"A\" }\"\"\"),\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"A123\", \"amount\" : 250, \"status\" : \"A\" }\"\"\"),\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"B212\", \"amount\" : 200, \"status\" : \"A\" }\"\"\"),\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"A123\", \"amount\" : 300, \"status\" : \"D\" }\"\"\")\n]\n\ncollection = client[\"my-database\"][\"aggregation-collection\"]\nappend!(collection, docs)\n\n# Sets the pipeline command\nbson_pipeline = Mongoc.BSON(\"\"\"\n    [\n        { \"\\$match\" : { \"status\" : \"A\" } },\n        { \"\\$group\" : { \"_id\" : \"\\$cust_id\", \"total\" : { \"\\$sum\" : \"\\$amount\" } } }\n    ]\"\"\")\n\nfor doc in Mongoc.aggregate(collection, bson_pipeline)\n	println(doc)\nendThe result of the script above is:BSON(\"{ \"_id\" : \"B212\", \"total\" : 200 }\")\nBSON(\"{ \"_id\" : \"A123\", \"total\" : 750 }\")A Map-Reduce operation can be executed with Mongoc.command_simple.input_collection_name = \"aggregation-collection\"\noutput_collection_name = \"order_totals\"\nquery = Mongoc.BSON(\"\"\"{ \"status\" : \"A\" }\"\"\")\n\n# use `Mongoc.BSONCode` to represent JavaScript elements in BSON\nmapper = Mongoc.BSONCode(\"\"\" function() { emit( this.cust_id, this.amount ); } \"\"\")\nreducer = Mongoc.BSONCode(\"\"\" function(key, values) { return Array.sum( values ) } \"\"\")\n\nmap_reduce_command = Mongoc.BSON()\nmap_reduce_command[\"mapReduce\"] = input_collection_name\nmap_reduce_command[\"map\"] = mapper\nmap_reduce_command[\"reduce\"] = reducer\nmap_reduce_command[\"out\"] = output_collection_name\nmap_reduce_command[\"query\"] = query\n\nresult = Mongoc.command_simple(database, map_reduce_command)\nprintln(result)\n\nfor doc in Mongoc.find(database[\"order_totals\"])\n   println(doc)\nendThe result of the script above is:BSON(\"{ \"result\" : \"order_totals\", \"timeMillis\" : 135, \"counts\" : { \"input\" : 3, \"emit\" : 3, \"reduce\" : 1, \"output\" : 2 }, \"ok\" : 1.0 }\")\nBSON(\"{ \"_id\" : \"A123\", \"value\" : 750.0 }\")\nBSON(\"{ \"_id\" : \"B212\", \"value\" : 200.0 }\")"
 },
 
 {
@@ -334,6 +334,14 @@ var documenterSearchIndex = {"docs": [
     "title": "Mongoc.BSON",
     "category": "type",
     "text": "BSON is a wrapper for C struct bson_t.\n\n\n\n\n\n"
+},
+
+{
+    "location": "api.html#Mongoc.BSONCode",
+    "page": "API Reference",
+    "title": "Mongoc.BSONCode",
+    "category": "type",
+    "text": "BSON element with JavaScript source code.\n\n\n\n\n\n"
 },
 
 {
