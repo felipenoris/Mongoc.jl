@@ -281,9 +281,9 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "authentication.html#Basic-Authentication-(SCRAM-SHA-256)-1",
+    "location": "authentication.html#Basic-Authentication-(SCRAM)-1",
     "page": "Authentication",
-    "title": "Basic Authentication (SCRAM-SHA-256)",
+    "title": "Basic Authentication (SCRAM)",
     "category": "section",
     "text": "In this authentication mechanism, user and passwords are passed in the URI string for the Mongoc.Client."
 },
