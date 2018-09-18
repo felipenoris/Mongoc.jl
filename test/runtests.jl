@@ -352,6 +352,8 @@ end
                 @test doc["delete"] == false
             end
 
+            @test Mongoc.find_one(collection, Mongoc.BSON("""{ "delete" : true }""")) == nothing
+
             empty!(collection)
         end
 
