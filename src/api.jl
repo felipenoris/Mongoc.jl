@@ -15,11 +15,6 @@ function Collection(database::Database, coll_name::String)
     return Collection(database, coll_name, coll_handle)
 end
 
-function Collection(client::Client, db_name::String, coll_name::String)
-    database = Database(client, db_name)
-    return Collection(database, coll_name)
-end
-
 """
     set_appname!(client::Client, appname::String)
 
