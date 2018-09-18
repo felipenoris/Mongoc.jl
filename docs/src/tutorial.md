@@ -192,3 +192,39 @@ julia> length(collection)
 julia> length(collection, Mongoc.BSON("""{ "in the" : "cold" }"""))
 1
 ```
+
+## Aggregation
+
+Use `Mongoc.aggregate` to execute an aggregation command.
+
+The following reproduces the example from the [MongoDB Tutorial](https://docs.mongodb.com/manual/aggregation/).
+
+```julia
+docs = [
+    Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 500, "status" : "A" }"""),
+    Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 250, "status" : "A" }"""),
+    Mongoc.BSON("""{ "cust_id" : "B212", "amount" : 200, "status" : "A" }"""),
+    Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 300, "status" : "D" }""")
+]
+
+collection = client["my-database"]["aggregation-collection"]
+append!(collection, docs)
+
+# Sets the pipeline command
+bson_pipeline = Mongoc.BSON("""
+    [
+        { "\$match" : { "status" : "A" } },
+        { "\$group" : { "_id" : "\$cust_id", "total" : { "\$sum" : "\$amount" } } }
+    ]""")
+
+for doc in Mongoc.aggregate(collection, bson_pipeline)
+	println(doc)
+end
+```
+
+The result of the script above is:
+
+```
+BSON("{ "_id" : "B212", "total" : 200 }")
+BSON("{ "_id" : "A123", "total" : 750 }")
+```
