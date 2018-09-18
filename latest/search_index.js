@@ -177,9 +177,9 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "crud.html#Update-1",
+    "location": "crud.html#Select-1",
     "page": "CRUD Operations",
-    "title": "Update",
+    "title": "Select",
     "category": "section",
     "text": ""
 },
@@ -189,11 +189,35 @@ var documenterSearchIndex = {"docs": [
     "page": "CRUD Operations",
     "title": "API",
     "category": "section",
-    "text": "Mongoc.update_one(collection::Collection, selector::BSON, update::BSON; options::Union{Nothing, BSON}=nothing)\n\nMongoc.update_many(collection::Collection, selector::BSON, update::BSON; options::Union{Nothing, BSON}=nothing)"
+    "text": "find_one(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}\n\nfind(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) :: Cursor"
 },
 
 {
     "location": "crud.html#Examples-2",
+    "page": "CRUD Operations",
+    "title": "Examples",
+    "category": "section",
+    "text": "bson = Mongoc.find_one(collection, Mongoc.BSON(\"\"\"{ \"third\" : 3 }\"\"\"))\n\nfor doc in Mongoc.find(collection)\n	println(doc)\nend"
+},
+
+{
+    "location": "crud.html#Update-1",
+    "page": "CRUD Operations",
+    "title": "Update",
+    "category": "section",
+    "text": ""
+},
+
+{
+    "location": "crud.html#API-3",
+    "page": "CRUD Operations",
+    "title": "API",
+    "category": "section",
+    "text": "Mongoc.update_one(collection::Collection, selector::BSON, update::BSON; options::Union{Nothing, BSON}=nothing)\n\nMongoc.update_many(collection::Collection, selector::BSON, update::BSON; options::Union{Nothing, BSON}=nothing)"
+},
+
+{
+    "location": "crud.html#Examples-3",
     "page": "CRUD Operations",
     "title": "Examples",
     "category": "section",
@@ -209,7 +233,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "crud.html#API-3",
+    "location": "crud.html#API-4",
     "page": "CRUD Operations",
     "title": "API",
     "category": "section",
@@ -217,7 +241,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "crud.html#Examples-3",
+    "location": "crud.html#Examples-4",
     "page": "CRUD Operations",
     "title": "Examples",
     "category": "section",
