@@ -193,7 +193,7 @@ julia> length(collection, Mongoc.BSON("""{ "in the" : "cold" }"""))
 1
 ```
 
-## Aggregation
+## Aggregation and Map-Reduce
 
 Use `Mongoc.aggregate` to execute an aggregation command.
 
@@ -227,4 +227,38 @@ The result of the script above is:
 ```
 BSON("{ "_id" : "B212", "total" : 200 }")
 BSON("{ "_id" : "A123", "total" : 750 }")
+```
+
+A **Map-Reduce** operation can be executed with `Mongoc.command_simple`.
+
+```julia
+input_collection_name = "aggregation-collection"
+output_collection_name = "order_totals"
+query = Mongoc.BSON("""{ "status" : "A" }""")
+
+# use `Mongoc.BSONCode` to represent JavaScript elements in BSON
+mapper = Mongoc.BSONCode(""" function() { emit( this.cust_id, this.amount ); } """)
+reducer = Mongoc.BSONCode(""" function(key, values) { return Array.sum( values ) } """)
+
+map_reduce_command = Mongoc.BSON()
+map_reduce_command["mapReduce"] = input_collection_name
+map_reduce_command["map"] = mapper
+map_reduce_command["reduce"] = reducer
+map_reduce_command["out"] = output_collection_name
+map_reduce_command["query"] = query
+
+result = Mongoc.command_simple(database, map_reduce_command)
+println(result)
+
+for doc in Mongoc.find(database["order_totals"])
+   println(doc)
+end
+```
+
+The result of the script above is:
+
+```
+BSON("{ "result" : "order_totals", "timeMillis" : 135, "counts" : { "input" : 3, "emit" : 3, "reduce" : 1, "output" : 2 }, "ok" : 1.0 }")
+BSON("{ "_id" : "A123", "value" : 750.0 }")
+BSON("{ "_id" : "B212", "value" : 200.0 }")
 ```

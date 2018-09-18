@@ -361,8 +361,8 @@ end
             empty!(collection)
         end
 
-        @testset "aggregation" begin
-            # reproducing the example at https://docs.mongodb.com/manual/aggregation/
+        @testset "aggregation, map_reduce" begin
+            # reproducing the examples at https://docs.mongodb.com/manual/aggregation/
             docs = [
                 Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 500, "status" : "A" }"""),
                 Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 250, "status" : "A" }"""),
@@ -370,28 +370,67 @@ end
                 Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 300, "status" : "D" }""")
             ]
 
-            collection = client[DB_NAME]["aggregation"]
+            database = client[DB_NAME]
+            collection = database["aggregation-example"]
             append!(collection, docs)
             @test length(collection) == 4
 
-            bson_pipeline = Mongoc.BSON("""
-                [
-                    { "\$match" : { "status" : "A" } },
-                    { "\$group" : { "_id" : "\$cust_id", "total" : { "\$sum" : "\$amount" } } }
-                ]""")
+            # Aggregation
+            let
+                bson_pipeline = Mongoc.BSON("""
+                    [
+                        { "\$match" : { "status" : "A" } },
+                        { "\$group" : { "_id" : "\$cust_id", "total" : { "\$sum" : "\$amount" } } }
+                    ]""")
 
-            # Response should be
-            #   BSON("{ "_id" : "B212", "total" : 200 }")
-            #   BSON("{ "_id" : "A123", "total" : 750 }")
-            for doc in Mongoc.aggregate(collection, bson_pipeline)
-                if doc["_id"] == "A123"
-                    @test doc["total"] == 750
-                elseif doc["_id"] == "B212"
-                    @test doc["total"] == 200
-                else
-                    # shouldn't get in here
-                    @test false
+                # Response should be
+                #   BSON("{ "_id" : "B212", "total" : 200 }")
+                #   BSON("{ "_id" : "A123", "total" : 750 }")
+                for doc in Mongoc.aggregate(collection, bson_pipeline)
+                    if doc["_id"] == "A123"
+                        @test doc["total"] == 750
+                    elseif doc["_id"] == "B212"
+                        @test doc["total"] == 200
+                    else
+                        # shouldn't get in here
+                        @test false
+                    end
                 end
+            end
+
+            # map_reduce
+            let
+                input_collection_name = "aggregation-example"
+                mapper = Mongoc.BSONCode(""" function() { emit( this.cust_id, this.amount ); } """)
+                reducer = Mongoc.BSONCode(""" function(key, values) { return Array.sum( values ) } """)
+                output_collection_name = "order_totals"
+                query = Mongoc.BSON("""{ "status" : "A" }""")
+
+                map_reduce_command = Mongoc.BSON()
+                map_reduce_command["mapReduce"] = input_collection_name
+                map_reduce_command["map"] = mapper
+                map_reduce_command["reduce"] = reducer
+                map_reduce_command["out"] = output_collection_name
+                map_reduce_command["query"] = query
+
+                result = Mongoc.command_simple(database, map_reduce_command)
+                @test result["result"] == "order_totals"
+                @test result["ok"] == 1.0
+
+                for doc in Mongoc.find(database["order_totals"])
+                   if doc["_id"] == "A123"
+                        @test doc["value"] == 750
+                    elseif doc["_id"] == "B212"
+                        @test doc["value"] == 200
+                    else
+                        # shouldn't get in here
+                        @test false
+                    end
+                end
+
+               # Response should be
+               # BSON("{ "_id" : "A123", "value" : 750.0 }")
+               # BSON("{ "_id" : "B212", "value" : 200.0 }")
             end
 
             empty!(collection)
