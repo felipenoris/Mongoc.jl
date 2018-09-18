@@ -66,7 +66,8 @@ bson_pipeline = Mongoc.BSON(&quot;&quot;&quot;
     [
         { &quot;\$match&quot; : { &quot;status&quot; : &quot;A&quot; } },
         { &quot;\$group&quot; : { &quot;_id&quot; : &quot;\$cust_id&quot;, &quot;total&quot; : { &quot;\$sum&quot; : &quot;\$amount&quot; } } }
-    ]&quot;&quot;&quot;)
+    ]
+&quot;&quot;&quot;)
 
 for doc in Mongoc.aggregate(collection, bson_pipeline)
 	println(doc)
