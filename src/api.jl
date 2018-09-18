@@ -374,3 +374,13 @@ Base.append!(collection::Collection, documents::Vector{BSON}; bulk_options::Unio
 Base.length(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) = count_documents(collection, bson_filter; options=options)
 Base.isempty(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) = count_documents(collection, bson_filter; options=options) == 0
 Base.empty!(collection::Collection) = Mongoc.delete_many(collection, Mongoc.BSON())
+
+function Base.collect(cursor::Cursor) :: Vector{BSON}
+    result = Vector{BSON}()
+    for doc in cursor
+        push!(result, doc)
+    end
+    return result
+end
+
+Base.collect(collection::Collection, bson_filter::BSON=BSON()) :: Vector{BSON} = collect(find(collection, bson_filter))

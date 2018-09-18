@@ -293,6 +293,7 @@ end
 
             append!(collection, vector)
             @test length(collection) == 3
+            @test length(collect(collection)) == 3
 
             empty!(collection)
             @test isempty(collection)

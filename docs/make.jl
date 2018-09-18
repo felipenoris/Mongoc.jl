@@ -8,6 +8,7 @@ makedocs(
     pages = [ "Home" => "index.md",
               "Tutorial" => "tutorial.md",
               "CRUD Operations" => "crud.md",
+              "Authentication" => "authentication.md",
               "API Reference" => "api.md" ]
 )
 
