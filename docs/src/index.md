@@ -42,6 +42,13 @@ please open an [issue](https://github.com/felipenoris/Mongoc.jl/issues).
 The source code for this package is hosted at
 [https://github.com/felipenoris/Mongoc.jl](https://github.com/felipenoris/Mongoc.jl).
 
+## License
+
+The source code for the package `Mongoc.jl` is licensed under the [MIT License](https://github.com/felipenoris/Mongoc.jl/blob/master/LICENSE).
+
+This repository distributes binary assets built from [mongo-c-driver](https://github.com/mongodb/mongo-c-driver) source code,
+which is licensed under [Apache-2.0](https://github.com/mongodb/mongo-c-driver/blob/master/COPYING).
+
 ## References
 
 * [libbson documentation](http://mongoc.org/libbson/current/index.html)
