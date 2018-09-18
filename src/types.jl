@@ -1,4 +1,47 @@
 
+"""
+Mirrors C struct `mongoc_query_flags_t`.
+
+These flags correspond to the MongoDB wire protocol.
+They may be bitwise or’d together. They may modify how a query is performed in the MongoDB server.
+
+From: http://mongoc.org/libmongoc/current/mongoc_query_flags_t.html
+"""
+primitive type QueryFlags sizeof(Cint) * 8 end
+
+Base.convert(::Type{T}, t::QueryFlags) where {T<:Number} = reinterpret(Cint, t)
+Base.convert(::Type{QueryFlags}, n::T) where {T<:Number} = reinterpret(QueryFlags, n)
+QueryFlags(u::Cint) = convert(QueryFlags, u)
+QueryFlags(i::Number) = QueryFlags(Cint(i))
+Cint(flags::QueryFlags) = convert(Cint, flags)
+Base.:(|)(flag1::QueryFlags, flag2::QueryFlags) = QueryFlags( Cint(flag1) | Cint(flag2) )
+Base.:(&)(flag1::QueryFlags, flag2::QueryFlags) = QueryFlags( Cint(flag1) & Cint(flag2) )
+Base.show(io::IO, flags::QueryFlags) = show(io, "QueryFlags($(Cint(flags)))")
+
+"Specify no query flags."
+const QUERY_FLAG_NONE              = QueryFlags(0)
+
+"Cursor will not be closed when the last data is retrieved. You can resume this cursor later."
+const QUERY_FLAG_TAILABLE_CURSOR   = QueryFlags(1 << 1)
+
+"Allow query of replica set secondaries."
+const QUERY_FLAG_SLAVE_OK          = QueryFlags(1 << 2)
+
+"Used internally by MongoDB."
+const QUERY_FLAG_OPLOG_REPLAY      = QueryFlags(1 << 3)
+
+"The server normally times out an idle cursor after an inactivity period (10 minutes). This prevents that."
+const QUERY_FLAG_NO_CURSOR_TIMEOUT = QueryFlags(1 << 4)
+
+"Use with MONGOC_QUERY_TAILABLE_CURSOR. Block rather than returning no data. After a period, time out."
+const QUERY_FLAG_AWAIT_DATA        = QueryFlags(1 << 5)
+
+"Stream the data down full blast in multiple “reply” packets. Faster when you are pulling down a lot of data and you know you want to retrieve it all."
+const QUERY_FLAG_EXHAUST           = QueryFlags(1 << 6)
+
+"Get partial results from mongos if some shards are down (instead of throwing an error)."
+const QUERY_FLAG_PARTIAL           = QueryFlags(1 << 7)
+
 "`URI` is a wrapper for C struct `mongoc_uri_t`."
 mutable struct URI
     uri::String

@@ -247,6 +247,7 @@ end
             @test i == 1
 
             Mongoc.command_simple(coll, Mongoc.BSON("""{ "collStats" : "new_collection" }"""))
+            empty!(coll)
         end
 
         gc_on_osx_v6() # avoid segfault on Cursor destroy
@@ -271,7 +272,7 @@ end
             @test Mongoc.get_collection_names(client["local"]) == [ "startup_log" ]
         end
 
-        @testset "bulk" begin
+        @testset "BulkOperation" begin
             coll = client[DB_NAME]["new_collection"]
             bulk_operation = Mongoc.BulkOperation(coll)
             Mongoc.destroy!(bulk_operation)
@@ -286,6 +287,10 @@ end
             push!(vector, Mongoc.BSON("""{ "count" : 3 }"""))
 
             append!(collection, vector)
+            @test length(collection) == 3
+
+            empty!(collection)
+            @test isempty(collection)
         end
 
         @testset "delete_one" begin
@@ -302,6 +307,8 @@ end
             result = Mongoc.delete_one(collection, selector)
             @test result["deletedCount"] == 1
             @test length(collection, selector) == 0
+
+            empty!(collection)
         end
 
         @testset "delete_many" begin
@@ -344,6 +351,44 @@ end
             for doc in Mongoc.find(collection)
                 @test doc["delete"] == false
             end
+
+            empty!(collection)
+        end
+
+        @testset "aggregation" begin
+            # reproducing the example at https://docs.mongodb.com/manual/aggregation/
+            docs = [
+                Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 500, "status" : "A" }"""),
+                Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 250, "status" : "A" }"""),
+                Mongoc.BSON("""{ "cust_id" : "B212", "amount" : 200, "status" : "A" }"""),
+                Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 300, "status" : "D" }""")
+            ]
+
+            collection = client[DB_NAME]["aggregation"]
+            append!(collection, docs)
+            @test length(collection) == 4
+
+            bson_pipeline = Mongoc.BSON("""
+                [
+                    { "\$match" : { "status" : "A" } },
+                    { "\$group" : { "_id" : "\$cust_id", "total" : { "\$sum" : "\$amount" } } }
+                ]""")
+
+            # Response should be
+            #   BSON("{ "_id" : "B212", "total" : 200 }")
+            #   BSON("{ "_id" : "A123", "total" : 750 }")
+            for doc in Mongoc.aggregate(collection, bson_pipeline)
+                if doc["_id"] == "A123"
+                    @test doc["total"] == 750
+                elseif doc["_id"] == "B212"
+                    @test doc["total"] == 200
+                else
+                    # shouldn't get in here
+                    @test false
+                end
+            end
+
+            empty!(collection)
         end
 
         gc_on_osx_v6() # avoid segfault on Cursor destroy

@@ -82,5 +82,5 @@ selector["_id"] = oid
 Mongoc.delete_one(collection, selector)
 
 # deletes all elements in a collection
-Mongoc.delete_many(collection, Mongoc.BSON())
+Mongoc.delete_many(collection, Mongoc.BSON()) # equivalent to `empty!(collection)`
 ```

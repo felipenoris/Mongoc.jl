@@ -248,6 +248,10 @@ function mongoc_collection_update_many(collection_handle::Ptr{Cvoid}, bson_selec
     ccall((:mongoc_collection_update_many, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_selector, bson_update, bson_opts, bson_reply, Ref(bson_error))
 end
 
+function mongoc_collection_aggregate(collection_handle::Ptr{Cvoid}, flags::QueryFlags, bson_pipeline::Ptr{Cvoid}, bson_opts::Ptr{Cvoid}, read_prefs::Ptr{Cvoid})
+    ccall((:mongoc_collection_aggregate, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Cint, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}), collection_handle, flags, bson_pipeline, bson_opts, read_prefs)
+end
+
 function mongoc_cursor_destroy(cursor_handle::Ptr{Cvoid})
     ccall((:mongoc_cursor_destroy, libmongoc), Cvoid, (Ptr{Cvoid},), cursor_handle)
 end

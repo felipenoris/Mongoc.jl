@@ -10,6 +10,33 @@ Base.convert(::Type{T}, t::BSONType) where {T<:Number} = reinterpret(UInt8, t)
 Base.convert(::Type{BSONType}, n::T) where {T<:Number} = reinterpret(BSONType, n)
 BSONType(u::UInt8) = convert(BSONType, u)
 
+#
+# Constants for BSONType
+#
+
+const BSON_TYPE_EOD        = BSONType(0x00)
+const BSON_TYPE_DOUBLE     = BSONType(0x01)
+const BSON_TYPE_UTF8       = BSONType(0x02)
+const BSON_TYPE_DOCUMENT   = BSONType(0x03)
+const BSON_TYPE_ARRAY      = BSONType(0x04)
+const BSON_TYPE_BINARY     = BSONType(0x05)
+const BSON_TYPE_UNDEFINED  = BSONType(0x06)
+const BSON_TYPE_OID        = BSONType(0x07)
+const BSON_TYPE_BOOL       = BSONType(0x08)
+const BSON_TYPE_DATE_TIME  = BSONType(0x09)
+const BSON_TYPE_NULL       = BSONType(0x0A)
+const BSON_TYPE_REGEX      = BSONType(0x0B)
+const BSON_TYPE_DBPOINTER  = BSONType(0x0C)
+const BSON_TYPE_CODE       = BSONType(0x0D)
+const BSON_TYPE_SYMBOL     = BSONType(0x0E)
+const BSON_TYPE_CODEWSCOPE = BSONType(0x0F)
+const BSON_TYPE_INT32      = BSONType(0x10)
+const BSON_TYPE_TIMESTAMP  = BSONType(0x11)
+const BSON_TYPE_INT64      = BSONType(0x12)
+const BSON_TYPE_DECIMAL128 = BSONType(0x13)
+const BSON_TYPE_MAXKEY     = BSONType(0x7F)
+const BSON_TYPE_MINKEY     = BSONType(0xFF)
+
 """
 BSONIter mirrors C struct bson_iter_t and can be allocated in the stack.
 
@@ -102,33 +129,6 @@ end
 function Base.deepcopy(bson::BSON) :: BSON
     return BSON(bson_copy(bson.handle))
 end
-
-#
-# Constants
-#
-
-const BSON_TYPE_EOD        = BSONType(0x00)
-const BSON_TYPE_DOUBLE     = BSONType(0x01)
-const BSON_TYPE_UTF8       = BSONType(0x02)
-const BSON_TYPE_DOCUMENT   = BSONType(0x03)
-const BSON_TYPE_ARRAY      = BSONType(0x04)
-const BSON_TYPE_BINARY     = BSONType(0x05)
-const BSON_TYPE_UNDEFINED  = BSONType(0x06)
-const BSON_TYPE_OID        = BSONType(0x07)
-const BSON_TYPE_BOOL       = BSONType(0x08)
-const BSON_TYPE_DATE_TIME  = BSONType(0x09)
-const BSON_TYPE_NULL       = BSONType(0x0A)
-const BSON_TYPE_REGEX      = BSONType(0x0B)
-const BSON_TYPE_DBPOINTER  = BSONType(0x0C)
-const BSON_TYPE_CODE       = BSONType(0x0D)
-const BSON_TYPE_SYMBOL     = BSONType(0x0E)
-const BSON_TYPE_CODEWSCOPE = BSONType(0x0F)
-const BSON_TYPE_INT32      = BSONType(0x10)
-const BSON_TYPE_TIMESTAMP  = BSONType(0x11)
-const BSON_TYPE_INT64      = BSONType(0x12)
-const BSON_TYPE_DECIMAL128 = BSONType(0x13)
-const BSON_TYPE_MAXKEY     = BSONType(0x7F)
-const BSON_TYPE_MINKEY     = BSONType(0xFF)
 
 #
 # API

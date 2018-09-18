@@ -278,6 +278,15 @@ function find_one(collection::Collection, bson_filter::BSON=BSON(); options::Uni
     end
 end
 
+function aggregate(collection::Collection, bson_pipeline::BSON; flags::QueryFlags=QUERY_FLAG_NONE, options::Union{Nothing, BSON}=nothing) :: Cursor
+    options_handle = options == nothing ? C_NULL : options.handle
+    cursor_handle = mongoc_collection_aggregate(collection.handle, flags, bson_pipeline.handle, options_handle, C_NULL)
+    if cursor_handle == C_NULL
+        error("Couldn't execute aggregate command.")
+    end
+    return Cursor(cursor_handle)
+end
+
 #
 # High-level API
 #
@@ -346,3 +355,4 @@ Base.append!(collection::Collection, documents::Vector{BSON}; bulk_options::Unio
 
 Base.length(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) = count_documents(collection, bson_filter; options=options)
 Base.isempty(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) = count_documents(collection, bson_filter; options=options) == 0
+Base.empty!(collection::Collection) = Mongoc.delete_many(collection, Mongoc.BSON())
