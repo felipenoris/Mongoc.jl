@@ -133,7 +133,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "Querying Documents",
     "category": "section",
-    "text": "To query a single document, use Mongoc.find_one. Pass a BSON argument as a query filter.julia> document = Mongoc.find_one(collection, Mongoc.BSON(\"\"\"{ \"hey\" : \"you\" }\"\"\"))\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9ef9cc11c3dd1da14675c3\" }, \"hey\" : \"you\" }\")To query multiple documents, use Mongoc.find. Pass a BSON query argument as a query filter. It returns a iterator of BSON documents that can be read using a for loop.julia> for document in Mongoc.find(collection)\n        println(document)\n       end\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e5\" }, \"hey\" : \"you\", \"out\" : \"there\" }\")\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e6\" }, \"hey\" : \"others\", \"in the\" : \"cold\" }\")\n\njulia> for document in Mongoc.find(collection, Mongoc.BSON(\"\"\"{ \"in the\" : \"cold\" }\"\"\"))\n           println(document)\n       end\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e6\" }, \"hey\" : \"others\", \"in the\" : \"cold\" }\")"
+    "text": "To query a single document, use Mongoc.find_one. Pass a BSON argument as a query filter.julia> document = Mongoc.find_one(collection, Mongoc.BSON(\"\"\"{ \"hey\" : \"you\" }\"\"\"))\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9ef9cc11c3dd1da14675c3\" }, \"hey\" : \"you\" }\")To query multiple documents, use Mongoc.find. Pass a BSON query argument as a query filter. It returns a iterator of BSON documents that can be read using a for loop.julia> for document in Mongoc.find(collection)\n        println(document)\n       end\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e5\" }, \"hey\" : \"you\", \"out\" : \"there\" }\")\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e6\" }, \"hey\" : \"others\", \"in the\" : \"cold\" }\")\n\njulia> for document in Mongoc.find(collection, Mongoc.BSON(\"\"\"{ \"in the\" : \"cold\" }\"\"\"))\n           println(document)\n       end\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e6\" }, \"hey\" : \"others\", \"in the\" : \"cold\" }\")Use Base.collect to convert the result of Mongoc.find into a vector of BSON documents.Also, applying Base.collect to a Collection gathers all documents in the collection.julia> collect(collection)\n2-element Array{Mongoc.BSON,1}:\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e5\" }, \"hey\" : \"you\", \"out\" : \"there\" }\")\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e6\" }, \"hey\" : \"others\", \"in the\" : \"cold\" }\")"
 },
 
 {
@@ -262,6 +262,46 @@ var documenterSearchIndex = {"docs": [
     "title": "Examples",
     "category": "section",
     "text": "selector = Mongoc.BSON()\nselector[\"_id\"] = oid\nMongoc.delete_one(collection, selector)\n\n# deletes all elements in a collection\nMongoc.delete_many(collection, Mongoc.BSON()) # equivalent to `empty!(collection)`"
+},
+
+{
+    "location": "authentication.html#",
+    "page": "Authentication",
+    "title": "Authentication",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "authentication.html#Authentication-1",
+    "page": "Authentication",
+    "title": "Authentication",
+    "category": "section",
+    "text": "Refer to the Security section of the MongoDB Manual for an overview on how authentication works in MongoDB."
+},
+
+{
+    "location": "authentication.html#Basic-Authentication-(SCRAM-SHA-256)-1",
+    "page": "Authentication",
+    "title": "Basic Authentication (SCRAM-SHA-256)",
+    "category": "section",
+    "text": "In this authentication mechanism, user and passwords are passed in the URI string for the Mongoc.Client."
+},
+
+{
+    "location": "authentication.html#Enable-Auth-1",
+    "page": "Authentication",
+    "title": "Enable Auth",
+    "category": "section",
+    "text": "To use basic authentication mechanism, first enable authentication in the database, as described in the MongoDB manual.Start MongoDB without access control$ mongod --dbpath ./dbConnect to the database and create an admin user.From a Julia session, you can use Mongoc.add_user to add users to a MongoDB database.import Mongoc\nroles = Mongoc.BSON(\"\"\"[ { \"role\" : \"userAdminAnyDatabase\", \"db\" : \"admin\" }, \"readWriteAnyDatabase\" ]\"\"\")\nclient = Mongoc.Client()\nMongoc.add_user(client[\"admin\"], \"myUserAdmin\", \"abc123\", roles)\nMongoc.destroy!(client) # or exit julia sessionRe-start the MongoDB instance with access controlKill the previous process running mongod and then start server with auth option.$ mongod --auth --dbpath ./db"
+},
+
+{
+    "location": "authentication.html#Connect-and-authenticate-1",
+    "page": "Authentication",
+    "title": "Connect and authenticate",
+    "category": "section",
+    "text": "Pass the user and password in the URI, as described in http://mongoc.org/libmongoc/current/authentication.html.client = Mongoc.Client(\"mongodb://myUserAdmin:abc123@localhost/?authSource=admin\")From MongoDB 4.0, there\'s a new authentication mechanism SCRAM-SHA-256, which replaces the previous SCRAM-SHA-1 mechanism. The correct authentication mechanism is negotiated between the driver and the server.Alternatively, SCRAM-SHA-256 can be explicitly specified:client = Mongoc.Client(\"mongodb://myUserAdmin:abc123@localhost/?authMechanism=SCRAM-SHA-256&authSource=admin\")Refer to the MongoDB manual for adding new users and roles per database."
 },
 
 {
@@ -430,6 +470,14 @@ var documenterSearchIndex = {"docs": [
     "title": "Mongoc.URI",
     "category": "type",
     "text": "URI is a wrapper for C struct mongoc_uri_t.\n\n\n\n\n\n"
+},
+
+{
+    "location": "api.html#Mongoc.add_user",
+    "page": "API Reference",
+    "title": "Mongoc.add_user",
+    "category": "function",
+    "text": "add_user(database::Database, username::String, password::String, roles::Union{Nothing, BSON}, custom_data::Union{Nothing, BSON}=nothing)\n\nThis function shall create a new user with access to database.\n\nWarning: Do not call this function without TLS.\n\n\n\n\n\n"
 },
 
 {
