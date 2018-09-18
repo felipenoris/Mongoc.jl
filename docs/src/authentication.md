@@ -4,7 +4,7 @@
 Refer to the [Security section of the MongoDB Manual](https://docs.mongodb.com/manual/security/)
 for an overview on how authentication works in MongoDB.
 
-## Basic Authentication (SCRAM-SHA-256)
+## Basic Authentication (SCRAM)
 
 In this authentication mechanism, user and passwords are passed in the URI string for the `Mongoc.Client`.
 
