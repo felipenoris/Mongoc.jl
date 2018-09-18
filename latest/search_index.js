@@ -293,7 +293,31 @@ var documenterSearchIndex = {"docs": [
     "page": "Authentication",
     "title": "Enable Auth",
     "category": "section",
-    "text": "To use basic authentication mechanism, first enable authentication in the database, as described in the MongoDB manual.Start MongoDB without access control$ mongod --dbpath ./dbConnect to the database and create an admin user.From a Julia session, you can use Mongoc.add_user to add users to a MongoDB database.import Mongoc\nroles = Mongoc.BSON(\"\"\"[ { \"role\" : \"userAdminAnyDatabase\", \"db\" : \"admin\" }, \"readWriteAnyDatabase\" ]\"\"\")\nclient = Mongoc.Client()\nMongoc.add_user(client[\"admin\"], \"myUserAdmin\", \"abc123\", roles)\nMongoc.destroy!(client) # or exit julia sessionRe-start the MongoDB instance with access controlKill the previous process running mongod and then start server with auth option.$ mongod --auth --dbpath ./db"
+    "text": "To use basic authentication mechanism, first enable authentication in the database, as described in the MongoDB manual."
+},
+
+{
+    "location": "authentication.html#.-Start-MongoDB-without-access-control-1",
+    "page": "Authentication",
+    "title": "1. Start MongoDB without access control",
+    "category": "section",
+    "text": "$ mongod --dbpath ./db"
+},
+
+{
+    "location": "authentication.html#.-Connect-to-the-database-and-create-an-admin-user.-1",
+    "page": "Authentication",
+    "title": "2. Connect to the database and create an admin user.",
+    "category": "section",
+    "text": "From a Julia session, you can use Mongoc.add_user to add users to a MongoDB database.import Mongoc\nroles = Mongoc.BSON(\"\"\"[ { \"role\" : \"userAdminAnyDatabase\", \"db\" : \"admin\" }, \"readWriteAnyDatabase\" ]\"\"\")\nclient = Mongoc.Client()\nMongoc.add_user(client[\"admin\"], \"myUserAdmin\", \"abc123\", roles)\nMongoc.destroy!(client) # or exit julia session"
+},
+
+{
+    "location": "authentication.html#.-Re-start-the-MongoDB-instance-with-access-control-1",
+    "page": "Authentication",
+    "title": "3. Re-start the MongoDB instance with access control",
+    "category": "section",
+    "text": "Kill the previous process running mongod and then start server with auth option.$ mongod --auth --dbpath ./db"
 },
 
 {
