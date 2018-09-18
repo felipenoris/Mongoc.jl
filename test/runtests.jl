@@ -143,6 +143,7 @@ end
         bson["datetime"] = DateTime(2018, 2, 1, 10, 20, 35, 10)
         bson["vector"] = collect(1:10)
         bson["source"] = Mongoc.BSONCode("function() = 1")
+        @test_throws ErrorException bson["key"] = Date(2018, 9, 18)
 
         let
             sub_bson = Mongoc.BSON()

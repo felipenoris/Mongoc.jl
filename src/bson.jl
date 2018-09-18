@@ -409,3 +409,7 @@ function Base.setindex!(document::BSON, value::BSONCode, key::String)
     end
     nothing
 end
+
+function Base.setindex!(document::BSON, value::Date, key::String)
+    error("BSON format does not support `Date` type. Use `DateTime` instead.")
+end
