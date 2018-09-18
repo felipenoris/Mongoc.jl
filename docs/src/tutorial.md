@@ -180,6 +180,17 @@ julia> for document in Mongoc.find(collection, Mongoc.BSON("""{ "in the" : "cold
 BSON("{ "_id" : { "$oid" : "5b9f02fb11c3dd1f4f3e26e6" }, "hey" : "others", "in the" : "cold" }")
 ```
 
+Use `Base.collect` to convert the result of `Mongoc.find` into a vector of BSON documents.
+
+Also, applying `Base.collect` to a Collection gathers all documents in the collection.
+
+```julia
+julia> collect(collection)
+2-element Array{Mongoc.BSON,1}:
+BSON("{ "_id" : { "$oid" : "5b9f02fb11c3dd1f4f3e26e5" }, "hey" : "you", "out" : "there" }")
+BSON("{ "_id" : { "$oid" : "5b9f02fb11c3dd1f4f3e26e6" }, "hey" : "others", "in the" : "cold" }")
+```
+
 ## Counting Documents
 
 Use `Base.length` function to count the number of documents in a collection.
