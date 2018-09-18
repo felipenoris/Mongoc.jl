@@ -72,6 +72,10 @@ function bson_append_array(bson_document::Ptr{Cvoid}, key::String, key_length::I
     ccall((:bson_append_array, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Ptr{Cvoid}), bson_document, key, key_length, value)
 end
 
+function bson_append_code(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::String)
+    ccall((:bson_append_code, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Cstring), bson_document, key, key_length, value)
+end
+
 function bson_new()
     ccall((:bson_new, libbson), Ptr{Cvoid}, ())
 end
@@ -154,6 +158,10 @@ end
 
 function bson_iter_recurse(iter_ref::Ref{BSONIter}, child_iter_ref::Ref{BSONIter})
     ccall((:bson_iter_recurse, libbson), Bool, (Ref{BSONIter}, Ref{BSONIter}), iter_ref, child_iter_ref)
+end
+
+function bson_iter_code(iter_ref::Ref{BSONIter})
+    ccall((:bson_iter_code, libbson), Cstring, (Ref{BSONIter}, Ptr{UInt32}), iter_ref, C_NULL)
 end
 
 #

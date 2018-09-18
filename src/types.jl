@@ -16,7 +16,7 @@ QueryFlags(i::Number) = QueryFlags(Cint(i))
 Cint(flags::QueryFlags) = convert(Cint, flags)
 Base.:(|)(flag1::QueryFlags, flag2::QueryFlags) = QueryFlags( Cint(flag1) | Cint(flag2) )
 Base.:(&)(flag1::QueryFlags, flag2::QueryFlags) = QueryFlags( Cint(flag1) & Cint(flag2) )
-Base.show(io::IO, flags::QueryFlags) = show(io, "QueryFlags($(Cint(flags)))")
+Base.show(io::IO, flags::QueryFlags) = print(io, "QueryFlags($(Cint(flags)))")
 
 "Specify no query flags."
 const QUERY_FLAG_NONE              = QueryFlags(0)

@@ -107,6 +107,11 @@ mutable struct BSONError
     BSONError() = new(0, 0, tuple(zeros(UInt8, 504)...))
 end
 
+"BSON element with JavaScript source code."
+struct BSONCode
+    code::String
+end
+
 "`BSON` is a wrapper for C struct `bson_t`."
 mutable struct BSON
     handle::Ptr{Cvoid}
@@ -138,8 +143,13 @@ Base.convert(::Type{String}, oid::BSONObjectId) = bson_oid_to_string(oid)
 Base.string(oid::BSONObjectId) = convert(String, oid)
 Base.convert(::Type{BSONObjectId}, oid_string::String) = BSONObjectId(oid_string)
 
+Base.convert(::Type{String}, code::BSONCode) = code.code
+Base.string(code::BSONCode) = convert(String, code)
+Base.convert(::Type{BSONCode}, code_string::String) = BSONCode(code_string)
+
 Base.show(io::IO, oid::BSONObjectId) = print(io, "BSONObjectId(\"", string(oid), "\")")
 Base.show(io::IO, bson::BSON) = print(io, "BSON(\"", as_json(bson), "\")")
+Base.show(io::IO, code::BSONCode) = print(io::IO, "BSONCode(\"$(code.code)\")")
 
 function Base.show(io::IO, err::BSONError)
     for c in err.message
@@ -293,6 +303,8 @@ function get_value(iter_ref::Ref{BSONIter})
             @assert bson_type == BSON_TYPE_DOCUMENT
             return as_dict(child_iter_ref)
         end
+    elseif bson_type == BSON_TYPE_CODE
+        return BSONCode(unsafe_string(bson_iter_code(iter_ref)))
     else
         error("BSON Type not supported: $bson_type.")
     end
@@ -382,6 +394,14 @@ function Base.setindex!(document::BSON, value::Vector, key::String)
     ok = bson_append_array(document.handle, key, -1, sub_document.handle)
     if !ok
         error("Couldn't append array to BSON document.")
+    end
+    nothing
+end
+
+function Base.setindex!(document::BSON, value::BSONCode, key::String)
+    ok = bson_append_code(document.handle, key, -1, value.code)
+    if !ok
+        error("Couldn't append String to BSON document.")
     end
     nothing
 end
