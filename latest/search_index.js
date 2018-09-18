@@ -137,6 +137,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "tutorial.html#Aggregation-1",
+    "page": "Tutorial",
+    "title": "Aggregation",
+    "category": "section",
+    "text": "Use Mongoc.aggregate to execute an aggregation command.The following reproduces the example from the MongoDB Tutorial.docs = [\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"A123\", \"amount\" : 500, \"status\" : \"A\" }\"\"\"),\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"A123\", \"amount\" : 250, \"status\" : \"A\" }\"\"\"),\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"B212\", \"amount\" : 200, \"status\" : \"A\" }\"\"\"),\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"A123\", \"amount\" : 300, \"status\" : \"D\" }\"\"\")\n]\n\ncollection = client[\"my-database\"][\"aggregation-collection\"]\nappend!(collection, docs)\n\n# Sets the pipeline command\nbson_pipeline = Mongoc.BSON(\"\"\"\n    [\n        { \"\\$match\" : { \"status\" : \"A\" } },\n        { \"\\$group\" : { \"_id\" : \"\\$cust_id\", \"total\" : { \"\\$sum\" : \"\\$amount\" } } }\n    ]\"\"\")\n\nfor doc in Mongoc.aggregate(collection, bson_pipeline)\n	println(doc)\nendThe result of the script above is:BSON(\"{ \"_id\" : \"B212\", \"total\" : 200 }\")\nBSON(\"{ \"_id\" : \"A123\", \"total\" : 750 }\")"
+},
+
+{
     "location": "crud.html#",
     "page": "CRUD Operations",
     "title": "CRUD Operations",
@@ -245,7 +253,7 @@ var documenterSearchIndex = {"docs": [
     "page": "CRUD Operations",
     "title": "Examples",
     "category": "section",
-    "text": "selector = Mongoc.BSON()\nselector[\"_id\"] = oid\nMongoc.delete_one(collection, selector)\n\n# deletes all elements in a collection\nMongoc.delete_many(collection, Mongoc.BSON())"
+    "text": "selector = Mongoc.BSON()\nselector[\"_id\"] = oid\nMongoc.delete_one(collection, selector)\n\n# deletes all elements in a collection\nMongoc.delete_many(collection, Mongoc.BSON()) # equivalent to `empty!(collection)`"
 },
 
 {
@@ -254,6 +262,70 @@ var documenterSearchIndex = {"docs": [
     "title": "API Reference",
     "category": "page",
     "text": ""
+},
+
+{
+    "location": "api.html#Mongoc.QUERY_FLAG_AWAIT_DATA",
+    "page": "API Reference",
+    "title": "Mongoc.QUERY_FLAG_AWAIT_DATA",
+    "category": "constant",
+    "text": "Use with MONGOCQUERYTAILABLE_CURSOR. Block rather than returning no data. After a period, time out.\n\n\n\n\n\n"
+},
+
+{
+    "location": "api.html#Mongoc.QUERY_FLAG_EXHAUST",
+    "page": "API Reference",
+    "title": "Mongoc.QUERY_FLAG_EXHAUST",
+    "category": "constant",
+    "text": "Stream the data down full blast in multiple “reply” packets. Faster when you are pulling down a lot of data and you know you want to retrieve it all.\n\n\n\n\n\n"
+},
+
+{
+    "location": "api.html#Mongoc.QUERY_FLAG_NONE",
+    "page": "API Reference",
+    "title": "Mongoc.QUERY_FLAG_NONE",
+    "category": "constant",
+    "text": "Specify no query flags.\n\n\n\n\n\n"
+},
+
+{
+    "location": "api.html#Mongoc.QUERY_FLAG_NO_CURSOR_TIMEOUT",
+    "page": "API Reference",
+    "title": "Mongoc.QUERY_FLAG_NO_CURSOR_TIMEOUT",
+    "category": "constant",
+    "text": "The server normally times out an idle cursor after an inactivity period (10 minutes). This prevents that.\n\n\n\n\n\n"
+},
+
+{
+    "location": "api.html#Mongoc.QUERY_FLAG_OPLOG_REPLAY",
+    "page": "API Reference",
+    "title": "Mongoc.QUERY_FLAG_OPLOG_REPLAY",
+    "category": "constant",
+    "text": "Used internally by MongoDB.\n\n\n\n\n\n"
+},
+
+{
+    "location": "api.html#Mongoc.QUERY_FLAG_PARTIAL",
+    "page": "API Reference",
+    "title": "Mongoc.QUERY_FLAG_PARTIAL",
+    "category": "constant",
+    "text": "Get partial results from mongos if some shards are down (instead of throwing an error).\n\n\n\n\n\n"
+},
+
+{
+    "location": "api.html#Mongoc.QUERY_FLAG_SLAVE_OK",
+    "page": "API Reference",
+    "title": "Mongoc.QUERY_FLAG_SLAVE_OK",
+    "category": "constant",
+    "text": "Allow query of replica set secondaries.\n\n\n\n\n\n"
+},
+
+{
+    "location": "api.html#Mongoc.QUERY_FLAG_TAILABLE_CURSOR",
+    "page": "API Reference",
+    "title": "Mongoc.QUERY_FLAG_TAILABLE_CURSOR",
+    "category": "constant",
+    "text": "Cursor will not be closed when the last data is retrieved. You can resume this cursor later.\n\n\n\n\n\n"
 },
 
 {
@@ -326,6 +398,14 @@ var documenterSearchIndex = {"docs": [
     "title": "Mongoc.Database",
     "category": "type",
     "text": "Database is a wrapper for C struct mongoc_database_t.\n\n\n\n\n\n"
+},
+
+{
+    "location": "api.html#Mongoc.QueryFlags",
+    "page": "API Reference",
+    "title": "Mongoc.QueryFlags",
+    "category": "type",
+    "text": "Mirrors C struct mongoc_query_flags_t.\n\nThese flags correspond to the MongoDB wire protocol. They may be bitwise or’d together. They may modify how a query is performed in the MongoDB server.\n\nFrom: http://mongoc.org/libmongoc/current/mongocqueryflags_t.html\n\n\n\n\n\n"
 },
 
 {
