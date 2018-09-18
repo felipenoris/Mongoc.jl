@@ -22,6 +22,26 @@ push!(collection, Mongoc.BSON("""{ "hello" : "world" }"""))
 append!(collection, [ Mongoc.BSON("""{ "first" : 1, "delete" : true }"""), Mongoc.BSON("""{ "second" : 2, "delete" : true }"""), Mongoc.BSON("""{ "third" : 3, "delete" : false }""") ])
 ```
 
+## Select
+
+### API
+
+```julia
+find_one(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}
+
+find(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) :: Cursor
+```
+
+### Examples
+
+```julia
+bson = Mongoc.find_one(collection, Mongoc.BSON("""{ "third" : 3 }"""))
+
+for doc in Mongoc.find(collection)
+	println(doc)
+end
+```
+
 ## Update
 
 ### API
