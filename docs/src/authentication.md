@@ -13,13 +13,13 @@ In this authentication mechanism, user and passwords are passed in the URI strin
 To use basic authentication mechanism, first enable authentication in the database,
 as described in the [MongoDB manual](http://mongoc.org/libmongoc/current/authentication.html).
 
-1) Start MongoDB without access control
+#### 1. Start MongoDB without access control
 
 ```shell
 $ mongod --dbpath ./db
 ```
 
-2) Connect to the database and create an admin user.
+#### 2. Connect to the database and create an admin user.
 
 From a Julia session, you can use `Mongoc.add_user` to add users to a MongoDB database.
 
@@ -31,7 +31,7 @@ Mongoc.add_user(client["admin"], "myUserAdmin", "abc123", roles)
 Mongoc.destroy!(client) # or exit julia session
 ```
 
-3) Re-start the MongoDB instance with access control
+#### 3. Re-start the MongoDB instance with access control
 
 Kill the previous process running `mongod` and then start server with auth option.
 
