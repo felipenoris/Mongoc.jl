@@ -208,7 +208,7 @@ end
         @testset "error print" begin
             error_happened = false
             try
-                Mongoc.command_simple(client, "hey", """{ "you":1 }""")
+                Mongoc.command_simple(client["hey"], Mongoc.BSON("""{ "you" : 1 }"""))
             catch e
                 println(IOBuffer(), e)
                 error_happened = true
@@ -239,6 +239,12 @@ end
                 i += 1
             end
             @test i == length(coll)
+
+            i = 0
+            for bson in Mongoc.find(coll, Mongoc.BSON("""{ "hello" : "world" }"""))
+                i += 1
+            end
+            @test i == 1
 
             Mongoc.command_simple(coll, Mongoc.BSON("""{ "collStats" : "new_collection" }"""))
         end
