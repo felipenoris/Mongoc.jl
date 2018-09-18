@@ -117,7 +117,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "Inserting Documents",
     "category": "section",
-    "text": "To insert a single document into a collection, just Base.push! a BSON document to it.julia> push!(collection, document)\nMongoc.InsertOneResult(BSON(\"{ \"insertedCount\" : 1 }\"), \"5b9f115311c3dd25383e0f32\")Use Base.append! to insert a vector of documents to a collection.julia> doc1 = Mongoc.BSON(\"\"\"{ \"hey\" : \"you\", \"out\" : \"there\" }\"\"\")\nBSON(\"{ \"hey\" : \"you\", \"out\" : \"there\" }\")\n\njulia> doc2 = Mongoc.BSON(\"\"\"{ \"hey\" : \"others\", \"in the\" : \"cold\" }\"\"\")\nBSON(\"{ \"hey\" : \"others\", \"in the\" : \"cold\" }\")\n\njulia> vector = [ doc1, doc2 ]\n2-element Array{Mongoc.BSON,1}:\n BSON(\"{ \"hey\" : \"you\", \"out\" : \"there\" }\")\n BSON(\"{ \"hey\" : \"others\", \"in the\" : \"cold\" }\")\n\njulia> append!(collection, vector)\nMongoc.BulkOperationResult(BSON(\"{ \"nInserted\" : 2, \"nMatched\" : 0, \"nModified\" : 0, \"nRemoved\" : 0, \"nUpserted\" : 0, \"writeErrors\" : [  ] }\"), 0x00000001, Union{Nothing, String}[\"5b9f11ba11c3dd25841c7dc2\", \"5b9f11ba11c3dd25841c7dc3\"])"
+    "text": "To insert a single document into a collection, just Base.push! a BSON document to it. The result of this operation wraps the server reply and the inserted oid.julia> result = push!(collection, document)\nMongoc.InsertOneResult(BSON(\"{ \"insertedCount\" : 1 }\"), \"5b9f115311c3dd25383e0f32\")\n\njulia> result.inserted_oid\n\"5b9f115311c3dd25383e0f32\"Use Base.append! to insert a vector of documents to a collection. The result of this operation also wraps the server reply and the inserted oids.julia> doc1 = Mongoc.BSON(\"\"\"{ \"hey\" : \"you\", \"out\" : \"there\" }\"\"\")\nBSON(\"{ \"hey\" : \"you\", \"out\" : \"there\" }\")\n\njulia> doc2 = Mongoc.BSON(\"\"\"{ \"hey\" : \"others\", \"in the\" : \"cold\" }\"\"\")\nBSON(\"{ \"hey\" : \"others\", \"in the\" : \"cold\" }\")\n\njulia> vector = [ doc1, doc2 ]\n2-element Array{Mongoc.BSON,1}:\n BSON(\"{ \"hey\" : \"you\", \"out\" : \"there\" }\")\n BSON(\"{ \"hey\" : \"others\", \"in the\" : \"cold\" }\")\n\njulia> append!(collection, vector)\nMongoc.BulkOperationResult(BSON(\"{ \"nInserted\" : 2, \"nMatched\" : 0, \"nModified\" : 0, \"nRemoved\" : 0, \"nUpserted\" : 0, \"writeErrors\" : [  ] }\"), 0x00000001, Union{Nothing, String}[\"5b9f11ba11c3dd25841c7dc2\", \"5b9f11ba11c3dd25841c7dc3\"])"
 },
 
 {
@@ -125,7 +125,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "Querying Documents",
     "category": "section",
-    "text": "To query a single document, use Mongoc.find_one. Pass a BSON argument as a query filter.julia> document = Mongoc.find_one(collection, Mongoc.BSON(\"\"\"{ \"hey\" : \"you\" }\"\"\"))\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9ef9cc11c3dd1da14675c3\" }, \"hey\" : \"you\" }\")To query multiple documents, use Mongoc.find. Pass a BSON query argument as a query filter. It returns a iterator of BSON documents that can be read using a for loop.julia> for document in Mongoc.find(collection)\n        println(document)\n       end\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e5\" }, \"hey\" : \"you\", \"out\" : \"there\" }\")\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e6\" }, \"hey\" : \"others\", \"in the\" : \"cold\" }\")"
+    "text": "To query a single document, use Mongoc.find_one. Pass a BSON argument as a query filter.julia> document = Mongoc.find_one(collection, Mongoc.BSON(\"\"\"{ \"hey\" : \"you\" }\"\"\"))\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9ef9cc11c3dd1da14675c3\" }, \"hey\" : \"you\" }\")To query multiple documents, use Mongoc.find. Pass a BSON query argument as a query filter. It returns a iterator of BSON documents that can be read using a for loop.julia> for document in Mongoc.find(collection)\n        println(document)\n       end\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e5\" }, \"hey\" : \"you\", \"out\" : \"there\" }\")\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e6\" }, \"hey\" : \"others\", \"in the\" : \"cold\" }\")\n\njulia> for document in Mongoc.find(collection, Mongoc.BSON(\"\"\"{ \"in the\" : \"cold\" }\"\"\"))\n           println(document)\n       end\nBSON(\"{ \"_id\" : { \"$oid\" : \"5b9f02fb11c3dd1f4f3e26e6\" }, \"hey\" : \"others\", \"in the\" : \"cold\" }\")"
 },
 
 {
@@ -133,7 +133,95 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "Counting Documents",
     "category": "section",
-    "text": "Use Base.length function to count the number of documents in a collection. Pass a BSON argument as a query filter.julia> length(collection)\n2"
+    "text": "Use Base.length function to count the number of documents in a collection. Pass a BSON argument as a query filter.julia> length(collection)\n2\n\njulia> length(collection, Mongoc.BSON(\"\"\"{ \"in the\" : \"cold\" }\"\"\"))\n1"
+},
+
+{
+    "location": "crud.html#",
+    "page": "CRUD Operations",
+    "title": "CRUD Operations",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "crud.html#CRUD-Operations-1",
+    "page": "CRUD Operations",
+    "title": "CRUD Operations",
+    "category": "section",
+    "text": ""
+},
+
+{
+    "location": "crud.html#Insert-1",
+    "page": "CRUD Operations",
+    "title": "Insert",
+    "category": "section",
+    "text": ""
+},
+
+{
+    "location": "crud.html#API-1",
+    "page": "CRUD Operations",
+    "title": "API",
+    "category": "section",
+    "text": "Mongoc.insert_one(collection::Collection, document::BSON; options::Union{Nothing, BSON}=nothing)\n\nMongoc.insert_many(collection::Collection, documents::Vector{BSON}; bulk_options::Union{Nothing, BSON}=nothing, insert_options::Union{Nothing, BSON}=nothing)Mongoc.insert_one is equivalent to Base.push! for a collection. The same applies to Mongoc.insert_many in relation to Base.append!."
+},
+
+{
+    "location": "crud.html#Examples-1",
+    "page": "CRUD Operations",
+    "title": "Examples",
+    "category": "section",
+    "text": "push!(collection, Mongoc.BSON(\"\"\"{ \"hello\" : \"world\" }\"\"\"))\n\nappend!(collection, [ Mongoc.BSON(\"\"\"{ \"first\" : 1, \"delete\" : true }\"\"\"), Mongoc.BSON(\"\"\"{ \"second\" : 2, \"delete\" : true }\"\"\"), Mongoc.BSON(\"\"\"{ \"third\" : 3, \"delete\" : false }\"\"\") ])"
+},
+
+{
+    "location": "crud.html#Update-1",
+    "page": "CRUD Operations",
+    "title": "Update",
+    "category": "section",
+    "text": ""
+},
+
+{
+    "location": "crud.html#API-2",
+    "page": "CRUD Operations",
+    "title": "API",
+    "category": "section",
+    "text": "Mongoc.update_one(collection::Collection, selector::BSON, update::BSON; options::Union{Nothing, BSON}=nothing)\n\nMongoc.update_many(collection::Collection, selector::BSON, update::BSON; options::Union{Nothing, BSON}=nothing)"
+},
+
+{
+    "location": "crud.html#Examples-2",
+    "page": "CRUD Operations",
+    "title": "Examples",
+    "category": "section",
+    "text": "selector = Mongoc.BSON(\"\"\"{ \"delete\" : false }\"\"\")\nupdate = Mongoc.BSON(\"\"\"{ \"\\$set\" : { \"delete\" : true, \"new_field\" : 1 } }\"\"\")\nMongoc.update_one(collection, selector, update)\n\nselector = Mongoc.BSON(\"\"\"{ \"delete\" : true }\"\"\")\nupdate = Mongoc.BSON(\"\"\"{ \"\\$set\" : { \"delete\" : false } }\"\"\")\nMongoc.update_many(collection, selector, update)"
+},
+
+{
+    "location": "crud.html#Delete-1",
+    "page": "CRUD Operations",
+    "title": "Delete",
+    "category": "section",
+    "text": ""
+},
+
+{
+    "location": "crud.html#API-3",
+    "page": "CRUD Operations",
+    "title": "API",
+    "category": "section",
+    "text": "Mongoc.delete_one(collection::Collection, selector::BSON; options::Union{Nothing, BSON}=nothing)\n\nMongoc.delete_many(collection::Collection, selector::BSON; options::Union{Nothing, BSON}=nothing)"
+},
+
+{
+    "location": "crud.html#Examples-3",
+    "page": "CRUD Operations",
+    "title": "Examples",
+    "category": "section",
+    "text": "selector = Mongoc.BSON()\nselector[\"_id\"] = oid\nMongoc.delete_one(collection, selector)\n\n# deletes all elements in a collection\nMongoc.delete_many(collection, Mongoc.BSON())"
 },
 
 {
@@ -233,11 +321,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.command_simple-Tuple{Mongoc.Client,String,Mongoc.BSON}",
+    "location": "api.html#Mongoc.command_simple-Tuple{Mongoc.Database,Mongoc.BSON}",
     "page": "API Reference",
     "title": "Mongoc.command_simple",
     "category": "method",
-    "text": "command_simple(client::Client, database::String, command::Union{String, BSON}) :: BSON\n\nExecutes a command given by a JSON string or a BSON instance.\n\nIt returns the first document from the result cursor.\n\nExample\n\njulia> client = Mongoc.Client() # connects to localhost at port 27017\nClient(URI(\"mongodb://localhost:27017\"))\n\njulia> bson_result = Mongoc.command_simple(client, \"admin\", \"{ \"ping\" : 1 }\")\nBSON(\"{ \"ok\" : 1.0 }\")\n\nC API\n\nmongoc_client_command_simple\n\n\n\n\n\n"
+    "text": "command_simple(database::Database, command::Union{String, BSON}) :: BSON\n\nExecutes a command given by a JSON string or a BSON instance.\n\nIt returns the first document from the result cursor.\n\nExample\n\njulia> client = Mongoc.Client() # connects to localhost at port 27017\nClient(URI(\"mongodb://localhost:27017\"))\n\njulia> bson_result = Mongoc.command_simple(client[\"admin\"], \"{ \"ping\" : 1 }\")\nBSON(\"{ \"ok\" : 1.0 }\")\n\nC API\n\nmongoc_database_command_simple\n\n\n\n\n\n"
 },
 
 {
