@@ -216,6 +216,10 @@ function mongoc_database_command_simple(database_handle::Ptr{Cvoid}, bson_comman
     ccall((:mongoc_database_command_simple, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), database_handle, bson_command, read_prefs, bson_reply, Ref(bson_error))
 end
 
+function mongoc_database_add_user(database_handle::Ptr{Cvoid}, username::String, password::String, bson_roles::Ptr{Cvoid}, bson_custom_data::Ptr{Cvoid}, bson_error::BSONError)
+    ccall((:mongoc_database_add_user, libmongoc), Bool, (Ptr{Cvoid}, Cstring, Cstring, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), database_handle, username, password, bson_roles, bson_custom_data, Ref(bson_error))
+end
+
 function mongoc_collection_command_simple(collection_handle::Ptr{Cvoid}, bson_command::Ptr{Cvoid}, read_prefs::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
     ccall((:mongoc_collection_command_simple, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_command, read_prefs, bson_reply, Ref(bson_error))
 end

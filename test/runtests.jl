@@ -439,4 +439,11 @@ end
 
         gc_on_osx_v6() # avoid segfault on Cursor destroy
     end
+
+    @testset "Auth" begin
+        # creates admin user - https://docs.mongodb.com/manual/tutorial/enable-authentication/
+        client = Mongoc.Client()
+        roles = Mongoc.BSON("""[ { "role" : "userAdminAnyDatabase", "db" : "admin" }, "readWriteAnyDatabase" ]""")
+        Mongoc.add_user(client["admin"], "myUserAdmin", "abc123", roles)
+    end
 end

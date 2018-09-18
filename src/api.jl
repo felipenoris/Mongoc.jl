@@ -103,6 +103,24 @@ function get_database_names(client::Client; options::Union{Nothing, BSON}=nothin
     return result
 end
 
+"""
+    add_user(database::Database, username::String, password::String, roles::Union{Nothing, BSON}, custom_data::Union{Nothing, BSON}=nothing)
+
+This function shall create a new user with access to database.
+
+Warning: Do not call this function without TLS.
+"""
+function add_user(database::Database, username::String, password::String, roles::Union{Nothing, BSON}, custom_data::Union{Nothing, BSON}=nothing)
+    err = BSONError()
+    roles_handle = roles == nothing ? C_NULL : roles.handle
+    custom_data_handle = custom_data == nothing ? C_NULL : custom_data.handle
+    ok = mongoc_database_add_user(database.handle, username, password, roles_handle, custom_data_handle, err)
+    if !ok
+        error("$err")
+    end
+    nothing
+end
+
 function find_collections(database::Database; options::Union{Nothing, BSON}=nothing) :: Cursor
     options_handle = options == nothing ? C_NULL : options.handle
     cursor_handle = mongoc_database_find_collections_with_opts(database.handle, options_handle)
