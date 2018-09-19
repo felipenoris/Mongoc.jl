@@ -529,6 +529,22 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "api.html#Mongoc.has_user-Tuple{Mongoc.Database,String}",
+    "page": "API Reference",
+    "title": "Mongoc.has_user",
+    "category": "method",
+    "text": "has_user(database::Mongoc.Database, user_name::String) :: Bool\n\nChecks if database has a user named user_name.\n\n\n\n\n\n"
+},
+
+{
+    "location": "api.html#Mongoc.remove_user-Tuple{Mongoc.Database,String}",
+    "page": "API Reference",
+    "title": "Mongoc.remove_user",
+    "category": "method",
+    "text": "remove_user(database::Database, username::String)\n\nRemoves a user from database.\n\n\n\n\n\n"
+},
+
+{
     "location": "api.html#Mongoc.set_appname!-Tuple{Mongoc.Client,String}",
     "page": "API Reference",
     "title": "Mongoc.set_appname!",
