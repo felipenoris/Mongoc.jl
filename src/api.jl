@@ -98,6 +98,15 @@ function get_database_names(client::Client; options::Union{Nothing, BSON}=nothin
     return result
 end
 
+function has_database(client::Client, database_name::String; options::Union{Nothing, BSON}=nothing) :: Bool
+    for bson_database in find_databases(client, options=options)
+        if bson_database["name"] == database_name
+            return true
+        end
+    end
+    return false
+end
+
 """
     add_user(database::Database, username::String, password::String, roles::Union{Nothing, BSON}, custom_data::Union{Nothing, BSON}=nothing)
 
@@ -114,6 +123,30 @@ function add_user(database::Database, username::String, password::String, roles:
         error("$err")
     end
     nothing
+end
+
+"""
+    remove_user(database::Database, username::String)
+
+Removes a user from database.
+"""
+function remove_user(database::Database, username::String)
+    err = BSONError()
+    ok = mongoc_database_remove_user(database.handle, username, err)
+    if !ok
+        error("$err")
+    end
+    nothing
+end
+
+"""
+    has_user(database::Mongoc.Database, user_name::String) :: Bool
+
+Checks if `database` has a user named `user_name`.
+"""
+function has_user(database::Mongoc.Database, user_name::String) :: Bool
+    cmd_result = Mongoc.command_simple(database, Mongoc.BSON("""{ "usersInfo": "$user_name" }"""))
+    return !isempty(cmd_result["users"])
 end
 
 function find_collections(database::Database; options::Union{Nothing, BSON}=nothing) :: Cursor
