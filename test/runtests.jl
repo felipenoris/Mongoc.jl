@@ -1,7 +1,7 @@
 
 #
 # Tests depend on a running server at localhost:27017,
-# and will create a database named "mongoc_tests".
+# and will create a database named "mongoc".
 #
 
 import Mongoc
@@ -268,13 +268,13 @@ end
         @testset "find_databases" begin
             found = false
             for obj in Mongoc.find_databases(client)
-                if obj["name"] == "mongoc_tests"
+                if obj["name"] == DB_NAME
                     found = true
                 end
             end
             @test found
 
-            @test "mongoc_tests" ∈ Mongoc.get_database_names(client)
+            @test DB_NAME ∈ Mongoc.get_database_names(client)
         end
 
         @testset "find_collections" begin
