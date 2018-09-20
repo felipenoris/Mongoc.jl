@@ -1,5 +1,7 @@
 
 #=
+https://docs.mongodb.com/manual/tutorial/deploy-replica-set/
+
 mkdir tmp
 cd tmp
 
@@ -70,4 +72,40 @@ end
     @test length(collection) == 2
 
     empty!(collection)
+end
+
+@testset "Transaction High-Level API" begin
+    client = Mongoc.Client("mongodb://127.0.0.1:27021,127.0.0.1:27022,127.0.0.1:27023/?replicaSet=rs0")
+
+    collection_unbounded = client[DB_NAME]["transaction"]
+
+    Mongoc.transaction(client) do session
+        database = session[DB_NAME]
+        collection = database["transaction"]
+        new_item = Mongoc.BSON()
+        new_item["inserted"] = true
+        push!(collection, new_item)
+        @test isempty(collection_unbounded)
+        @test !isempty(collection)
+    end
+
+    @test !isempty(collection_unbounded)
+    empty!(collection_unbounded)
+
+    try
+        Mongoc.transaction(client) do session
+            database = session[DB_NAME]
+            collection = database["transaction"]
+            new_item = Mongoc.BSON()
+            new_item["inserted"] = true
+            push!(collection, new_item)
+            @test isempty(collection_unbounded)
+            @test !isempty(collection)
+            error("abort transaction")
+        end
+    catch e
+        println("got an error: $e")
+    end
+
+    @test isempty(collection_unbounded)
 end

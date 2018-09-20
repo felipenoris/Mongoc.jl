@@ -129,3 +129,44 @@ in_transaction(session::Session) :: Bool = mongoc_client_session_in_transaction(
 #
 # High-level API
 #
+
+"""
+    transaction(f::Function, client::Client; session_options::SessionOptions=SessionOptions())
+
+Use *do-syntax* to execute a transaction.
+
+Transaction will be commited automatically. If an error occurs, the transaction is aborted.
+
+The `session` parameter should be treated the same way as a `Client`: from a `session` you get a `database`,
+and a `collection` that are bound to the session.
+
+```julia
+Mongoc.transaction(client) do session
+    database = session["my_database"]
+    collection = session["my_collection"]
+    new_item = Mongoc.BSON()
+    new_item["inserted"] = true
+    push!(collection, new_item)
+end
+```
+"""
+function transaction(f::Function, client::Client; session_options::SessionOptions=SessionOptions())
+    local result::Union{Nothing, BSON} = nothing
+    local aborted::Bool = false
+    session = Session(client, options=session_options)
+    start_transaction!(session)
+
+    try
+        f(session)
+    catch
+        abort_transaction!(session)
+        aborted = true
+        rethrow()
+    finally
+        if !aborted
+            result = commit_transaction!(session)
+        end
+    end
+
+    return result
+end
