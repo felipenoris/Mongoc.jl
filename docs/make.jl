@@ -9,7 +9,7 @@ makedocs(
               "Tutorial" => "tutorial.md",
               "CRUD Operations" => "crud.md",
               "Authentication" => "authentication.md",
-              "Transaction" => "transaction.md",
+              "Transactions" => "transaction.md",
               "API Reference" => "api.md" ]
 )
 

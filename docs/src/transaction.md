@@ -1,14 +1,14 @@
 
 # Transactions
 
-Support for Transactions is available from MongoDB v4.0.
+Support for transactions is available from MongoDB v4.0.
 
 ## Setting up a Replica Set
 
 As described in the [MongoDB Manual](https://docs.mongodb.com/manual/core/transactions/),
-"*Multi-document transactions are available for replica sets only. Transactions for sharded clusters are scheduled for MongoDB 4.2*".
+"*multi-document transactions are available for replica sets only. Transactions for sharded clusters are scheduled for MongoDB 4.2*".
 
-Follow the steps described in https://docs.mongodb.com/manual/tutorial/deploy-replica-set/
+Follow [these steps](https://docs.mongodb.com/manual/tutorial/deploy-replica-set/)
 to start a replica set.
 
 ## Executing Transactions
@@ -16,7 +16,8 @@ to start a replica set.
 In MongoDB, **transactions** are bound to **Sessions**.
 
 In **Mongoc.jl**, use the function `Mongoc.transaction` with *do-syntax* to execute a transaction,
-and use the argument `session` to get database and collection references bound to the transaction session.
+and use the argument `session` to get database and collection references bound to the session
+that will execute the transaction.
 
 Just use the `session` object the same way you would use a `Client`.
 
@@ -25,7 +26,7 @@ Just use the `session` object the same way you would use a `Client`.
     Database and Collection references that are not created
     from a `session` object are not bound to the transaction.
 
-As an example, see the code below.
+## Example
 
 ```julia
 import Mongoc
@@ -34,7 +35,7 @@ import Mongoc
 client = Mongoc.Client("mongodb://127.0.0.1:27021,127.0.0.1:27022,127.0.0.1:27023/?replicaSet=rs0")
 
 # this collection reference is not bounded to the transaction
-collection_unbounded = client["my_database"]["my_transaction"]
+collection_unbounded = client["my_database"]["my_collection"]
 
 # insert a dummy document, just to make sure the collection exists
 push!(collection_unbounded, Mongoc.BSON("""{ "test" : 1 }"""))
@@ -42,7 +43,7 @@ empty!(collection_unbounded)
 
 Mongoc.transaction(client) do session
     database = session["my_database"]
-    collection = database["my_transaction"]
+    collection = database["my_collection"]
     new_item = Mongoc.BSON()
     new_item["inserted"] = true
     push!(collection, new_item)
