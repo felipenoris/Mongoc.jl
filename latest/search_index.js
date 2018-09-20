@@ -330,34 +330,42 @@ var documenterSearchIndex = {"docs": [
 
 {
     "location": "transaction.html#",
-    "page": "Transaction",
-    "title": "Transaction",
+    "page": "Transactions",
+    "title": "Transactions",
     "category": "page",
     "text": ""
 },
 
 {
     "location": "transaction.html#Transactions-1",
-    "page": "Transaction",
+    "page": "Transactions",
     "title": "Transactions",
     "category": "section",
-    "text": "Support for Transactions is available from MongoDB v4.0."
+    "text": "Support for transactions is available from MongoDB v4.0."
 },
 
 {
     "location": "transaction.html#Setting-up-a-Replica-Set-1",
-    "page": "Transaction",
+    "page": "Transactions",
     "title": "Setting up a Replica Set",
     "category": "section",
-    "text": "As described in the MongoDB Manual, \"Multi-document transactions are available for replica sets only. Transactions for sharded clusters are scheduled for MongoDB 4.2\".Follow the steps described in https://docs.mongodb.com/manual/tutorial/deploy-replica-set/ to start a replica set."
+    "text": "As described in the MongoDB Manual, \"multi-document transactions are available for replica sets only. Transactions for sharded clusters are scheduled for MongoDB 4.2\".Follow these steps to start a replica set."
 },
 
 {
     "location": "transaction.html#Executing-Transactions-1",
-    "page": "Transaction",
+    "page": "Transactions",
     "title": "Executing Transactions",
     "category": "section",
-    "text": "In MongoDB, transactions are bound to Sessions.In Mongoc.jl, use the function Mongoc.transaction with do-syntax to execute a transaction, and use the argument session to get database and collection references bound to the transaction session.Just use the session object the same way you would use a Client.note: Note\nDatabase and Collection references that are not created from a session object are not bound to the transaction.As an example, see the code below.import Mongoc\n\n# connect to a Replica Set\nclient = Mongoc.Client(\"mongodb://127.0.0.1:27021,127.0.0.1:27022,127.0.0.1:27023/?replicaSet=rs0\")\n\n# this collection reference is not bounded to the transaction\ncollection_unbounded = client[\"my_database\"][\"my_transaction\"]\n\n# insert a dummy document, just to make sure the collection exists\npush!(collection_unbounded, Mongoc.BSON(\"\"\"{ \"test\" : 1 }\"\"\"))\nempty!(collection_unbounded)\n\nMongoc.transaction(client) do session\n    database = session[\"my_database\"]\n    collection = database[\"my_transaction\"]\n    new_item = Mongoc.BSON()\n    new_item[\"inserted\"] = true\n    push!(collection, new_item)\n    println(\"collection_bounded is empty? \", isempty(collection_unbounded))\n    println(\"collection is empty? \", isempty(collection))\nend\n\nprintln(collect(collection_unbounded))The script output is:collection_bounded is empty? true\ncollection is empty? false\nMongoc.BSON[BSON(\"{ \"_id\" : { \"$oid\" : \"5ba4251f3192e3298b62c5a3\" }, \"inserted\" : true }\")]"
+    "text": "In MongoDB, transactions are bound to Sessions.In Mongoc.jl, use the function Mongoc.transaction with do-syntax to execute a transaction, and use the argument session to get database and collection references bound to the session that will execute the transaction.Just use the session object the same way you would use a Client.note: Note\nDatabase and Collection references that are not created from a session object are not bound to the transaction."
+},
+
+{
+    "location": "transaction.html#Example-1",
+    "page": "Transactions",
+    "title": "Example",
+    "category": "section",
+    "text": "import Mongoc\n\n# connect to a Replica Set\nclient = Mongoc.Client(\"mongodb://127.0.0.1:27021,127.0.0.1:27022,127.0.0.1:27023/?replicaSet=rs0\")\n\n# this collection reference is not bounded to the transaction\ncollection_unbounded = client[\"my_database\"][\"my_collection\"]\n\n# insert a dummy document, just to make sure the collection exists\npush!(collection_unbounded, Mongoc.BSON(\"\"\"{ \"test\" : 1 }\"\"\"))\nempty!(collection_unbounded)\n\nMongoc.transaction(client) do session\n    database = session[\"my_database\"]\n    collection = database[\"my_collection\"]\n    new_item = Mongoc.BSON()\n    new_item[\"inserted\"] = true\n    push!(collection, new_item)\n    println(\"collection_bounded is empty? \", isempty(collection_unbounded))\n    println(\"collection is empty? \", isempty(collection))\nend\n\nprintln(collect(collection_unbounded))The script output is:collection_bounded is empty? true\ncollection is empty? false\nMongoc.BSON[BSON(\"{ \"_id\" : { \"$oid\" : \"5ba4251f3192e3298b62c5a3\" }, \"inserted\" : true }\")]"
 },
 
 {
