@@ -125,3 +125,7 @@ function commit_transaction!(session::Session) :: BSON
 end
 
 in_transaction(session::Session) :: Bool = mongoc_client_session_in_transaction(session.handle)
+
+#
+# High-level API
+#

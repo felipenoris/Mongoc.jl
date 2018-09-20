@@ -13,7 +13,7 @@ else
     using Dates
 end
 
-const DB_NAME = "mongoc_tests"
+const DB_NAME = "mongoc"
 
 #=
 function gc_on_osx_v6()
