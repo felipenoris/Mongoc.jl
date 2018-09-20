@@ -230,7 +230,7 @@ bson_pipeline = Mongoc.BSON("""
 """)
 
 for doc in Mongoc.aggregate(collection, bson_pipeline)
-	println(doc)
+  println(doc)
 end
 ```
 

@@ -200,6 +200,50 @@ function mongoc_client_find_databases_with_opts(client_handle::Ptr{Cvoid}, bson_
     ccall((:mongoc_client_find_databases_with_opts, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}), client_handle, bson_opts)
 end
 
+function mongoc_client_start_session(client_handle::Ptr{Cvoid}, session_options_handle::Ptr{Cvoid}, bson_error::BSONError)
+    ccall((:mongoc_client_start_session, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), client_handle, session_options_handle, Ref(bson_error))
+end
+
+function mongoc_client_session_destroy(session_handle::Ptr{Cvoid})
+    ccall((:mongoc_client_session_destroy, libmongoc), Cvoid, (Ptr{Cvoid},), session_handle)
+end
+
+function mongoc_client_session_append(session_handle::Ptr{Cvoid}, bson_opts::Ptr{Cvoid}, bson_error::BSONError)
+    ccall((:mongoc_client_session_append, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), session_handle, bson_opts, Ref(bson_error))
+end
+
+function mongoc_client_session_start_transaction(session_handle::Ptr{Cvoid}, transaction_options_handle::Ptr{Cvoid}, bson_error::BSONError)
+    ccall((:mongoc_client_session_start_transaction, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), session_handle, transaction_options_handle, Ref(bson_error))
+end
+
+function mongoc_client_session_abort_transaction(session_handle::Ptr{Cvoid}, bson_error::BSONError)
+    ccall((:mongoc_client_session_abort_transaction, libmongoc), Bool, (Ptr{Cvoid}, Ref{BSONError}), session_handle, Ref(bson_error))
+end
+
+function mongoc_client_session_commit_transaction(session_handle::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
+    ccall((:mongoc_client_session_commit_transaction, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), session_handle, bson_reply, Ref(bson_error))
+end
+
+function mongoc_client_session_in_transaction(session_handle::Ptr{Cvoid})
+    ccall((:mongoc_client_session_in_transaction, libmongoc), Bool, (Ptr{Cvoid},), session_handle)
+end
+
+function mongoc_session_opts_new()
+    ccall((:mongoc_session_opts_new, libmongoc), Ptr{Cvoid}, ())
+end
+
+function mongoc_session_opts_destroy(session_options_handle::Ptr{Cvoid})
+    ccall((:mongoc_session_opts_destroy, libmongoc), Cvoid, (Ptr{Cvoid},), session_options_handle)
+end
+
+function mongoc_session_opts_get_causal_consistency(session_options_handle::Ptr{Cvoid})
+    ccall((:mongoc_session_opts_get_causal_consistency, libmongoc), Bool, (Ptr{Cvoid},), session_options_handle)
+end
+
+function mongoc_session_opts_set_causal_consistency(session_options_handle::Ptr{Cvoid}, casual_consistency::Bool)
+    ccall((:mongoc_session_opts_set_causal_consistency, libmongoc), Cvoid, (Ptr{Cvoid}, Bool), session_options_handle, casual_consistency)
+end
+
 function mongoc_database_destroy(database_handle::Ptr{Cvoid})
     ccall((:mongoc_database_destroy, libmongoc), Cvoid, (Ptr{Cvoid},), database_handle)
 end

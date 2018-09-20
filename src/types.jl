@@ -75,8 +75,11 @@ mutable struct Client
     end
 end
 
+abstract type AbstractDatabase end
+abstract type AbstractCollection end
+
 "`Database` is a wrapper for C struct `mongoc_database_t`."
-mutable struct Database
+mutable struct Database <: AbstractDatabase
     client::Client
     name::String
     handle::Ptr{Cvoid}
@@ -89,24 +92,31 @@ mutable struct Database
 end
 
 "`Collection` is a wrapper for C struct `mongoc_collection_t`."
-mutable struct Collection
+mutable struct Collection <: AbstractCollection
     database::Database
     name::String
     handle::Ptr{Cvoid}
 
-    function Collection(database::Database, coll_name::String, coll_handle::Ptr{Cvoid})
-        coll = new(database, coll_name, coll_handle)
-        @compat finalizer(destroy!, coll)
-        return coll
+    function Collection(database::Database, collection_name::String)
+        collection_handle = mongoc_database_get_collection(database.handle, collection_name)
+        if collection_handle == C_NULL
+            error("Failed creating collection $collection_name on db $(database.name).")
+        end
+        collection = new(database, collection_name, collection_handle)
+        @compat finalizer(destroy!, collection)
+        return collection
     end
 end
 
+const CursorSource = Union{Client, AbstractDatabase, AbstractCollection}
+
 "`Cursor` is a wrapper for C struct `mongoc_cursor_t`."
-mutable struct Cursor
+mutable struct Cursor{T<:CursorSource}
+    source::T
     handle::Ptr{Cvoid}
 
-    function Cursor(handle::Ptr{Cvoid})
-        cursor = new(handle)
+    function Cursor(source::T, handle::Ptr{Cvoid}) where {T<:CursorSource}
+        cursor = new{T}(source, handle)
         @compat finalizer(destroy!, cursor)
         return cursor
     end
@@ -127,6 +137,17 @@ mutable struct BulkOperation
         @compat finalizer(destroy!, bulk_operation)
         return bulk_operation
     end
+end
+
+struct InsertOneResult
+    reply::BSON
+    inserted_oid::Union{Nothing, String}
+end
+
+struct BulkOperationResult
+    reply::BSON
+    server_id::UInt32
+    inserted_oids::Vector{Union{Nothing, String}}
 end
 
 #
@@ -182,13 +203,78 @@ function destroy!(bulk_operation::BulkOperation)
     nothing
 end
 
-struct InsertOneResult
-    reply::BSON
-    inserted_oid::Union{Nothing, String}
+#
+# Session Types
+#
+
+mutable struct SessionOptions
+    handle::Ptr{Cvoid}
+
+    function SessionOptions(; casual_consistency::Bool=true)
+        session_options_handle = mongoc_session_opts_new()
+        if session_options_handle == C_NULL
+            error("Couldn't create SessionOptions.")
+        end
+
+        session_options = new(session_options_handle)
+        @compat finalizer(destroy!, session_options)
+        set_casual_consistency!(session_options, casual_consistency)
+        return session_options
+    end
 end
 
-struct BulkOperationResult
-    reply::BSON
-    server_id::UInt32
-    inserted_oids::Vector{Union{Nothing, String}}
+mutable struct Session
+    client::Client
+    options::SessionOptions
+    handle::Ptr{Cvoid}
+
+    function Session(client::Client; options::SessionOptions=SessionOptions())
+        err = BSONError()
+        session_handle = mongoc_client_start_session(client.handle, options.handle, err)
+        if session_handle == C_NULL
+            error("$err")
+        end
+        session = new(client, options, session_handle)
+        @compat finalizer(destroy!, session)
+        return session
+    end
+end
+
+struct DatabaseSession <: AbstractDatabase
+    database::Database
+    session::Session
+end
+
+struct CollectionSession <: AbstractCollection
+    database_session::DatabaseSession
+    collection::Collection
+end
+
+#=
+struct BulkOperationSession
+    collection_session::CollectionSession
+    bulk_operation::BulkOperation
+
+    function BulkOperationSession(collection_session::CollectionSession, options::Union{Nothing, BSON})
+        options_with_session = _join(options, get_session(collection_session))
+        bulk_operation = BulkOperation(collection_session.collection, options=options_with_session)
+        return BulkOperationSession(collection_session, bulk_operation)
+    end
+end
+=#
+
+function destroy!(session_options::SessionOptions)
+    if session_options.handle != C_NULL
+        mongoc_session_opts_destroy(session_options.handle)
+        session_options.handle = C_NULL
+    end
+    nothing
+end
+
+function destroy!(session::Session)
+    if session.handle != C_NULL
+        mongoc_client_session_destroy(session.handle)
+        session.handle = C_NULL
+    end
+    nothing
 end

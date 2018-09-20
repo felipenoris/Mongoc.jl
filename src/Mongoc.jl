@@ -26,6 +26,7 @@ include("bson.jl")
 include("types.jl")
 include("c_api.jl")
 include("api.jl")
+include("session.jl")
 include("deprecated.jl")
 
 function __init__()

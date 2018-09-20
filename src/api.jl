@@ -7,14 +7,6 @@ Client(host::String, port::Int) = Client(URI("mongodb://$host:$port"))
 Client(uri::String) = Client(URI(uri))
 Client() = Client("localhost", 27017)
 
-function Collection(database::Database, coll_name::String)
-    coll_handle = mongoc_database_get_collection(database.handle, coll_name)
-    if coll_handle == C_NULL
-        error("Failed creating collection $coll_name on db $(database.name).")
-    end
-    return Collection(database, coll_name, coll_handle)
-end
-
 """
     set_appname!(client::Client, appname::String)
 
@@ -81,13 +73,19 @@ function ping(client::Client) :: BSON
     return command_simple(client["admin"], BSON("""{ "ping" : 1 }"""))
 end
 
+"Queries the version for the MongoDB server instance."
+function get_server_mongodb_version(client::Client) :: VersionNumber
+    bson_server_status = command_simple(client["admin"], BSON("""{ "serverStatus" : 1 }"""))
+    return VersionNumber(bson_server_status["version"])
+end
+
 function find_databases(client::Client; options::Union{Nothing, BSON}=nothing) :: Cursor
     options_handle = options == nothing ? C_NULL : options.handle
     cursor_handle = mongoc_client_find_databases_with_opts(client.handle, options_handle)
     if cursor_handle == C_NULL
         error("Couldn't execute query.")
     end
-    return Cursor(cursor_handle)
+    return Cursor(client, cursor_handle)
 end
 
 function get_database_names(client::Client; options::Union{Nothing, BSON}=nothing) :: Vector{String}
@@ -140,12 +138,12 @@ function remove_user(database::Database, username::String)
 end
 
 """
-    has_user(database::Mongoc.Database, user_name::String) :: Bool
+    has_user(database::Database, user_name::String) :: Bool
 
 Checks if `database` has a user named `user_name`.
 """
-function has_user(database::Mongoc.Database, user_name::String) :: Bool
-    cmd_result = Mongoc.command_simple(database, Mongoc.BSON("""{ "usersInfo": "$user_name" }"""))
+function has_user(database::Database, user_name::String) :: Bool
+    cmd_result = command_simple(database, BSON("""{ "usersInfo": "$user_name" }"""))
     return !isempty(cmd_result["users"])
 end
 
@@ -155,7 +153,7 @@ function find_collections(database::Database; options::Union{Nothing, BSON}=noth
     if cursor_handle == C_NULL
         error("Couldn't execute query.")
     end
-    return Cursor(cursor_handle)
+    return Cursor(database, cursor_handle)
 end
 
 function get_collection_names(database::Database; options::Union{Nothing, BSON}=nothing) :: Vector{String}
@@ -284,7 +282,7 @@ function find(collection::Collection, bson_filter::BSON=BSON(); options::Union{N
     if cursor_handle == C_NULL
         error("Couldn't execute query.")
     end
-    return Cursor(cursor_handle)
+    return Cursor(collection, cursor_handle)
 end
 
 function count_documents(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing)
@@ -330,7 +328,7 @@ function aggregate(collection::Collection, bson_pipeline::BSON; flags::QueryFlag
     if cursor_handle == C_NULL
         error("Couldn't execute aggregate command.")
     end
-    return Cursor(cursor_handle)
+    return Cursor(collection, cursor_handle)
 end
 
 #
@@ -396,12 +394,12 @@ Base.show(io::IO, coll::Collection) = print(io, "Collection($(coll.database), \"
 Base.getindex(client::Client, database::String) = Database(client, database)
 Base.getindex(database::Database, collection_name::String) = Collection(database, collection_name)
 
-Base.push!(collection::Collection, document::BSON; options::Union{Nothing, BSON}=nothing) = insert_one(collection, document; options=options)
-Base.append!(collection::Collection, documents::Vector{BSON}; bulk_options::Union{Nothing, BSON}=nothing, insert_options::Union{Nothing, BSON}=nothing) = insert_many(collection, documents; bulk_options=bulk_options, insert_options=insert_options)
+Base.push!(collection::C, document::BSON; options::Union{Nothing, BSON}=nothing) where {C<:AbstractCollection} = insert_one(collection, document; options=options)
+Base.append!(collection::C, documents::Vector{BSON}; bulk_options::Union{Nothing, BSON}=nothing, insert_options::Union{Nothing, BSON}=nothing) where {C<:AbstractCollection}= insert_many(collection, documents; bulk_options=bulk_options, insert_options=insert_options)
 
-Base.length(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) = count_documents(collection, bson_filter; options=options)
-Base.isempty(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) = count_documents(collection, bson_filter; options=options) == 0
-Base.empty!(collection::Collection) = Mongoc.delete_many(collection, Mongoc.BSON())
+Base.length(collection::C, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) where {C<:AbstractCollection} = count_documents(collection, bson_filter; options=options)
+Base.isempty(collection::C, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) where {C<:AbstractCollection} = count_documents(collection, bson_filter; options=options) == 0
+Base.empty!(collection::C) where {C<:AbstractCollection} = delete_many(collection, BSON())
 
 function Base.collect(cursor::Cursor) :: Vector{BSON}
     result = Vector{BSON}()
@@ -411,4 +409,4 @@ function Base.collect(cursor::Cursor) :: Vector{BSON}
     return result
 end
 
-Base.collect(collection::Collection, bson_filter::BSON=BSON()) :: Vector{BSON} = collect(find(collection, bson_filter))
+Base.collect(collection::Collection, bson_filter::BSON=BSON()) :: Vector{BSON} where {C<:AbstractCollection} = collect(find(collection, bson_filter))

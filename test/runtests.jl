@@ -15,6 +15,7 @@ end
 
 const DB_NAME = "mongoc_tests"
 
+#=
 function gc_on_osx_v6()
     @static if VERSION < v"0.7-" && is_apple()
             gc()
@@ -22,6 +23,7 @@ function gc_on_osx_v6()
         nothing
     end
 end
+=#
 
 @testset "BSON" begin
 
@@ -183,10 +185,12 @@ end
 end
 
 @testset "MongoDB" begin
+
+    client = Mongoc.Client()
+
     @testset "Types" begin
         bson = Mongoc.BSON()
         @test_throws ErrorException Mongoc.Client("////invalid-url")
-        client = Mongoc.Client()
         @test client.uri == "mongodb://localhost:27017"
         Mongoc.set_appname!(client, "Runtests")
         db = client[DB_NAME]
@@ -202,12 +206,16 @@ end
     end
 
     @testset "Connection" begin
-        client = Mongoc.Client()
 
         @testset "ping" begin
             bson_ping_result = Mongoc.ping(client)
             @test haskey(bson_ping_result, "ok")
             @test Mongoc.as_json(Mongoc.ping(client)) == """{ "ok" : 1.0 }"""
+        end
+
+        @testset "Server Status" begin
+            bson_server_status = Mongoc.command_simple(client["admin"], Mongoc.BSON("""{ "serverStatus" : 1 }"""))
+            println("Server Mongo Version: ", bson_server_status["version"])
         end
 
         @testset "error print" begin
@@ -255,7 +263,7 @@ end
             empty!(coll)
         end
 
-        gc_on_osx_v6() # avoid segfault on Cursor destroy
+        #gc_on_osx_v6() # avoid segfault on Cursor destroy
 
         @testset "find_databases" begin
             found = false
@@ -373,7 +381,7 @@ end
             ]
 
             database = client[DB_NAME]
-            collection = database["aggregation-example"]
+            collection = database["aggregation_example"]
             append!(collection, docs)
             @test length(collection) == 4
 
@@ -402,7 +410,7 @@ end
 
             # map_reduce
             let
-                input_collection_name = "aggregation-example"
+                input_collection_name = "aggregation_example"
                 mapper = Mongoc.BSONCode(""" function() { emit( this.cust_id, this.amount ); } """)
                 reducer = Mongoc.BSONCode(""" function(key, values) { return Array.sum( values ) } """)
                 output_collection_name = "order_totals"
@@ -438,12 +446,11 @@ end
             empty!(collection)
         end
 
-        gc_on_osx_v6() # avoid segfault on Cursor destroy
+        #gc_on_osx_v6() # avoid segfault on Cursor destroy
     end
 
     @testset "Users" begin
         # creates admin user - https://docs.mongodb.com/manual/tutorial/enable-authentication/
-        client = Mongoc.Client()
         @test Mongoc.has_database(client, DB_NAME) # at this point, DB_NAME should exist
         database = client[DB_NAME]
 
@@ -458,5 +465,32 @@ end
         Mongoc.add_user(database, user_name, pass, roles)
         Mongoc.remove_user(database, user_name)
         @test !Mongoc.has_user(database, user_name)
+    end
+
+    #gc_on_osx_v6()
+
+    @testset "Session Options" begin
+        opt = Mongoc.SessionOptions()
+        @test Mongoc.get_casual_consistency(opt)
+        Mongoc.set_casual_consistency!(opt, false)
+        @test !Mongoc.get_casual_consistency(opt)
+    end
+
+    server_version = Mongoc.get_server_mongodb_version(client)
+
+    if server_version < v"3.6"
+        @static if VERSION < v"0.7"
+            warn("MongoDB server version $server_version does not support Sessions. Skipping tests.")
+        else
+            @warn("MongoDB server version $server_version does not support Sessions. Skipping tests.")
+        end
+    else
+        @testset "Session" begin
+            session = Mongoc.Session(client)
+            db = session[DB_NAME]
+            collection = db["session_collection"]
+            push!(collection, Mongoc.BSON("""{ "try-insert" : 1 }"""))
+            empty!(collection)
+        end
     end
 end

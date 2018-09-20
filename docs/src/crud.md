@@ -38,7 +38,7 @@ find(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, B
 bson = Mongoc.find_one(collection, Mongoc.BSON("""{ "third" : 3 }"""))
 
 for doc in Mongoc.find(collection)
-	println(doc)
+    println(doc)
 end
 ```
 
