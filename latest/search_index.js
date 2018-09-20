@@ -149,7 +149,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "Aggregation and Map-Reduce",
     "category": "section",
-    "text": "Use Mongoc.aggregate to execute an aggregation command.The following reproduces the example from the MongoDB Tutorial.docs = [\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"A123\", \"amount\" : 500, \"status\" : \"A\" }\"\"\"),\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"A123\", \"amount\" : 250, \"status\" : \"A\" }\"\"\"),\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"B212\", \"amount\" : 200, \"status\" : \"A\" }\"\"\"),\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"A123\", \"amount\" : 300, \"status\" : \"D\" }\"\"\")\n]\n\ncollection = client[\"my-database\"][\"aggregation-collection\"]\nappend!(collection, docs)\n\n# Sets the pipeline command\nbson_pipeline = Mongoc.BSON(\"\"\"\n    [\n        { \"\\$match\" : { \"status\" : \"A\" } },\n        { \"\\$group\" : { \"_id\" : \"\\$cust_id\", \"total\" : { \"\\$sum\" : \"\\$amount\" } } }\n    ]\n\"\"\")\n\nfor doc in Mongoc.aggregate(collection, bson_pipeline)\n	println(doc)\nendThe result of the script above is:BSON(\"{ \"_id\" : \"B212\", \"total\" : 200 }\")\nBSON(\"{ \"_id\" : \"A123\", \"total\" : 750 }\")A Map-Reduce operation can be executed with Mongoc.command_simple.input_collection_name = \"aggregation-collection\"\noutput_collection_name = \"order_totals\"\nquery = Mongoc.BSON(\"\"\"{ \"status\" : \"A\" }\"\"\")\n\n# use `Mongoc.BSONCode` to represent JavaScript elements in BSON\nmapper = Mongoc.BSONCode(\"\"\" function() { emit( this.cust_id, this.amount ); } \"\"\")\nreducer = Mongoc.BSONCode(\"\"\" function(key, values) { return Array.sum( values ) } \"\"\")\n\nmap_reduce_command = Mongoc.BSON()\nmap_reduce_command[\"mapReduce\"] = input_collection_name\nmap_reduce_command[\"map\"] = mapper\nmap_reduce_command[\"reduce\"] = reducer\nmap_reduce_command[\"out\"] = output_collection_name\nmap_reduce_command[\"query\"] = query\n\nresult = Mongoc.command_simple(database, map_reduce_command)\nprintln(result)\n\nfor doc in Mongoc.find(database[\"order_totals\"])\n   println(doc)\nendThe result of the script above is:BSON(\"{ \"result\" : \"order_totals\", \"timeMillis\" : 135, \"counts\" : { \"input\" : 3, \"emit\" : 3, \"reduce\" : 1, \"output\" : 2 }, \"ok\" : 1.0 }\")\nBSON(\"{ \"_id\" : \"A123\", \"value\" : 750.0 }\")\nBSON(\"{ \"_id\" : \"B212\", \"value\" : 200.0 }\")"
+    "text": "Use Mongoc.aggregate to execute an aggregation command.The following reproduces the example from the MongoDB Tutorial.docs = [\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"A123\", \"amount\" : 500, \"status\" : \"A\" }\"\"\"),\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"A123\", \"amount\" : 250, \"status\" : \"A\" }\"\"\"),\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"B212\", \"amount\" : 200, \"status\" : \"A\" }\"\"\"),\n    Mongoc.BSON(\"\"\"{ \"cust_id\" : \"A123\", \"amount\" : 300, \"status\" : \"D\" }\"\"\")\n]\n\ncollection = client[\"my-database\"][\"aggregation-collection\"]\nappend!(collection, docs)\n\n# Sets the pipeline command\nbson_pipeline = Mongoc.BSON(\"\"\"\n    [\n        { \"\\$match\" : { \"status\" : \"A\" } },\n        { \"\\$group\" : { \"_id\" : \"\\$cust_id\", \"total\" : { \"\\$sum\" : \"\\$amount\" } } }\n    ]\n\"\"\")\n\nfor doc in Mongoc.aggregate(collection, bson_pipeline)\n  println(doc)\nendThe result of the script above is:BSON(\"{ \"_id\" : \"B212\", \"total\" : 200 }\")\nBSON(\"{ \"_id\" : \"A123\", \"total\" : 750 }\")A Map-Reduce operation can be executed with Mongoc.command_simple.input_collection_name = \"aggregation-collection\"\noutput_collection_name = \"order_totals\"\nquery = Mongoc.BSON(\"\"\"{ \"status\" : \"A\" }\"\"\")\n\n# use `Mongoc.BSONCode` to represent JavaScript elements in BSON\nmapper = Mongoc.BSONCode(\"\"\" function() { emit( this.cust_id, this.amount ); } \"\"\")\nreducer = Mongoc.BSONCode(\"\"\" function(key, values) { return Array.sum( values ) } \"\"\")\n\nmap_reduce_command = Mongoc.BSON()\nmap_reduce_command[\"mapReduce\"] = input_collection_name\nmap_reduce_command[\"map\"] = mapper\nmap_reduce_command[\"reduce\"] = reducer\nmap_reduce_command[\"out\"] = output_collection_name\nmap_reduce_command[\"query\"] = query\n\nresult = Mongoc.command_simple(database, map_reduce_command)\nprintln(result)\n\nfor doc in Mongoc.find(database[\"order_totals\"])\n   println(doc)\nendThe result of the script above is:BSON(\"{ \"result\" : \"order_totals\", \"timeMillis\" : 135, \"counts\" : { \"input\" : 3, \"emit\" : 3, \"reduce\" : 1, \"output\" : 2 }, \"ok\" : 1.0 }\")\nBSON(\"{ \"_id\" : \"A123\", \"value\" : 750.0 }\")\nBSON(\"{ \"_id\" : \"B212\", \"value\" : 200.0 }\")"
 },
 
 {
@@ -213,7 +213,7 @@ var documenterSearchIndex = {"docs": [
     "page": "CRUD Operations",
     "title": "Examples",
     "category": "section",
-    "text": "bson = Mongoc.find_one(collection, Mongoc.BSON(\"\"\"{ \"third\" : 3 }\"\"\"))\n\nfor doc in Mongoc.find(collection)\n	println(doc)\nend"
+    "text": "bson = Mongoc.find_one(collection, Mongoc.BSON(\"\"\"{ \"third\" : 3 }\"\"\"))\n\nfor doc in Mongoc.find(collection)\n    println(doc)\nend"
 },
 
 {
@@ -326,6 +326,38 @@ var documenterSearchIndex = {"docs": [
     "title": "Connect and authenticate",
     "category": "section",
     "text": "Pass the user and password in the URI, as described in http://mongoc.org/libmongoc/current/authentication.html.client = Mongoc.Client(\"mongodb://myUserAdmin:abc123@localhost/?authSource=admin\")From MongoDB 4.0, there\'s a new authentication mechanism SCRAM-SHA-256, which replaces the previous SCRAM-SHA-1 mechanism. The correct authentication mechanism is negotiated between the driver and the server.Alternatively, SCRAM-SHA-256 can be explicitly specified:client = Mongoc.Client(\"mongodb://myUserAdmin:abc123@localhost/?authMechanism=SCRAM-SHA-256&authSource=admin\")Refer to the MongoDB manual for adding new users and roles per database."
+},
+
+{
+    "location": "transaction.html#",
+    "page": "Transaction",
+    "title": "Transaction",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "transaction.html#Transactions-1",
+    "page": "Transaction",
+    "title": "Transactions",
+    "category": "section",
+    "text": "Support for Transactions is available from MongoDB v4.0."
+},
+
+{
+    "location": "transaction.html#Setting-up-a-Replica-Set-1",
+    "page": "Transaction",
+    "title": "Setting up a Replica Set",
+    "category": "section",
+    "text": "As described in the MongoDB Manual, \"Multi-document transactions are available for replica sets only. Transactions for sharded clusters are scheduled for MongoDB 4.2\".Follow the steps described in https://docs.mongodb.com/manual/tutorial/deploy-replica-set/ to start a replica set."
+},
+
+{
+    "location": "transaction.html#Executing-Transactions-1",
+    "page": "Transaction",
+    "title": "Executing Transactions",
+    "category": "section",
+    "text": "In MongoDB, transactions are bound to Sessions.In Mongoc.jl, use the function Mongoc.transaction with do-syntax to execute a transaction, and use the argument session to get database and collection references bound to the transaction session.Just use the session object the same way you would use a Client.note: Note\nDatabase and Collection references that are not created from a session object are not bound to the transaction.As an example, see the code below.import Mongoc\n\n# connect to a Replica Set\nclient = Mongoc.Client(\"mongodb://127.0.0.1:27021,127.0.0.1:27022,127.0.0.1:27023/?replicaSet=rs0\")\n\n# this collection reference is not bounded to the transaction\ncollection_unbounded = client[\"my_database\"][\"my_transaction\"]\n\n# insert a dummy document, just to make sure the collection exists\npush!(collection_unbounded, Mongoc.BSON(\"\"\"{ \"test\" : 1 }\"\"\"))\nempty!(collection_unbounded)\n\nMongoc.transaction(client) do session\n    database = session[\"my_database\"]\n    collection = database[\"my_transaction\"]\n    new_item = Mongoc.BSON()\n    new_item[\"inserted\"] = true\n    push!(collection, new_item)\n    println(\"collection_bounded is empty? \", isempty(collection_unbounded))\n    println(\"collection is empty? \", isempty(collection))\nend\n\nprintln(collect(collection_unbounded))The script output is:collection_bounded is empty? true\ncollection is empty? false\nMongoc.BSON[BSON(\"{ \"_id\" : { \"$oid\" : \"5ba4251f3192e3298b62c5a3\" }, \"inserted\" : true }\")]"
 },
 
 {
@@ -529,11 +561,19 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "api.html#Mongoc.get_server_mongodb_version-Tuple{Mongoc.Client}",
+    "page": "API Reference",
+    "title": "Mongoc.get_server_mongodb_version",
+    "category": "method",
+    "text": "Queries the version for the MongoDB server instance.\n\n\n\n\n\n"
+},
+
+{
     "location": "api.html#Mongoc.has_user-Tuple{Mongoc.Database,String}",
     "page": "API Reference",
     "title": "Mongoc.has_user",
     "category": "method",
-    "text": "has_user(database::Mongoc.Database, user_name::String) :: Bool\n\nChecks if database has a user named user_name.\n\n\n\n\n\n"
+    "text": "has_user(database::Database, user_name::String) :: Bool\n\nChecks if database has a user named user_name.\n\n\n\n\n\n"
 },
 
 {
@@ -550,6 +590,14 @@ var documenterSearchIndex = {"docs": [
     "title": "Mongoc.set_appname!",
     "category": "method",
     "text": "set_appname!(client::Client, appname::String)\n\nSets the application name for this client.\n\nThis string, along with other internal driver details, is sent to the server as part of the initial connection handshake.\n\nC API\n\nmongoc_client_set_appname.\n\n\n\n\n\n"
+},
+
+{
+    "location": "api.html#Mongoc.transaction-Tuple{Function,Mongoc.Client}",
+    "page": "API Reference",
+    "title": "Mongoc.transaction",
+    "category": "method",
+    "text": "transaction(f::Function, client::Client; session_options::SessionOptions=SessionOptions())\n\nUse do-syntax to execute a transaction.\n\nTransaction will be commited automatically. If an error occurs, the transaction is aborted.\n\nThe session parameter should be treated the same way as a Client: from a session you get a database, and a collection that are bound to the session.\n\nMongoc.transaction(client) do session\n    database = session[\"my_database\"]\n    collection = session[\"my_collection\"]\n    new_item = Mongoc.BSON()\n    new_item[\"inserted\"] = true\n    push!(collection, new_item)\nend\n\n\n\n\n\n"
 },
 
 {
