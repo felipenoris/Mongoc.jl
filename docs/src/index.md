@@ -24,6 +24,16 @@ which provides a way to create and manipulate BSON documents.
     Currently, this package might cause garbage collection
     errors if using Julia v0.6 on OSX.
 
+## Installation
+
+From a Julia session, run:
+
+```julia
+julia> using Pkg
+
+julia> Pkg.clone("https://github.com/felipenoris/Mongoc.jl.git")
+```
+
 ## MongoDB C Driver
 
 This packages downloads precompiled binaries for [MongoDB C Driver v1.12.0](http://mongoc.org)
