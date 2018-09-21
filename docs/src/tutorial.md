@@ -10,7 +10,7 @@ First, make sure you have **Mongoc.jl** package installed.
 ```julia
 julia> using Pkg
 
-julia> Pkg.clone("https://github.com/felipenoris/Mongoc.jl.git")
+julia> Pkg.add("Mongoc")
 ```
 
 The following tutorial assumes that a MongoDB instance is running on the
