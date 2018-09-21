@@ -409,4 +409,4 @@ function Base.collect(cursor::Cursor) :: Vector{BSON}
     return result
 end
 
-Base.collect(collection::Collection, bson_filter::BSON=BSON()) :: Vector{BSON} where {C<:AbstractCollection} = collect(find(collection, bson_filter))
+Base.collect(collection::C, bson_filter::BSON=BSON()) where {C<:AbstractCollection} = collect(find(collection, bson_filter))
