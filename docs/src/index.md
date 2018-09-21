@@ -31,7 +31,7 @@ From a Julia session, run:
 ```julia
 julia> using Pkg
 
-julia> Pkg.clone("https://github.com/felipenoris/Mongoc.jl.git")
+julia> Pkg.add("Mongoc")
 ```
 
 ## MongoDB C Driver

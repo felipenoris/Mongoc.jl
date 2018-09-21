@@ -33,6 +33,16 @@ which provides a way to create and manipulate BSON documents.
 
 * Linux or OSX.
 
+## Installation
+
+From a Julia session, run:
+
+```julia
+julia> using Pkg
+
+julia> Pkg.add("Mongoc")
+```
+
 ## MongoDB C Driver
 
 This packages downloads precompiled binaries for [MongoDB C Driver v1.12.0](http://mongoc.org)
