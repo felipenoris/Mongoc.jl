@@ -45,7 +45,7 @@ julia> Pkg.add("Mongoc")
 
 ## MongoDB C Driver
 
-This packages downloads precompiled binaries for [MongoDB C Driver v1.12.0](http://mongoc.org)
+This packages downloads precompiled binaries for [MongoDB C Driver](http://mongoc.org)
 from [mongo-c-driver-builder](https://github.com/felipenoris/mongo-c-driver-builder).
 
 The binaries are compiled by Travis CI, using [BinaryBuilder.jl](https://github.com/JuliaPackaging/BinaryBuilder.jl).
