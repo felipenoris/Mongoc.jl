@@ -238,7 +238,13 @@ function as_json(bson::BSON; canonical::Bool=false) :: String
         error("Couldn't convert bson to json.")
     end
     result = unsafe_string(cstring)
-    bson_free(convert(Ptr{Cvoid}, cstring))
+
+    @static if VERSION < v"0.7-"
+        bson_free(convert(Ptr{Cvoid}, convert(Ptr{UInt8}, cstring)))
+    else
+        bson_free(convert(Ptr{Cvoid}, cstring))
+    end
+
     return result
 end
 
