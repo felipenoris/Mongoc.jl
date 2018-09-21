@@ -237,7 +237,9 @@ function as_json(bson::BSON; canonical::Bool=false) :: String
     if cstring == C_NULL
         error("Couldn't convert bson to json.")
     end
-    return unsafe_string(cstring)
+    result = unsafe_string(cstring)
+    bson_free(convert(Ptr{Cvoid}, cstring))
+    return result
 end
 
 #

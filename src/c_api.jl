@@ -164,6 +164,10 @@ function bson_iter_code(iter_ref::Ref{BSONIter})
     ccall((:bson_iter_code, libbson), Cstring, (Ref{BSONIter}, Ptr{UInt32}), iter_ref, C_NULL)
 end
 
+function bson_free(mem::Ptr{Cvoid})
+    ccall((:bson_free, libbson), Cvoid, (Ptr{Cvoid},), mem)
+end
+
 #
 # libmongoc
 #
