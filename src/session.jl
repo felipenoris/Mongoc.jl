@@ -143,7 +143,7 @@ and a `collection` that are bound to the session.
 ```julia
 Mongoc.transaction(client) do session
     database = session["my_database"]
-    collection = session["my_collection"]
+    collection = database["my_collection"]
     new_item = Mongoc.BSON()
     new_item["inserted"] = true
     push!(collection, new_item)
