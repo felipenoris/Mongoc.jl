@@ -37,7 +37,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Installation",
     "category": "section",
-    "text": "From a Julia session, run:julia> using Pkg\n\njulia> Pkg.clone(\"https://github.com/felipenoris/Mongoc.jl.git\")"
+    "text": "From a Julia session, run:julia> using Pkg\n\njulia> Pkg.add(\"Mongoc\")"
 },
 
 {
