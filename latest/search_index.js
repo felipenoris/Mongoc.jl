@@ -93,7 +93,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "Setup",
     "category": "section",
-    "text": "First, make sure you have Mongoc.jl package installed.julia> using Pkg\n\njulia> Pkg.clone(\"https://github.com/felipenoris/Mongoc.jl.git\")The following tutorial assumes that a MongoDB instance is running on the default host and port: localhost:27017.To start a new server instance on the default location use the following command on your shell.$ mkdir db\n\n$ mongod --dbpath ./db --smallfiles"
+    "text": "First, make sure you have Mongoc.jl package installed.julia> using Pkg\n\njulia> Pkg.add(\"Mongoc\")The following tutorial assumes that a MongoDB instance is running on the default host and port: localhost:27017.To start a new server instance on the default location use the following command on your shell.$ mkdir db\n\n$ mongod --dbpath ./db --smallfiles"
 },
 
 {
