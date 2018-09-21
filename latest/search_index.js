@@ -613,7 +613,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API Reference",
     "title": "Mongoc.transaction",
     "category": "method",
-    "text": "transaction(f::Function, client::Client; session_options::SessionOptions=SessionOptions())\n\nUse do-syntax to execute a transaction.\n\nTransaction will be commited automatically. If an error occurs, the transaction is aborted.\n\nThe session parameter should be treated the same way as a Client: from a session you get a database, and a collection that are bound to the session.\n\nMongoc.transaction(client) do session\n    database = session[\"my_database\"]\n    collection = session[\"my_collection\"]\n    new_item = Mongoc.BSON()\n    new_item[\"inserted\"] = true\n    push!(collection, new_item)\nend\n\n\n\n\n\n"
+    "text": "transaction(f::Function, client::Client; session_options::SessionOptions=SessionOptions())\n\nUse do-syntax to execute a transaction.\n\nTransaction will be commited automatically. If an error occurs, the transaction is aborted.\n\nThe session parameter should be treated the same way as a Client: from a session you get a database, and a collection that are bound to the session.\n\nMongoc.transaction(client) do session\n    database = session[\"my_database\"]\n    collection = database[\"my_collection\"]\n    new_item = Mongoc.BSON()\n    new_item[\"inserted\"] = true\n    push!(collection, new_item)\nend\n\n\n\n\n\n"
 },
 
 {
