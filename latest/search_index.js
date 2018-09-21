@@ -33,6 +33,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "index.html#Installation-1",
+    "page": "Home",
+    "title": "Installation",
+    "category": "section",
+    "text": "From a Julia session, run:julia> using Pkg\n\njulia> Pkg.clone(\"https://github.com/felipenoris/Mongoc.jl.git\")"
+},
+
+{
     "location": "index.html#MongoDB-C-Driver-1",
     "page": "Home",
     "title": "MongoDB C Driver",
