@@ -26,11 +26,11 @@ else
     using Dates
 end
 
-const DB_NAME = "mongoc"
+const DB_REPLICA_NAME = "mongoc_replica"
 
 @testset "Connect to ReplicaSet" begin
     client = Mongoc.Client("mongodb://127.0.0.1:27021,127.0.0.1:27022,127.0.0.1:27023/?replicaSet=rs0")
-    database = client[DB_NAME]
+    database = client[DB_REPLICA_NAME]
     collection = database["my_collection"]
     @test isempty(collection)
     push!(collection, Mongoc.BSON("""{ "hey" : 1  }"""))
@@ -42,7 +42,7 @@ end
 
 @testset "Transaction API" begin
     client = Mongoc.Client("mongodb://127.0.0.1:27021,127.0.0.1:27022,127.0.0.1:27023/?replicaSet=rs0")
-    database = client[DB_NAME]
+    database = client[DB_REPLICA_NAME]
     collection = database["transaction"]
     @test isempty(collection)
     push!(collection, Mongoc.BSON("""{ "outside_transaction" : 1 }"""))
@@ -52,7 +52,7 @@ end
 
     Mongoc.start_transaction!(session)
     @test Mongoc.in_transaction(session)
-    collection_session = session[DB_NAME]["transaction"]
+    collection_session = session[DB_REPLICA_NAME]["transaction"]
     push!(collection_session, Mongoc.BSON("""{ "inside_transaction" : 1 }"""))
     @test length(collection_session) == 2
     @test length(collection) == 1
@@ -77,13 +77,13 @@ end
 @testset "Transaction High-Level API" begin
     client = Mongoc.Client("mongodb://127.0.0.1:27021,127.0.0.1:27022,127.0.0.1:27023/?replicaSet=rs0")
 
-    collection_unbounded = client[DB_NAME]["transaction"]
+    collection_unbounded = client[DB_REPLICA_NAME]["transaction"]
     @assert isempty(collection_unbounded) # test precondition
 
     Mongoc.transaction(client) do session # session = Mongoc.Session(client); Mongoc.start_transaction!(session)
         @test Mongoc.in_transaction(session)
 
-        database = session[DB_NAME]
+        database = session[DB_REPLICA_NAME]
         collection = database["transaction"]
         @test isempty(collection)
 
@@ -176,7 +176,7 @@ end
 
     try
         Mongoc.transaction(client) do session
-            database = session[DB_NAME]
+            database = session[DB_REPLICA_NAME]
             collection = database["transaction"]
             new_item = Mongoc.BSON()
             new_item["inserted"] = true
