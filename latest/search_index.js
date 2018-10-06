@@ -29,7 +29,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Requirements",
     "category": "section",
-    "text": "MongoDB 3.0 or newer.\nJulia versions v0.6, v0.7 or v1.0.\nLinux or OSX.note: Note\nCurrently, this package might cause garbage collection errors if using Julia v0.6 on OSX."
+    "text": "MongoDB 3.0 or newer.\nJulia versions v0.6, v0.7 or v1.0.\nLinux or macOS.note: Note\nCurrently, this package might cause garbage collection errors if using Julia v0.6 on macOS."
 },
 
 {
