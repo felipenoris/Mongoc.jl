@@ -17,12 +17,12 @@ which provides a way to create and manipulate BSON documents.
 
 * Julia versions v0.6, v0.7 or v1.0.
 
-* Linux or OSX.
+* Linux or macOS.
 
 !!! note
 
     Currently, this package might cause garbage collection
-    errors if using Julia v0.6 on OSX.
+    errors if using Julia v0.6 on macOS.
 
 ## Installation
 
