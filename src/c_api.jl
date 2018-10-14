@@ -72,6 +72,18 @@ function bson_append_array(bson_document::Ptr{Cvoid}, key::String, key_length::I
     ccall((:bson_append_array, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Ptr{Cvoid}), bson_document, key, key_length, value)
 end
 
+# WIP for BINARY DATA
+# Hey Sam, now trying to figure out subtype's type -not Cuint?
+
+# https://github.com/mongodb/libbson/blob/master/doc/bson_append_binary.rst
+## bson_subtype_t subtype,
+# https://github.com/ScottPJones/LibBSON.jl/pull/27/files#diff-ee9e1e69cf55710766c582b8c2d4fff9R237
+# http://mongoc.org/libbson/current/bson_subtype_t.html
+# it's an enum
+function bson_append_binary(bson_document::Ptr{Cvoid}, key::String, key_length::Int, subtype::BSONSubType, value::Vector{UInt8}, val_length::UInt32)
+    ccall((:bson_append_binary, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, BSONSubType, Ptr{Cvoid}, Culong), bson_document, key, key_length, subtype, value, val_length)
+end
+
 function bson_append_code(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::String)
     ccall((:bson_append_code, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Cstring), bson_document, key, key_length, value)
 end
