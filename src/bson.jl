@@ -300,11 +300,6 @@ function as_dict(iter_ref::Ref{BSONIter})
     return result
 end
 
-# function get_value(::BSON_TYPE_UTF8, iter_ref::Ref{BSONIter})
-#
-# end
-
-
 function get_value(iter_ref::Ref{BSONIter})
     local bson_type::BSONType = bson_iter_type(iter_ref)
 
