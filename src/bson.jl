@@ -304,8 +304,8 @@ end
 #
 # end
 
-function get_value(iter_ref::Ref{BSONIter})
 
+function get_value(iter_ref::Ref{BSONIter})
     local bson_type::BSONType = bson_iter_type(iter_ref)
 
     if bson_type == BSON_TYPE_UTF8
@@ -342,6 +342,20 @@ function get_value(iter_ref::Ref{BSONIter})
             @assert bson_type == BSON_TYPE_DOCUMENT
             return as_dict(child_iter_ref)
         end
+    elseif bson_type == BSON_TYPE_BINARY
+        lengthPtr = Array{UInt32}(undef, 1)
+        dataPtr = Array{Ptr{UInt8}}(undef, 1)
+        bson_iter_binary(iter_ref, lengthPtr, dataPtr)
+        # bsonsubtype = BSON_SUBTYPE_BINARY
+        # ccall(
+        #     (:bson_iter_binary, libbson),
+        #     Ptr{Void}, (Ref{BSONIter}, Ref{BSONSubType}, Ptr{UInt32}, Ptr{Ptr{UInt8}}),
+        #     iter_ref, bsonsubtype, lengthPtr, dataPtr
+        # )
+        length = Int(lengthPtr[1])
+        dataArray = Array{UInt8,1}(undef, length)
+        unsafe_copyto!(pointer(dataArray), dataPtr[1], length)
+        return dataArray
     elseif bson_type == BSON_TYPE_CODE
         return BSONCode(unsafe_string(bson_iter_code(iter_ref)))
     else

@@ -176,6 +176,12 @@ function bson_iter_code(iter_ref::Ref{BSONIter})
     ccall((:bson_iter_code, libbson), Cstring, (Ref{BSONIter}, Ptr{UInt32}), iter_ref, C_NULL)
 end
 
+function bson_iter_binary(iter_ref::Ref{BSONIter}, lengthPtr::Array{UInt32}, dataPtr::Array{Ptr{UInt8}})
+    bsonsubtype = BSON_SUBTYPE_BINARY
+    ccall((:bson_iter_binary, libbson), Ptr{Void}, (Ref{BSONIter}, Ref{BSONSubType}, Ptr{UInt32}, Ptr{Ptr{UInt8}}),iter_ref, bsonsubtype, lengthPtr, dataPtr)
+    nothing
+end
+
 function bson_free(mem::Ptr{Cvoid})
     ccall((:bson_free, libbson), Cvoid, (Ptr{Cvoid},), mem)
 end
