@@ -44,7 +44,7 @@ primitive type BSONSubType 8 end
 
 Base.convert(::Type{T}, t::BSONSubType) where {T<:Number} = reinterpret(UInt8, t)
 Base.convert(::Type{BSONSubType}, n::T) where {T<:Number} = reinterpret(BSONSubType, n)
-BSONType(u::UInt8) = convert(BSONSubType, u)
+BSONSubType(u::UInt8) = convert(BSONSubType, u)
 
 #
 # Constants for BSONSubType
