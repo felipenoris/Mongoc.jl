@@ -338,11 +338,12 @@ function get_value(iter_ref::Ref{BSONIter})
             return as_dict(child_iter_ref)
         end
     elseif bson_type == BSON_TYPE_BINARY
-        lengthPtr = Array{UInt32}(undef, 1)
-        dataPtr = Array{Ptr{UInt8}}(undef, 1)
+
+        lengthPtr = VERSION < v"0.7-" ? Array{UInt32}(1) : Array{UInt32}(undef, 1)
+        dataPtr = VERSION < v"0.7-" ? Array{Ptr{UInt8}}(1) : Array{Ptr{UInt8}}(undef, 1)
         bson_iter_binary(iter_ref, lengthPtr, dataPtr)
         length = Int(lengthPtr[1])
-        dataArray = Array{UInt8,1}(undef, length)
+        dataArray = VERSION < v"0.7-" ? Array{UInt8,1}(length) : Array{UInt8,1}(undef, length)
         unsafe_copyto!(pointer(dataArray), dataPtr[1], length)
         return dataArray
     elseif bson_type == BSON_TYPE_CODE
