@@ -277,6 +277,22 @@ end
             @test DB_NAME ∈ Mongoc.get_database_names(client)
         end
 
+        @testset "Binary data" begin
+            coll = client[DB_NAME]["new_collection"]
+            bsonDoc = Mongoc.BSON()
+            testdata = rand(UInt8, 100)
+            bsonDoc["someId"] = "1234"
+            bsonDoc["bindata"] = testdata
+            result = push!(coll, bsonDoc)
+            @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
+
+            # read data out and confirm
+            selector = Mongoc.BSON("""{ "someId": "1234" }""")
+            results = Mongoc.find_one(coll,  selector)
+
+            @test results["bindata"] == testdata
+        end
+
         @testset "find_collections" begin
             for obj in Mongoc.find_collections(client["local"])
                 @test obj["name"] == "startup_log"
@@ -291,6 +307,7 @@ end
             Mongoc.destroy!(bulk_operation)
             bulk_2 = Mongoc.BulkOperation(coll) # will be freed by GC
         end
+
 
         @testset "insert_many" begin
             collection = client[DB_NAME]["insert_many"]
