@@ -344,7 +344,7 @@ function get_value(iter_ref::Ref{BSONIter})
         bson_iter_binary(iter_ref, lengthPtr, dataPtr)
         length = Int(lengthPtr[1])
         dataArray = VERSION < v"0.7-" ? Array{UInt8,1}(length) : Array{UInt8,1}(undef, length)
-        unsafe_copyto!(pointer(dataArray), dataPtr[1], length)
+        VERSION < v"0.7-" ? unsafe_copy!(pointer(dataArray), dataPtr[1], length) : unsafe_copyto!(pointer(dataArray), dataPtr[1], length)
         return dataArray
     elseif bson_type == BSON_TYPE_CODE
         return BSONCode(unsafe_string(bson_iter_code(iter_ref)))
