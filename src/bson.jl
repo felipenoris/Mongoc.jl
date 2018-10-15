@@ -4,7 +4,7 @@
 #
 
 "BSONType mirrors C enum bson_type_t."
-primitive type BSONType 8 end
+primitive type BSONType 8 end # 1 byte
 
 Base.convert(::Type{T}, t::BSONType) where {T<:Number} = reinterpret(UInt8, t)
 Base.convert(::Type{BSONType}, n::T) where {T<:Number} = reinterpret(BSONType, n)
