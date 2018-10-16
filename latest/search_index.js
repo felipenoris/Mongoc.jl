@@ -489,6 +489,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "api.html#Mongoc.BSONSubType",
+    "page": "API Reference",
+    "title": "Mongoc.BSONSubType",
+    "category": "type",
+    "text": "BSONSubType mirrors C enum bsonsubtypet.\n\n\n\n\n\n"
+},
+
+{
     "location": "api.html#Mongoc.BSONType",
     "page": "API Reference",
     "title": "Mongoc.BSONType",
