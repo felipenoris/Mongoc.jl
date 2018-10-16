@@ -72,6 +72,10 @@ function bson_append_array(bson_document::Ptr{Cvoid}, key::String, key_length::I
     ccall((:bson_append_array, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Ptr{Cvoid}), bson_document, key, key_length, value)
 end
 
+function bson_append_binary(bson_document::Ptr{Cvoid}, key::String, key_length::Int, subtype::BSONSubType, value::Vector{UInt8}, val_length::UInt32)
+    ccall((:bson_append_binary, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, BSONSubType, Ptr{Cvoid}, Culong), bson_document, key, key_length, subtype, value, val_length)
+end
+
 function bson_append_code(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::String)
     ccall((:bson_append_code, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Cstring), bson_document, key, key_length, value)
 end
@@ -162,6 +166,12 @@ end
 
 function bson_iter_code(iter_ref::Ref{BSONIter})
     ccall((:bson_iter_code, libbson), Cstring, (Ref{BSONIter}, Ptr{UInt32}), iter_ref, C_NULL)
+end
+
+function bson_iter_binary(iter_ref::Ref{BSONIter}, lengthPtr::Array{UInt32}, dataPtr::Array{Ptr{UInt8}})
+    bsonsubtype = BSON_SUBTYPE_BINARY
+    ccall((:bson_iter_binary, libbson), Cvoid, (Ref{BSONIter}, Ref{BSONSubType}, Ptr{UInt32}, Ptr{Ptr{UInt8}}),iter_ref, bsonsubtype, lengthPtr, dataPtr)
+    nothing
 end
 
 function bson_free(mem::Ptr{Cvoid})

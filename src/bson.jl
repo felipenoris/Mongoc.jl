@@ -37,6 +37,29 @@ const BSON_TYPE_DECIMAL128 = BSONType(0x13)
 const BSON_TYPE_MAXKEY     = BSONType(0x7F)
 const BSON_TYPE_MINKEY     = BSONType(0xFF)
 
+
+
+"BSONSubType mirrors C enum bson_subtype_t."
+primitive type BSONSubType 8 end
+
+Base.convert(::Type{T}, t::BSONSubType) where {T<:Number} = reinterpret(UInt8, t)
+Base.convert(::Type{BSONSubType}, n::T) where {T<:Number} = reinterpret(BSONSubType, n)
+BSONSubType(u::UInt8) = convert(BSONSubType, u)
+
+#
+# Constants for BSONSubType
+#
+
+const BSON_SUBTYPE_BINARY            = BSONSubType(0x00)
+const BSON_SUBTYPE_FUNCTION          = BSONSubType(0x01)
+const BSON_SUBTYPE_BINARY_DEPRECATED = BSONSubType(0x02)
+const BSON_SUBTYPE_UUID_DEPRECATED   = BSONSubType(0x03)
+const BSON_SUBTYPE_UUID              = BSONSubType(0x04)
+const BSON_SUBTYPE_MD5               = BSONSubType(0x05)
+const BSON_SUBTYPE_USER              = BSONSubType(0x80)
+
+
+
 """
 BSONIter mirrors C struct bson_iter_t and can be allocated in the stack.
 
@@ -278,7 +301,6 @@ function as_dict(iter_ref::Ref{BSONIter})
 end
 
 function get_value(iter_ref::Ref{BSONIter})
-
     local bson_type::BSONType = bson_iter_type(iter_ref)
 
     if bson_type == BSON_TYPE_UTF8
@@ -315,6 +337,15 @@ function get_value(iter_ref::Ref{BSONIter})
             @assert bson_type == BSON_TYPE_DOCUMENT
             return as_dict(child_iter_ref)
         end
+    elseif bson_type == BSON_TYPE_BINARY
+
+        lengthPtr = VERSION < v"0.7-" ? Array{UInt32}(1) : Array{UInt32}(undef, 1)
+        dataPtr = VERSION < v"0.7-" ? Array{Ptr{UInt8}}(1) : Array{Ptr{UInt8}}(undef, 1)
+        bson_iter_binary(iter_ref, lengthPtr, dataPtr)
+        length = Int(lengthPtr[1])
+        dataArray = VERSION < v"0.7-" ? Array{UInt8,1}(length) : Array{UInt8,1}(undef, length)
+        VERSION < v"0.7-" ? unsafe_copy!(pointer(dataArray), dataPtr[1], length) : unsafe_copyto!(pointer(dataArray), dataPtr[1], length)
+        return dataArray
     elseif bson_type == BSON_TYPE_CODE
         return BSONCode(unsafe_string(bson_iter_code(iter_ref)))
     else
@@ -401,7 +432,8 @@ end
 
 Base.setindex!(document::BSON, value::Dict, key::String) = setindex!(document, BSON(value), key)
 
-function Base.setindex!(document::BSON, value::Vector, key::String)
+
+function Base.setindex!(document::BSON, value::Vector{T}, key::String) where T
     sub_document = BSON(value)
     ok = bson_append_array(document.handle, key, -1, sub_document.handle)
     if !ok
@@ -420,4 +452,14 @@ end
 
 function Base.setindex!(document::BSON, value::Date, key::String)
     error("BSON format does not support `Date` type. Use `DateTime` instead.")
+end
+
+# Base.setindex!(::Mongoc.BSON, ::UInt8, ::String) # Binary:  MethodError: no method matching
+function Base.setindex!(document::BSON, value::Vector{UInt8}, key::String)::Nothing
+  # sub_document = BSON(value) # doesn't seem to be necessary, would need Base.setindex!(document::BSON, value::UInt8, key::String)::Bool
+  ok = bson_append_binary(document.handle, key, -1, BSON_SUBTYPE_BINARY, value, UInt32(length(value)))
+  if !ok
+      error("Couldn't append array to BSON document.")
+  end
+  nothing
 end
