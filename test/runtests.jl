@@ -15,16 +15,6 @@ end
 
 const DB_NAME = "mongoc"
 
-#=
-function gc_on_osx_v6()
-    @static if VERSION < v"0.7-" && is_apple()
-            gc()
-    else
-        nothing
-    end
-end
-=#
-
 @testset "BSON" begin
 
     @testset "as_json" begin
@@ -263,8 +253,6 @@ end
             empty!(coll)
         end
 
-        #gc_on_osx_v6() # avoid segfault on Cursor destroy
-
         @testset "find_databases" begin
             found = false
             for obj in Mongoc.find_databases(client)
@@ -462,8 +450,6 @@ end
 
             empty!(collection)
         end
-
-        #gc_on_osx_v6() # avoid segfault on Cursor destroy
     end
 
     @testset "Users" begin
@@ -483,8 +469,6 @@ end
         Mongoc.remove_user(database, user_name)
         @test !Mongoc.has_user(database, user_name)
     end
-
-    #gc_on_osx_v6()
 
     @testset "Session Options" begin
         opt = Mongoc.SessionOptions()

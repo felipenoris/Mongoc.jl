@@ -460,9 +460,7 @@ function Base.setindex!(document::BSON, value::Date, key::String)
     error("BSON format does not support `Date` type. Use `DateTime` instead.")
 end
 
-# Base.setindex!(::Mongoc.BSON, ::UInt8, ::String) # Binary:  MethodError: no method matching
 function Base.setindex!(document::BSON, value::Vector{UInt8}, key::String)::Nothing
-  # sub_document = BSON(value) # doesn't seem to be necessary, would need Base.setindex!(document::BSON, value::UInt8, key::String)::Bool
   ok = bson_append_binary(document.handle, key, -1, BSON_SUBTYPE_BINARY, value, UInt32(length(value)))
   if !ok
       error("Couldn't append array to BSON document.")
