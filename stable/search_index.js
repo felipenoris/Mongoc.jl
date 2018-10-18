@@ -29,7 +29,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Requirements",
     "category": "section",
-    "text": "MongoDB 3.0 or newer.\nJulia versions v0.6, v0.7 or v1.0.\nLinux or OSX.note: Note\nCurrently, this package might cause garbage collection errors if using Julia v0.6 on OSX."
+    "text": "MongoDB 3.0 or newer.\nJulia versions v0.6, v0.7 or v1.0.\nLinux or macOS.note: Note\nCurrently, this package might cause garbage collection errors if using Julia v0.6 on macOS."
 },
 
 {
@@ -486,6 +486,14 @@ var documenterSearchIndex = {"docs": [
     "title": "Mongoc.BSONObjectId",
     "category": "type",
     "text": "Mirrors C struct bson_oid_t.\n\nBSONObjectId instances addresses are passed to libbson/libmongoc API using Ref(oid), and are owned by the Julia process.\n\ntypedef struct {\n   uint8_t bytes[12];\n} bson_oid_t;\n\n\n\n\n\n"
+},
+
+{
+    "location": "api.html#Mongoc.BSONSubType",
+    "page": "API Reference",
+    "title": "Mongoc.BSONSubType",
+    "category": "type",
+    "text": "BSONSubType mirrors C enum bsonsubtypet.\n\n\n\n\n\n"
 },
 
 {
