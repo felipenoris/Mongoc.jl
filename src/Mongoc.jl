@@ -2,11 +2,20 @@
 __precompile__(true)
 module Mongoc
 
+# Compat
 @static if VERSION < v"0.7-"
     const Nothing = Void
     const Cvoid   = Void
 else
     using Dates
+end
+
+function undef_vector(::Type{T}, len::Integer) where T
+    @static if VERSION < v"0.7-"
+        Vector{T}(len)
+    else
+        Vector{T}(undef, len)
+    end
 end
 
 # load libmongoc

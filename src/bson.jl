@@ -324,7 +324,7 @@ function get_value(iter_ref::Ref{BSONIter})
         child_iter_ref = Ref{BSONIter}()
         ok = bson_iter_recurse(iter_ref, child_iter_ref)
         if !ok
-            error("Could't iterate array inside BSON.")
+            error("Couldn't iterate array inside BSON.")
         end
 
         if bson_type == BSON_TYPE_ARRAY
@@ -339,12 +339,18 @@ function get_value(iter_ref::Ref{BSONIter})
         end
     elseif bson_type == BSON_TYPE_BINARY
 
-        lengthPtr = VERSION < v"0.7-" ? Array{UInt32}(1) : Array{UInt32}(undef, 1)
-        dataPtr = VERSION < v"0.7-" ? Array{Ptr{UInt8}}(1) : Array{Ptr{UInt8}}(undef, 1)
+        lengthPtr = undef_vector(UInt32, 1)
+        dataPtr = undef_vector(Ptr{UInt8}, 1)
         bson_iter_binary(iter_ref, lengthPtr, dataPtr)
-        length = Int(lengthPtr[1])
-        dataArray = VERSION < v"0.7-" ? Array{UInt8,1}(length) : Array{UInt8,1}(undef, length)
-        VERSION < v"0.7-" ? unsafe_copy!(pointer(dataArray), dataPtr[1], length) : unsafe_copyto!(pointer(dataArray), dataPtr[1], length)
+        len = Int(lengthPtr[1])
+        dataArray = undef_vector(UInt8, len)
+
+        @static if VERSION < v"0.7-"
+            unsafe_copy!(pointer(dataArray), dataPtr[1], len)
+        else
+            unsafe_copyto!(pointer(dataArray), dataPtr[1], len)
+        end
+
         return dataArray
     elseif bson_type == BSON_TYPE_CODE
         return BSONCode(unsafe_string(bson_iter_code(iter_ref)))
