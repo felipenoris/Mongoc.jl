@@ -48,6 +48,16 @@ you can use the `Mongoc.Client` constructor with no arguments.
 julia> client = Mongoc.Client()
 ```
 
+One thing to keep in mind about MongoDB is that operations are usually lazy.
+So you don't actually connect to the database until you need to issue a command or query.
+
+If you need to check the connection status before sending commands,
+use Mongoc.ping(client) to ping the server.
+
+```julia
+julia> Mongoc.ping(client)
+```
+
 ## Getting a Database
 
 A MongoDB instance consists on a set of independent databases.
