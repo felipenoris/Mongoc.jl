@@ -347,6 +347,11 @@ function _iterate(cursor::Cursor, state::Nothing=nothing)
         # So we should return a deepcopy.
         return deepcopy(next), nothing
     else
+        err = BSONError()
+        if mongoc_cursor_error(cursor.handle, err)
+            error("$err")
+        end
+
         return nothing
     end
 end

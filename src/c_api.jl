@@ -338,6 +338,10 @@ function mongoc_cursor_set_limit(cursor_handle::Ptr{Cvoid}, limit::Int)
     ccall((:mongoc_cursor_set_limit, libmongoc), Bool, (Ptr{Cvoid}, Int64), cursor_handle, limit)
 end
 
+function mongoc_cursor_error(cursor_handle::Ptr{Cvoid}, bson_error::BSONError)
+    ccall((:mongoc_cursor_error, libmongoc), Bool, (Ptr{Cvoid}, Ref{BSONError}), cursor_handle, Ref(bson_error))
+end
+
 function mongoc_bulk_operation_destroy(bulk_operation_handle::Ptr{Cvoid})
     ccall((:mongoc_bulk_operation_destroy, libmongoc), Cvoid, (Ptr{Cvoid},), bulk_operation_handle)
 end

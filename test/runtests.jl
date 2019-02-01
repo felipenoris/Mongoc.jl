@@ -265,6 +265,13 @@ end
             @test DB_NAME ∈ Mongoc.get_database_names(client)
         end
 
+        @testset "catch cursor error" begin
+            # issue #15
+            invalid_client = Mongoc.Client("mongodb://invalid_url")
+            collection = invalid_client["db_name"]["collection_name"]
+            @test_throws ErrorException Mongoc.find_one(collection, Mongoc.BSON(""" { "a" : 1 } """))
+        end
+
         @testset "Binary data" begin
             coll = client[DB_NAME]["new_collection"]
             bsonDoc = Mongoc.BSON()
