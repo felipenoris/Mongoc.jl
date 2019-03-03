@@ -98,6 +98,8 @@ julia> document["age"] = 35
 
 julia> document["preferences"] = [ "Music", "Computer", "Photography" ]
 
+julia> document["null_value"] = nothing # maps to BSON null value
+
 julia> using Dates; document["details"] = Dict("birth date" => DateTime(1983, 4, 16), "location" => "Rio de Janeiro")
 ```
 
@@ -105,7 +107,7 @@ To convert a BSON to a JSON string, use:
 
 ```julia
 julia> Mongoc.as_json(document)
-"{ \"name\" : \"Felipe\", \"age\" : 35, \"preferences\" : [ \"Music\", \"Computer\", \"Photography\" ], \"details\" : { \"location\" : \"Rio de Janeiro\", \"birth date\" : { \"\$date\" : \"1983-04-16T00:00:00Z\" } } }"
+"{ \"name\" : \"Felipe\", \"age\" : 35, \"preferences\" : [ \"Music\", \"Computer\", \"Photography\" ], \"null_value\" : null, \"details\" : { \"location\" : \"Rio de Janeiro\", \"birth date\" : { \"\$date\" : \"1983-04-16T00:00:00Z\" } } }"
 ```
 
 You can also create a BSON document from a JSON string.

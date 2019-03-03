@@ -90,7 +90,9 @@ typedef struct {
 } bson_oid_t;
 ```
 """
-primitive type BSONObjectId 12 * 8 end # 12 bytes
+struct BSONObjectId
+    bytes::NTuple{12, UInt8}
+end
 
 function BSONObjectId()
     oid_ref = Ref{BSONObjectId}()
@@ -354,6 +356,8 @@ function get_value(iter_ref::Ref{BSONIter})
         return dataArray
     elseif bson_type == BSON_TYPE_CODE
         return BSONCode(unsafe_string(bson_iter_code(iter_ref)))
+    elseif bson_type == BSON_TYPE_NULL
+        return nothing
     else
         error("BSON Type not supported: $bson_type.")
     end
@@ -460,10 +464,18 @@ function Base.setindex!(document::BSON, value::Date, key::String)
     error("BSON format does not support `Date` type. Use `DateTime` instead.")
 end
 
-function Base.setindex!(document::BSON, value::Vector{UInt8}, key::String)::Nothing
+function Base.setindex!(document::BSON, value::Vector{UInt8}, key::String)
   ok = bson_append_binary(document.handle, key, -1, BSON_SUBTYPE_BINARY, value, UInt32(length(value)))
   if !ok
       error("Couldn't append array to BSON document.")
   end
   nothing
+end
+
+function Base.setindex!(document::BSON, ::Nothing, key::String)
+    ok = bson_append_null(document.handle, key, -1)
+    if !ok
+        error("Couldn't append missing value to BSON document.")
+    end
+    nothing
 end
