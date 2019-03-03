@@ -50,34 +50,29 @@ end
         Mongoc.get_time( Mongoc.BSONObjectId("5b9eaa2711c3dd0d6a46a5c4") ) == DateTime(2018, 9, 16, 19, 8, 23) # 2018-09-16T19:08:23
     end
 
-    # https://github.com/JuliaLang/julia/issues/29193
-    #=
-    if VERSION < v"0.7-"
-        @testset "BSONObjectId segfault issue" begin
-            io = IOBuffer()
-            v = Vector{Mongoc.BSONObjectId}()
+    @testset "BSONObjectId segfault issue (#2)" begin
+        io = IOBuffer()
+        v = Vector{Mongoc.BSONObjectId}()
 
-            for i in 1:5
-                push!(v, Mongoc.BSONObjectId())
-            end
-            show(io, v)
+        for i in 1:5
+            push!(v, Mongoc.BSONObjectId())
         end
+        show(io, v)
+    end
 
-        @testset "oid sort" begin
-            v = Vector{Mongoc.BSONObjectId}()
-            for i in 1:10_000
-                push!(v, Mongoc.BSONObjectId())
-            end
-            @test length(v) == length(unique(v))
+    @testset "oid sort" begin
+        v = Vector{Mongoc.BSONObjectId}()
+        for i in 1:10_000
+            push!(v, Mongoc.BSONObjectId())
+        end
+        @test length(v) == length(unique(v))
 
-            v_sorted = sort(v, lt = (a,b) -> Mongoc.bson_oid_compare(a,b) < 0)
-            @test length(v_sorted) == length(v)
-            for i in 1:length(v_sorted)
-                @test v_sorted[i] == v[i]
-            end
+        v_sorted = sort(v, lt = (a,b) -> Mongoc.bson_oid_compare(a,b) < 0)
+        @test length(v_sorted) == length(v)
+        for i in 1:length(v_sorted)
+            @test v_sorted[i] == v[i]
         end
     end
-    =#
 
     @testset "BSON Iterator" begin
         doc = Mongoc.BSON("""{ "a" : 1, "b" : 2.2, "str" : "my string", "bool_t" : true, "bool_f" : false, "array" : [1, 2, false, "inner_string"], "document" : { "a" : 1, "b" : "b_string"}, "null" : null  }""")

@@ -90,7 +90,9 @@ typedef struct {
 } bson_oid_t;
 ```
 """
-primitive type BSONObjectId 12 * 8 end # 12 bytes
+struct BSONObjectId
+    bytes::NTuple{12, UInt8}
+end
 
 function BSONObjectId()
     oid_ref = Ref{BSONObjectId}()
