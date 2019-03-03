@@ -80,6 +80,11 @@ function bson_append_code(bson_document::Ptr{Cvoid}, key::String, key_length::In
     ccall((:bson_append_code, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Cstring), bson_document, key, key_length, value)
 end
 
+#bool bson_append_null (bson_t *bson, const char *key, int key_length);
+function bson_append_null(bson_document::Ptr{Cvoid}, key::String, key_length::Int)
+    ccall((:bson_append_null, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint), bson_document, key, key_length)
+end
+
 function bson_new()
     ccall((:bson_new, libbson), Ptr{Cvoid}, ())
 end

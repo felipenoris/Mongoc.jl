@@ -87,7 +87,7 @@ const DB_NAME = "mongoc"
     =#
 
     @testset "BSON Iterator" begin
-        doc = Mongoc.BSON("""{ "a" : 1, "b" : 2.2, "str" : "my string", "bool_t" : true, "bool_f" : false, "array" : [1, 2, false, "inner_string"], "document" : { "a" : 1, "b" : "b_string"}  }""")
+        doc = Mongoc.BSON("""{ "a" : 1, "b" : 2.2, "str" : "my string", "bool_t" : true, "bool_f" : false, "array" : [1, 2, false, "inner_string"], "document" : { "a" : 1, "b" : "b_string"}, "null" : null  }""")
 
         new_id = Mongoc.BSONObjectId()
         doc["_id"] = new_id
@@ -99,6 +99,7 @@ const DB_NAME = "mongoc"
         @test haskey(doc, "_id")
         @test haskey(doc, "array")
         @test haskey(doc, "document")
+        @test haskey(doc, "null")
 
         @test doc["a"] == 1
         @test doc["b"] == 2.2
@@ -108,6 +109,7 @@ const DB_NAME = "mongoc"
         @test doc["_id"] == new_id
         @test doc["array"] == [1, 2, false, "inner_string"]
         @test doc["document"] == Dict("a"=>1, "b"=>"b_string")
+        @test doc["null"] == nothing
 
         @test_throws ErrorException doc["invalid key"]
 
@@ -120,6 +122,7 @@ const DB_NAME = "mongoc"
         @test doc_dict["_id"] == new_id
         @test doc_dict["array"] == [1, 2, false, "inner_string"]
         @test doc_dict["document"] == Dict("a"=>1, "b"=>"b_string")
+        @test doc_dict["null"] == nothing
     end
 
     @testset "BSON write" begin
@@ -135,6 +138,7 @@ const DB_NAME = "mongoc"
         bson["datetime"] = DateTime(2018, 2, 1, 10, 20, 35, 10)
         bson["vector"] = collect(1:10)
         bson["source"] = Mongoc.BSONCode("function() = 1")
+        bson["null"] = nothing
         @test_throws ErrorException bson["key"] = Date(2018, 9, 18)
 
         let
@@ -156,6 +160,7 @@ const DB_NAME = "mongoc"
         @test bson["sub_document"]["num"] == 10
         @test bson["vector"] == collect(1:10)
         @test bson["source"] == Mongoc.BSONCode("function() = 1")
+        @test bson["null"] == nothing
 
         let
             sub_bson = bson["sub_document"]
@@ -165,11 +170,12 @@ const DB_NAME = "mongoc"
     end
 
     @testset "BSON to Dict conversion" begin
-        dict = Dict("a" => 1, "b" => false, "c" => "string")
+        dict = Dict("a" => 1, "b" => false, "c" => "string", "d" => nothing)
         doc = Mongoc.BSON(dict)
         @test doc["a"] == 1
         @test doc["b"] == false
         @test doc["c"] == "string"
+        @test doc["d"] == nothing
         @test dict == Mongoc.as_dict(doc)
     end
 end
