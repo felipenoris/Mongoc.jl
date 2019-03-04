@@ -3,6 +3,13 @@
 # Tests depend on a running server at localhost:27017,
 # and will create a database named "mongoc".
 #
+# Start a fresh MongoDB instance with:
+#
+# ```
+# $ mkdir db
+# $ mongod --dbpath ./db --smallfiles
+# ```
+#
 
 import Mongoc
 
