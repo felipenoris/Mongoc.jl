@@ -141,9 +141,11 @@ end
 mutable struct BSON
     handle::Ptr{Cvoid}
 
-    function BSON(handle::Ptr{Cvoid})
+    function BSON(handle::Ptr{Cvoid}; enable_finalizer::Bool=true)
         new_bson = new(handle)
-        @compat finalizer(destroy!, new_bson)
+        if enable_finalizer
+            @compat finalizer(destroy!, new_bson)
+        end
         return new_bson
     end
 end
@@ -158,6 +160,76 @@ end
 
 function Base.deepcopy(bson::BSON) :: BSON
     return BSON(bson_copy(bson.handle))
+end
+
+mutable struct BSONReader
+    handle::Ptr{Cvoid}
+
+    function BSONReader(handle::Ptr{Cvoid})
+        new_reader = new(handle)
+        @compat finalizer(destroy!, new_reader)
+        return new_reader
+    end
+end
+
+function destroy!(reader::BSONReader)
+    if reader.handle != C_NULL
+        bson_reader_destroy(reader.handle)
+        reader.handle = C_NULL
+    end
+    nothing
+end
+
+const DEFAULT_BSON_WRITER_BUFFER_CAPACITY = 2^10
+
+# buffer_handle must be a valid pointer to a Buffer object.
+# A reference to this buffer must be kept from outside this function
+# to avoid GC on it.
+function unsafe_buffer_realloc(buffer_ptr::Ptr{UInt8}, num_bytes::Csize_t, writer_objref::Ptr{Cvoid})
+    local writer::BSONWriter = unsafe_pointer_to_objref(writer_objref)
+    @assert buffer_ptr == pointer(writer.buffer) "Is this the same BSONWriter?"
+
+    current_len = length(writer.buffer)
+    inc = num_bytes - current_len
+    if inc > 0
+        append!(writer.buffer, [ UInt8(0) for i in 1:inc ])
+    end
+
+    @assert length(writer.buffer) == num_bytes
+    writer.buffer_length_ref[] = num_bytes
+
+    return pointer(writer.buffer)
+end
+
+mutable struct BSONWriter
+    handle::Ptr{Cvoid}
+    buffer::Vector{UInt8}
+    buffer_handle_ref::Ref{Ptr{UInt8}}
+    buffer_length_ref::Ref{Csize_t}
+
+    function BSONWriter(initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY, buffer_offset::Integer=0)
+        buffer = undef_vector(UInt8, initial_buffer_capacity)
+        new_writer = new(C_NULL, buffer, Ref(pointer(buffer)), Ref(Csize_t(initial_buffer_capacity)))
+        @compat finalizer(destroy!, new_writer)
+
+        realloc_func = @cfunction(unsafe_buffer_realloc, Ptr{UInt8}, (Ptr{UInt8}, Csize_t, Ptr{Cvoid}))
+
+        handle = bson_writer_new(new_writer.buffer_handle_ref, new_writer.buffer_length_ref, Csize_t(buffer_offset), realloc_func, pointer_from_objref(new_writer))
+        if handle == C_NULL
+            error("Failed to create a BSONWriter.")
+        end
+        new_writer.handle = handle
+
+        return new_writer
+    end
+end
+
+function destroy!(writer::BSONWriter)
+    if writer.handle != C_NULL
+        bson_writer_destroy(writer.handle)
+        writer.handle = C_NULL
+    end
+    nothing
 end
 
 #
@@ -477,5 +549,49 @@ function Base.setindex!(document::BSON, ::Nothing, key::String)
     if !ok
         error("Couldn't append missing value to BSON document.")
     end
+    nothing
+end
+
+#
+# Write/Read BSON to/from IO
+#
+
+function bson_writer(f::Function, io::IO; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+    writer = BSONWriter(initial_buffer_capacity)
+
+    try
+        f(writer)
+
+        for byte_index in 1:bson_writer_get_length(writer.handle)
+            write(io, writer.buffer[byte_index])
+        end
+
+        flush(io)
+    finally
+        destroy!(writer)
+    end
+
+    nothing
+end
+
+function write_bson(f::Function, writer::BSONWriter)
+    bson_handle_ref = Ref{Ptr{Cvoid}}(C_NULL)
+    ok = bson_writer_begin(writer.handle, bson_handle_ref)
+    if !ok
+        error("Failed to write bson document to IO: there was not enough space in buffer. Increase the buffer initial capacity.")
+    end
+
+    bson = BSON(bson_handle_ref[], enable_finalizer=false)
+    f(bson)
+    bson_writer_end(writer.handle)
+end
+
+function write_bson(io::IO, bson::BSON; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+    bson_writer(io, initial_buffer_capacity=initial_buffer_capacity) do writer
+        write_bson(writer) do dest
+            bson_copy_to_excluding_noinit(bson.handle, dest.handle)
+        end
+    end
+
     nothing
 end

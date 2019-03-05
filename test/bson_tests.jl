@@ -166,4 +166,52 @@ end
         @test doc["d"] == nothing
         @test dict == Mongoc.as_dict(doc)
     end
+
+    @testset "BSON copy" begin
+        @testset "exclude one key" begin
+            src = Mongoc.BSON()
+            src["hey"] = "you"
+            src["out"] = 1
+            dst = Mongoc.BSON()
+            Mongoc.bson_copy_to_excluding_noinit(src.handle, dst.handle, "out")
+            @test !haskey(dst, "out")
+            @test dst["hey"] == "you"
+        end
+
+        @testset "no exclude keys" begin
+            src = Mongoc.BSON()
+            src["hey"] = "you"
+            src["out"] = 1
+            dst = Mongoc.BSON()
+            Mongoc.bson_copy_to_excluding_noinit(src.handle, dst.handle)
+            @test Mongoc.as_dict(src) == Mongoc.as_dict(dst)
+        end
+    end
+
+    @testset "BSON Write to IO" begin
+
+        @testset "write_bson closure" begin
+            io = IOBuffer()
+
+            Mongoc.bson_writer(io, initial_buffer_capacity=1) do writer
+                Mongoc.write_bson(writer) do bson
+                    bson["id"] = 10
+                    bson["str"] = "aa"
+                end
+            end
+
+            @test io.data == [0x1d, 0x00,0x00,0x00,0x12,0x69,0x64,0x00,0x0a,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x02,0x73,0x74,0x72,0x00,0x03,0x00,0x00,0x00,0x61,0x61,0x00,0x00,0x00,0x00,0x00]
+        end
+
+        @testset "BSON copy" begin
+            src = Mongoc.BSON()
+            src["id"] = 10
+            src["str"] = "aa"
+
+            io = IOBuffer()
+            Mongoc.write_bson(io, src)
+
+            @test io.data == [0x1d, 0x00,0x00,0x00,0x12,0x69,0x64,0x00,0x0a,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x02,0x73,0x74,0x72,0x00,0x03,0x00,0x00,0x00,0x61,0x61,0x00,0x00,0x00,0x00,0x00]
+        end
+    end
 end
