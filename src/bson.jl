@@ -164,8 +164,9 @@ end
 
 mutable struct BSONReader
     handle::Ptr{Cvoid}
+    data::Vector{UInt8}
 
-    function BSONReader(handle::Ptr{Cvoid})
+    function BSONReader(handle::Ptr{Cvoid}, data::Vector{UInt8})
         new_reader = new(handle)
         @compat finalizer(destroy!, new_reader)
         return new_reader

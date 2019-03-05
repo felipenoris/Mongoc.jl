@@ -183,12 +183,20 @@ function bson_free(mem::Ptr{Cvoid})
     ccall((:bson_free, libbson), Cvoid, (Ptr{Cvoid},), mem)
 end
 
+function bson_reader_destroy(bson_reader_handle::Ptr{Cvoid})
+    ccall((:bson_reader_destroy, libbson), Cvoid, (Ptr{Cvoid},), bson_reader_handle)
+end
+
 function bson_reader_new_from_file(filepath::AbstractString, bson_error::BSONError)
     ccall((:bson_reader_new_from_file, libbson), Ptr{Cvoid}, (Cstring, Ref{BSONError}), filepath, Ref(bson_error))
 end
 
-function bson_reader_destroy(bson_reader_handle::Ptr{Cvoid})
-    ccall((:bson_reader_destroy, libbson), Cvoid, (Ptr{Cvoid},), bson_reader_handle)
+function bson_reader_new_from_data(data::Ptr{UInt8}, data_length::Integer)
+    ccall((:bson_reader_new_from_data, libbson), Ptr{Cvoid}, (Ptr{UInt8}, Csize_t), data, data_length)
+end
+
+function bson_reader_read(bson_reader_handle::Ptr{Cvoid}, reached_eof_ref::Ref{Bool})
+    ccall((:bson_reader_read, libbson), Ptr{Cvoid}, (Ptr{Cvoid}, Ref{Bool}), bson_reader_handle, reached_eof_ref)
 end
 
 function bson_writer_destroy(bson_writer_handle::Ptr{Cvoid})
