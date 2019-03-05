@@ -514,7 +514,6 @@ end
 
 Base.setindex!(document::BSON, value::Dict, key::String) = setindex!(document, BSON(value), key)
 
-
 function Base.setindex!(document::BSON, value::Vector{T}, key::String) where T
     sub_document = BSON(value)
     ok = bson_append_array(document.handle, key, -1, sub_document.handle)
@@ -590,6 +589,18 @@ function write_bson(io::IO, bson::BSON; initial_buffer_capacity::Integer=DEFAULT
     bson_writer(io, initial_buffer_capacity=initial_buffer_capacity) do writer
         write_bson(writer) do dest
             bson_copy_to_excluding_noinit(bson.handle, dest.handle)
+        end
+    end
+
+    nothing
+end
+
+function write_bson(io::IO, bson_list::Vector{BSON}; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+    bson_writer(io, initial_buffer_capacity=initial_buffer_capacity) do writer
+        for src_bson in bson_list
+            write_bson(writer) do dest
+                bson_copy_to_excluding_noinit(src_bson.handle, dest.handle)
+            end
         end
     end
 
