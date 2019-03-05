@@ -167,7 +167,7 @@ mutable struct BSONReader
     data::Vector{UInt8}
 
     function BSONReader(handle::Ptr{Cvoid}, data::Vector{UInt8})
-        new_reader = new(handle)
+        new_reader = new(handle, data)
         @compat finalizer(destroy!, new_reader)
         return new_reader
     end
@@ -209,7 +209,7 @@ mutable struct BSONWriter
     buffer_length_ref::Ref{Csize_t}
 
     function BSONWriter(initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY, buffer_offset::Integer=0)
-        buffer = undef_vector(UInt8, initial_buffer_capacity)
+        buffer = zeros(UInt8, initial_buffer_capacity)
         new_writer = new(C_NULL, buffer, Ref(pointer(buffer)), Ref(Csize_t(initial_buffer_capacity)))
         @compat finalizer(destroy!, new_writer)
 
@@ -562,6 +562,8 @@ function bson_writer(f::Function, io::IO; initial_buffer_capacity::Integer=DEFAU
     try
         f(writer)
 
+        @assert bson_writer_get_length(writer.handle) == _get_number_of_bytes_written_to_buffer(writer)
+
         for byte_index in 1:bson_writer_get_length(writer.handle)
             write(io, writer.buffer[byte_index])
         end
@@ -573,6 +575,26 @@ function bson_writer(f::Function, io::IO; initial_buffer_capacity::Integer=DEFAU
 
     nothing
 end
+
+function _get_number_of_bytes_written_to_buffer(buffer::Vector{UInt8}) :: Int64
+    isempty(buffer) && return 0
+
+    # the first 4 bytes in data is a size int32
+    doc_size = reinterpret(Int32, buffer[1:4])[1]
+    local total_size::Int64 = 0
+    while doc_size != 0
+        total_size += doc_size
+
+        if length(buffer) < total_size + 4
+            break
+        end
+
+        doc_size = reinterpret(Int32, buffer[total_size+1:total_size+4])[1]
+    end
+    return total_size
+end
+
+_get_number_of_bytes_written_to_buffer(writer::BSONWriter) = _get_number_of_bytes_written_to_buffer(writer.buffer)
 
 function write_bson(f::Function, writer::BSONWriter)
     bson_handle_ref = Ref{Ptr{Cvoid}}(C_NULL)
@@ -606,4 +628,57 @@ function write_bson(io::IO, bson_list::Vector{BSON}; initial_buffer_capacity::In
     end
 
     nothing
+end
+
+read_bson(io::IO) :: Vector{BSON} = read_bson(read(io))
+
+function read_bson(data::Vector{UInt8}) :: Vector{BSON}
+    if isempty(data)
+        return result
+    end
+
+    data_shrinked = data[1:_get_number_of_bytes_written_to_buffer(data)]
+
+    reader_handle = bson_reader_new_from_data(pointer(data_shrinked), length(data_shrinked))
+    if reader_handle == C_NULL
+        error("Failed to create a BSONReader.")
+    end
+    reader = BSONReader(reader_handle, data_shrinked)
+    return read_bson(reader)
+end
+
+function read_bson(filepath::AbstractString) :: Vector{BSON}
+    @assert isfile(filepath) "$filepath not found."
+    err = BSONError()
+    reader_handle = bson_reader_new_from_file(filepath, err)
+    if reader_handle == C_NULL
+        error("$err")
+    end
+    reader = BSONReader(reader_handle, Vector{UInt8}())
+    return read_bson(reader)
+end
+
+function read_bson(reader::BSONReader) :: Vector{BSON}
+    result = Vector{BSON}()
+    bson = read_next_bson(reader)
+    while bson != nothing
+        push!(result, bson)
+        bson = read_next_bson(reader)
+    end
+    return result
+end
+
+function read_next_bson(reader::BSONReader) :: Union{Nothing, BSON}
+    reached_eof_ref = Ref(false)
+    bson_handle = bson_reader_read(reader.handle, reached_eof_ref)
+
+    if bson_handle == C_NULL
+        if !reached_eof_ref[]
+            @warn("Finished reading BSON from stream, but didn't reach stream's eof.")
+        end
+        return nothing
+    end
+
+    bson_copy_handle = bson_copy(bson_handle) # creates a copy with its own lifetime
+    return BSON(bson_copy_handle)
 end

@@ -200,7 +200,7 @@ end
                 end
             end
 
-            @test io.data == [0x1d, 0x00,0x00,0x00,0x12,0x69,0x64,0x00,0x0a,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x02,0x73,0x74,0x72,0x00,0x03,0x00,0x00,0x00,0x61,0x61,0x00,0x00,0x00,0x00,0x00]
+            @test io.data == [0x1d,0x00,0x00,0x00,0x12,0x69,0x64,0x00,0x0a,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x02,0x73,0x74,0x72,0x00,0x03,0x00,0x00,0x00,0x61,0x61,0x00,0x00,0x00,0x00,0x00]
         end
 
         @testset "BSON copy single doc" begin
@@ -211,7 +211,7 @@ end
             io = IOBuffer()
             Mongoc.write_bson(io, src)
 
-            @test io.data == [0x1d, 0x00,0x00,0x00,0x12,0x69,0x64,0x00,0x0a,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x02,0x73,0x74,0x72,0x00,0x03,0x00,0x00,0x00,0x61,0x61,0x00,0x00,0x00,0x00,0x00]
+            @test io.data == [0x1d,0x00,0x00,0x00,0x12,0x69,0x64,0x00,0x0a,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x02,0x73,0x74,0x72,0x00,0x03,0x00,0x00,0x00,0x61,0x61,0x00,0x00,0x00,0x00,0x00]
         end
 
         @testset "BSON copy doc list" begin
@@ -233,6 +233,77 @@ end
 
             io = IOBuffer()
             Mongoc.write_bson(io, list)
+
+            seekstart(io)
+            vec_bson = Mongoc.read_bson(io)
+            @test length(vec_bson) == 2
+
+            let
+                fst_bson = vec_bson[1]
+                @test fst_bson["id"] == 1
+                @test fst_bson["name"] == "1st"
+            end
+
+            let
+                sec_bson = vec_bson[2]
+                @test sec_bson["id"] == 2
+                @test sec_bson["name"] == "2nd"
+            end
+        end
+
+        @testset "read BSON from data" begin
+            vec_bson = Mongoc.read_bson([0x1d,0x00,0x00,0x00,0x12,0x69,0x64,0x00,0x0a,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x02,0x73,0x74,0x72,0x00,0x03,0x00,0x00,0x00,0x61,0x61,0x00,0x00,0x00,0x00,0x00])
+            @test length(vec_bson) == 1
+            bson = vec_bson[1]
+            @test bson["id"] == 10
+            @test bson["str"] == "aa"
+        end
+
+        @testset "read/write BSON to/from File" begin
+            filepath = joinpath(@__DIR__, "data.bson")
+            isfile(filepath) && rm(filepath)
+
+            list = Vector{Mongoc.BSON}()
+
+            let
+                src = Mongoc.BSON()
+                src["id"] = 1
+                src["name"] = "1st"
+                push!(list, src)
+            end
+
+            let
+                src = Mongoc.BSON()
+                src["id"] = 2
+                src["name"] = "2nd"
+                push!(list, src)
+            end
+
+            try
+                open(filepath, "w") do io
+                    Mongoc.write_bson(io, list)
+                end
+
+                @test isfile(filepath)
+
+                list_from_file = Mongoc.read_bson(filepath)
+                @test length(list_from_file) == 2
+
+                let
+                    fst_bson = list_from_file[1]
+                    @test fst_bson["id"] == 1
+                    @test fst_bson["name"] == "1st"
+                end
+
+                let
+                    sec_bson = list_from_file[2]
+                    @test sec_bson["id"] == 2
+                    @test sec_bson["name"] == "2nd"
+                end
+
+            finally
+                isfile(filepath) && rm(filepath)
+            end
         end
     end
 end
