@@ -564,26 +564,6 @@ end
 # Write/Read BSON to/from IO
 #
 
-function bson_writer(f::Function, io::IO; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
-    writer = BSONWriter(initial_buffer_capacity)
-
-    try
-        f(writer)
-
-        @assert bson_writer_get_length(writer.handle) == _get_number_of_bytes_written_to_buffer(writer)
-
-        for byte_index in 1:bson_writer_get_length(writer.handle)
-            write(io, writer.buffer[byte_index])
-        end
-
-        flush(io)
-    finally
-        destroy!(writer)
-    end
-
-    nothing
-end
-
 function _get_number_of_bytes_written_to_buffer(buffer::Vector{UInt8}) :: Int64
     isempty(buffer) && return 0
 
@@ -604,6 +584,26 @@ end
 
 _get_number_of_bytes_written_to_buffer(writer::BSONWriter) = _get_number_of_bytes_written_to_buffer(writer.buffer)
 
+function bson_writer(f::Function, io::IO; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+    writer = BSONWriter(initial_buffer_capacity)
+
+    try
+        f(writer)
+
+        @assert bson_writer_get_length(writer.handle) == _get_number_of_bytes_written_to_buffer(writer)
+
+        for byte_index in 1:bson_writer_get_length(writer.handle)
+            write(io, writer.buffer[byte_index])
+        end
+
+        flush(io)
+    finally
+        destroy!(writer)
+    end
+
+    nothing
+end
+
 function write_bson(f::Function, writer::BSONWriter)
     bson_handle_ref = Ref{Ptr{Cvoid}}(C_NULL)
     ok = bson_writer_begin(writer.handle, bson_handle_ref)
@@ -616,6 +616,11 @@ function write_bson(f::Function, writer::BSONWriter)
     bson_writer_end(writer.handle)
 end
 
+"""
+    write_bson(io::IO, bson::BSON; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+
+Writes a single BSON document to `io` in binary format.
+"""
 function write_bson(io::IO, bson::BSON; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
     bson_writer(io, initial_buffer_capacity=initial_buffer_capacity) do writer
         write_bson(writer) do dest
@@ -626,6 +631,35 @@ function write_bson(io::IO, bson::BSON; initial_buffer_capacity::Integer=DEFAULT
     nothing
 end
 
+"""
+    write_bson(io::IO, bson_list::Vector{BSON}; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+
+Writes a vector of BSON documents to `io` in binary format.
+
+# Example
+
+```julia
+list = Vector{Mongoc.BSON}()
+
+let
+    src = Mongoc.BSON()
+    src["id"] = 1
+    src["name"] = "1st"
+    push!(list, src)
+end
+
+let
+    src = Mongoc.BSON()
+    src["id"] = 2
+    src["name"] = "2nd"
+    push!(list, src)
+end
+
+open("documents.bson", "w") do io
+    Mongoc.write_bson(io, list)
+end
+```
+"""
 function write_bson(io::IO, bson_list::Vector{BSON}; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
     bson_writer(io, initial_buffer_capacity=initial_buffer_capacity) do writer
         for src_bson in bson_list
@@ -638,8 +672,21 @@ function write_bson(io::IO, bson_list::Vector{BSON}; initial_buffer_capacity::In
     nothing
 end
 
+"""
+    read_bson(io::IO) :: Vector{BSON}
+
+Reads all BSON documents from `io`.
+This method will continue to read from `io` until
+it reaches eof.
+"""
 read_bson(io::IO) :: Vector{BSON} = read_bson(read(io))
 
+"""
+    read_bson(data::Vector{UInt8}) :: Vector{BSON}
+
+Parses a vector of bytes to a vector of BSON documents.
+Useful when reading BSON as binary from a stream.
+"""
 function read_bson(data::Vector{UInt8}) :: Vector{BSON}
     if isempty(data)
         return result
@@ -655,6 +702,14 @@ function read_bson(data::Vector{UInt8}) :: Vector{BSON}
     return read_bson(reader)
 end
 
+"""
+    read_bson(filepath::AbstractString) :: Vector{BSON}
+
+Reads all BSON documents from a file located at `filepath`.
+
+This will open a `Mongoc.BSONReader` pointing to the file
+and will parse file contents to BSON documents.
+"""
 function read_bson(filepath::AbstractString) :: Vector{BSON}
     @assert isfile(filepath) "$filepath not found."
     err = BSONError()
@@ -666,6 +721,11 @@ function read_bson(filepath::AbstractString) :: Vector{BSON}
     return read_bson(reader)
 end
 
+"""
+    read_bson(reader::BSONReader) :: Vector{BSON}
+
+Reads all BSON documents from a `reader`.
+"""
 function read_bson(reader::BSONReader) :: Vector{BSON}
     result = Vector{BSON}()
     bson = read_next_bson(reader)
@@ -676,13 +736,26 @@ function read_bson(reader::BSONReader) :: Vector{BSON}
     return result
 end
 
+"""
+    read_next_bson(reader::BSONReader) :: Union{Nothing, BSON}
+
+Reads the next BSON document available in the stream pointed by `reader`.
+Returns `nothing` if reached the end of the stream.
+"""
 function read_next_bson(reader::BSONReader) :: Union{Nothing, BSON}
     reached_eof_ref = Ref(false)
     bson_handle = bson_reader_read(reader.handle, reached_eof_ref)
 
     if bson_handle == C_NULL
         if !reached_eof_ref[]
-            @warn("Finished reading BSON from stream, but didn't reach stream's eof.")
+            let
+                msg = "Finished reading BSON from stream, but didn't reach stream's eof."
+                @static if VERSION < v"0.7-"
+                    warn(msg)
+                else
+                    @warn(msg)
+                end
+            end
         end
         return nothing
     end
