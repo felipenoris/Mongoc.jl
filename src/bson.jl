@@ -202,6 +202,10 @@ function unsafe_buffer_realloc(buffer_ptr::Ptr{UInt8}, num_bytes::Csize_t, write
     return pointer(writer.buffer)
 end
 
+@static if VERSION < v"0.7-"
+    const cfunction_unsafe_buffer_realloc = cfunction(unsafe_buffer_realloc, Ptr{UInt8}, (Ptr{UInt8}, Csize_t, Ptr{Cvoid}))
+end
+
 mutable struct BSONWriter
     handle::Ptr{Cvoid}
     buffer::Vector{UInt8}
@@ -213,7 +217,11 @@ mutable struct BSONWriter
         new_writer = new(C_NULL, buffer, Ref(pointer(buffer)), Ref(Csize_t(initial_buffer_capacity)))
         @compat finalizer(destroy!, new_writer)
 
-        realloc_func = @cfunction(unsafe_buffer_realloc, Ptr{UInt8}, (Ptr{UInt8}, Csize_t, Ptr{Cvoid}))
+        @static if VERSION < v"0.7-"
+            realloc_func = cfunction_unsafe_buffer_realloc
+        else
+            realloc_func = @cfunction(unsafe_buffer_realloc, Ptr{UInt8}, (Ptr{UInt8}, Csize_t, Ptr{Cvoid}))
+        end
 
         handle = bson_writer_new(new_writer.buffer_handle_ref, new_writer.buffer_length_ref, Csize_t(buffer_offset), realloc_func, pointer_from_objref(new_writer))
         if handle == C_NULL
