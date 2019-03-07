@@ -2,7 +2,7 @@
 using Documenter, Mongoc
 
 makedocs(
-    format = :html,
+    format = Documenter.HTML(),
     sitename = "Mongoc.jl",
     modules = [ Mongoc ],
     pages = [ "Home" => "index.md",
@@ -16,7 +16,4 @@ makedocs(
 deploydocs(
     repo = "github.com/felipenoris/Mongoc.jl.git",
     target = "build",
-    julia  = "1.0",
-    deps   = nothing,
-    make   = nothing
 )
