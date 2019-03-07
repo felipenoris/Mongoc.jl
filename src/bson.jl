@@ -144,7 +144,7 @@ mutable struct BSON
     function BSON(handle::Ptr{Cvoid}; enable_finalizer::Bool=true)
         new_bson = new(handle)
         if enable_finalizer
-            @compat finalizer(destroy!, new_bson)
+            finalizer(destroy!, new_bson)
         end
         return new_bson
     end
@@ -168,7 +168,7 @@ mutable struct BSONReader
 
     function BSONReader(handle::Ptr{Cvoid}, data::Vector{UInt8})
         new_reader = new(handle, data)
-        @compat finalizer(destroy!, new_reader)
+        finalizer(destroy!, new_reader)
         return new_reader
     end
 end
@@ -202,10 +202,6 @@ function unsafe_buffer_realloc(buffer_ptr::Ptr{UInt8}, num_bytes::Csize_t, write
     return pointer(writer.buffer)
 end
 
-@static if VERSION < v"0.7-"
-    const cfunction_unsafe_buffer_realloc = cfunction(unsafe_buffer_realloc, Ptr{UInt8}, (Ptr{UInt8}, Csize_t, Ptr{Cvoid}))
-end
-
 mutable struct BSONWriter
     handle::Ptr{Cvoid}
     buffer::Vector{UInt8}
@@ -215,13 +211,9 @@ mutable struct BSONWriter
     function BSONWriter(initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY, buffer_offset::Integer=0)
         buffer = zeros(UInt8, initial_buffer_capacity)
         new_writer = new(C_NULL, buffer, Ref(pointer(buffer)), Ref(Csize_t(initial_buffer_capacity)))
-        @compat finalizer(destroy!, new_writer)
+        finalizer(destroy!, new_writer)
 
-        @static if VERSION < v"0.7-"
-            realloc_func = cfunction_unsafe_buffer_realloc
-        else
-            realloc_func = @cfunction(unsafe_buffer_realloc, Ptr{UInt8}, (Ptr{UInt8}, Csize_t, Ptr{Cvoid}))
-        end
+        realloc_func = @cfunction(unsafe_buffer_realloc, Ptr{UInt8}, (Ptr{UInt8}, Csize_t, Ptr{Cvoid}))
 
         handle = bson_writer_new(new_writer.buffer_handle_ref, new_writer.buffer_length_ref, Csize_t(buffer_offset), realloc_func, pointer_from_objref(new_writer))
         if handle == C_NULL
@@ -252,10 +244,6 @@ Base.convert(::Type{BSONObjectId}, oid_string::String) = BSONObjectId(oid_string
 Base.convert(::Type{String}, code::BSONCode) = code.code
 Base.string(code::BSONCode) = convert(String, code)
 Base.convert(::Type{BSONCode}, code_string::String) = BSONCode(code_string)
-
-@static if VERSION < v"0.7-"
-    Base.:(==)(c1::BSONCode, c2::BSONCode) = c1.code == c2.code
-end
 
 Base.show(io::IO, oid::BSONObjectId) = print(io, "BSONObjectId(\"", string(oid), "\")")
 Base.show(io::IO, bson::BSON) = print(io, "BSON(\"", as_json(bson), "\")")
@@ -345,11 +333,7 @@ function as_json(bson::BSON; canonical::Bool=false) :: String
     end
     result = unsafe_string(cstring)
 
-    @static if VERSION < v"0.7-"
-        bson_free(convert(Ptr{Cvoid}, convert(Ptr{UInt8}, cstring)))
-    else
-        bson_free(convert(Ptr{Cvoid}, cstring))
-    end
+    bson_free(convert(Ptr{Cvoid}, cstring))
 
     return result
 end
@@ -422,17 +406,13 @@ function get_value(iter_ref::Ref{BSONIter})
         end
     elseif bson_type == BSON_TYPE_BINARY
 
-        lengthPtr = undef_vector(UInt32, 1)
-        dataPtr = undef_vector(Ptr{UInt8}, 1)
+        lengthPtr = Vector{UInt32}(undef, 1)
+        dataPtr = Vector{Ptr{UInt8}}(undef, 1)
         bson_iter_binary(iter_ref, lengthPtr, dataPtr)
         len = Int(lengthPtr[1])
-        dataArray = undef_vector(UInt8, len)
+        dataArray = Vector{UInt8}(undef, len)
 
-        @static if VERSION < v"0.7-"
-            unsafe_copy!(pointer(dataArray), dataPtr[1], len)
-        else
-            unsafe_copyto!(pointer(dataArray), dataPtr[1], len)
-        end
+        unsafe_copyto!(pointer(dataArray), dataPtr[1], len)
 
         return dataArray
     elseif bson_type == BSON_TYPE_CODE
@@ -748,14 +728,7 @@ function read_next_bson(reader::BSONReader) :: Union{Nothing, BSON}
 
     if bson_handle == C_NULL
         if !reached_eof_ref[]
-            let
-                msg = "Finished reading BSON from stream, but didn't reach stream's eof."
-                @static if VERSION < v"0.7-"
-                    warn(msg)
-                else
-                    @warn(msg)
-                end
-            end
+            @warn("Finished reading BSON from stream, but didn't reach stream's eof.")
         end
         return nothing
     end

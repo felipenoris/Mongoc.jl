@@ -1,12 +1,8 @@
 
 import Mongoc
 
-if VERSION < v"0.7-"
-    using Base.Test
-else
-    using Test
-    using Dates
-end
+using Test
+using Dates
 
 @testset "BSON" begin
 

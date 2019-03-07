@@ -356,40 +356,7 @@ function _iterate(cursor::Cursor, state::Nothing=nothing)
     end
 end
 
-@static if VERSION < v"0.7-"
-
-    # Iteration protocol for Julia v0.6
-
-    struct CursorIteratorState
-        element::Union{Nothing, BSON}
-    end
-
-    function Base.start(cursor::Cursor)
-        nxt = _iterate(cursor)
-        if nxt == nothing
-            return CursorIteratorState(nothing)
-        else
-            next_element, _inner_state = nxt # _inner_state is always nothing
-            return CursorIteratorState(next_element)
-        end
-    end
-
-    Base.done(cursor::Cursor, state::CursorIteratorState) = state.element == nothing
-
-    function Base.next(cursor::Cursor, state::CursorIteratorState)
-        @assert state.element != nothing
-        nxt = _iterate(cursor)
-        if nxt == nothing
-            return state.element, CursorIteratorState(nothing)
-        else
-            next_element, _inner_state = nxt # _inner_state is always nothing
-            return state.element, CursorIteratorState(next_element)
-        end
-    end
-else
-    # Iteration protocol for Julia v0.7 and v1.0
-    Base.iterate(cursor::Cursor, state::Nothing=nothing) = _iterate(cursor, state)
-end
+Base.iterate(cursor::Cursor, state::Nothing=nothing) = _iterate(cursor, state)
 
 Base.show(io::IO, uri::URI) = print(io, "URI(\"", uri.uri, "\")")
 Base.show(io::IO, client::Client) = print(io, "Client(URI(\"", client.uri, "\"))")

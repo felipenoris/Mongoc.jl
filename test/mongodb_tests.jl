@@ -13,12 +13,8 @@
 
 import Mongoc
 
-if VERSION < v"0.7-"
-    using Base.Test
-else
-    using Test
-    using Dates
-end
+using Test
+using Dates
 
 const DB_NAME = "mongoc"
 
@@ -335,11 +331,7 @@ const DB_NAME = "mongoc"
     server_version = Mongoc.get_server_mongodb_version(client)
 
     if server_version < v"3.6"
-        @static if VERSION < v"0.7"
-            warn("MongoDB server version $server_version does not support Sessions. Skipping tests.")
-        else
-            @warn("MongoDB server version $server_version does not support Sessions. Skipping tests.")
-        end
+        @warn("MongoDB server version $server_version does not support Sessions. Skipping tests.")
     else
         @testset "Session" begin
             session = Mongoc.Session(client)

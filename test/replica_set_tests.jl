@@ -19,12 +19,8 @@ mongo --port 27021 replica_set_initiate.js
 
 import Mongoc
 
-if VERSION < v"0.7-"
-    using Base.Test
-else
-    using Test
-    using Dates
-end
+using Test
+using Dates
 
 const DB_REPLICA_NAME = "mongoc_replica"
 
