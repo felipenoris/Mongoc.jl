@@ -2,7 +2,6 @@
 using Documenter, Mongoc
 
 makedocs(
-    format = Documenter.HTML(),
     sitename = "Mongoc.jl",
     modules = [ Mongoc ],
     pages = [ "Home" => "index.md",
