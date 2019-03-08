@@ -29,7 +29,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Requirements",
     "category": "section",
-    "text": "MongoDB 3.0 or newer.\nJulia versions v0.6, v0.7 or v1.0.\nLinux or macOS.note: Note\nCurrently, this package might cause garbage collection errors if using Julia v0.6 on macOS."
+    "text": "MongoDB 3.0 or newer.\nJulia versions v0.7 or newer.\nLinux or macOS."
 },
 
 {
@@ -126,6 +126,14 @@ var documenterSearchIndex = {"docs": [
     "title": "BSON Documents",
     "category": "section",
     "text": "BSON is the document format for MongoDB.To create a BSON document instance in Mongoc.jl just use Dictionary syntax, using Strings as keys.julia> document = Mongoc.BSON()\n\njulia> document[\"name\"] = \"Felipe\"\n\njulia> document[\"age\"] = 35\n\njulia> document[\"preferences\"] = [ \"Music\", \"Computer\", \"Photography\" ]\n\njulia> document[\"null_value\"] = nothing # maps to BSON null value\n\njulia> using Dates; document[\"details\"] = Dict(\"birth date\" => DateTime(1983, 4, 16), \"location\" => \"Rio de Janeiro\")To convert a BSON to a JSON string, use:julia> Mongoc.as_json(document)\n\"{ \\\"name\\\" : \\\"Felipe\\\", \\\"age\\\" : 35, \\\"preferences\\\" : [ \\\"Music\\\", \\\"Computer\\\", \\\"Photography\\\" ], \\\"null_value\\\" : null, \\\"details\\\" : { \\\"location\\\" : \\\"Rio de Janeiro\\\", \\\"birth date\\\" : { \\\"\\$date\\\" : \\\"1983-04-16T00:00:00Z\\\" } } }\"You can also create a BSON document from a JSON string.julia> document = Mongoc.BSON(\"\"\"{ \"hey\" : \"you\" }\"\"\")And also from a Dictionary.julia> dict = Dict(\"hey\" => \"you\")\nDict{String,String} with 1 entry:\n  \"hey\" => \"you\"\n\njulia> document = Mongoc.BSON(dict)\nBSON(\"{ \"hey\" : \"you\" }\")To convert a BSON document to a Dictionary, use Mongoc.as_dict.julia> Mongoc.as_dict(document)\nDict{Any,Any} with 1 entry:\n  \"hey\" => \"you\""
+},
+
+{
+    "location": "tutorial/#Read/Write-BSON-documents-from/to-IO-Stream-1",
+    "page": "Tutorial",
+    "title": "Read/Write BSON documents from/to IO Stream",
+    "category": "section",
+    "text": "You can read and write BSON documents in binary format to IO streams.The following shows how to:Create a vector of BSON documents.\nSave the vector to a file.\nRead back the vector of BSON documents from a file.using Test\n\nfilepath = \"data.bson\"\nlist = Vector{Mongoc.BSON}()\n\nlet\n    src = Mongoc.BSON()\n    src[\"id\"] = 1\n    src[\"name\"] = \"1st\"\n    push!(list, src)\nend\n\nlet\n    src = Mongoc.BSON()\n    src[\"id\"] = 2\n    src[\"name\"] = \"2nd\"\n    push!(list, src)\nend\n\nopen(filepath, \"w\") do io\n    Mongoc.write_bson(io, list)\nend\n\nlist_from_file = Mongoc.read_bson(filepath)\n@test length(list_from_file) == 2\n\nlet\n    fst_bson = list_from_file[1]\n    @test fst_bson[\"id\"] == 1\n    @test fst_bson[\"name\"] == \"1st\"\nend\n\nlet\n    sec_bson = list_from_file[2]\n    @test sec_bson[\"id\"] == 2\n    @test sec_bson[\"name\"] == \"2nd\"\nend"
 },
 
 {
@@ -601,6 +609,46 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "api/#Mongoc.read_bson-Tuple{AbstractString}",
+    "page": "API Reference",
+    "title": "Mongoc.read_bson",
+    "category": "method",
+    "text": "read_bson(filepath::AbstractString) :: Vector{BSON}\n\nReads all BSON documents from a file located at filepath.\n\nThis will open a Mongoc.BSONReader pointing to the file and will parse file contents to BSON documents.\n\n\n\n\n\n"
+},
+
+{
+    "location": "api/#Mongoc.read_bson-Tuple{Array{UInt8,1}}",
+    "page": "API Reference",
+    "title": "Mongoc.read_bson",
+    "category": "method",
+    "text": "read_bson(data::Vector{UInt8}) :: Vector{BSON}\n\nParses a vector of bytes to a vector of BSON documents. Useful when reading BSON as binary from a stream.\n\n\n\n\n\n"
+},
+
+{
+    "location": "api/#Mongoc.read_bson-Tuple{IO}",
+    "page": "API Reference",
+    "title": "Mongoc.read_bson",
+    "category": "method",
+    "text": "read_bson(io::IO) :: Vector{BSON}\n\nReads all BSON documents from io. This method will continue to read from io until it reaches eof.\n\n\n\n\n\n"
+},
+
+{
+    "location": "api/#Mongoc.read_bson-Tuple{Mongoc.BSONReader}",
+    "page": "API Reference",
+    "title": "Mongoc.read_bson",
+    "category": "method",
+    "text": "read_bson(reader::BSONReader) :: Vector{BSON}\n\nReads all BSON documents from a reader.\n\n\n\n\n\n"
+},
+
+{
+    "location": "api/#Mongoc.read_next_bson-Tuple{Mongoc.BSONReader}",
+    "page": "API Reference",
+    "title": "Mongoc.read_next_bson",
+    "category": "method",
+    "text": "read_next_bson(reader::BSONReader) :: Union{Nothing, BSON}\n\nReads the next BSON document available in the stream pointed by reader. Returns nothing if reached the end of the stream.\n\n\n\n\n\n"
+},
+
+{
     "location": "api/#Mongoc.remove_user-Tuple{Mongoc.Database,String}",
     "page": "API Reference",
     "title": "Mongoc.remove_user",
@@ -622,6 +670,22 @@ var documenterSearchIndex = {"docs": [
     "title": "Mongoc.transaction",
     "category": "method",
     "text": "transaction(f::Function, client::Client; session_options::SessionOptions=SessionOptions())\n\nUse do-syntax to execute a transaction.\n\nTransaction will be commited automatically. If an error occurs, the transaction is aborted.\n\nThe session parameter should be treated the same way as a Client: from a session you get a database, and a collection that are bound to the session.\n\nMongoc.transaction(client) do session\n    database = session[\"my_database\"]\n    collection = database[\"my_collection\"]\n    new_item = Mongoc.BSON()\n    new_item[\"inserted\"] = true\n    push!(collection, new_item)\nend\n\n\n\n\n\n"
+},
+
+{
+    "location": "api/#Mongoc.write_bson-Tuple{IO,Array{Mongoc.BSON,1}}",
+    "page": "API Reference",
+    "title": "Mongoc.write_bson",
+    "category": "method",
+    "text": "write_bson(io::IO, bson_list::Vector{BSON}; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)\n\nWrites a vector of BSON documents to io in binary format.\n\nExample\n\nlist = Vector{Mongoc.BSON}()\n\nlet\n    src = Mongoc.BSON()\n    src[\"id\"] = 1\n    src[\"name\"] = \"1st\"\n    push!(list, src)\nend\n\nlet\n    src = Mongoc.BSON()\n    src[\"id\"] = 2\n    src[\"name\"] = \"2nd\"\n    push!(list, src)\nend\n\nopen(\"documents.bson\", \"w\") do io\n    Mongoc.write_bson(io, list)\nend\n\n\n\n\n\n"
+},
+
+{
+    "location": "api/#Mongoc.write_bson-Tuple{IO,Mongoc.BSON}",
+    "page": "API Reference",
+    "title": "Mongoc.write_bson",
+    "category": "method",
+    "text": "write_bson(io::IO, bson::BSON; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)\n\nWrites a single BSON document to io in binary format.\n\n\n\n\n\n"
 },
 
 {

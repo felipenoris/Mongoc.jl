@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial · Mongoc.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>Mongoc.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../">Home</a></li><li class="current"><a class="toctext" href>Tutorial</a><ul class="internal"><li><a class="toctext" href="#Setup-1">Setup</a></li><li><a class="toctext" href="#Connecting-to-MongoDB-1">Connecting to MongoDB</a></li><li><a class="toctext" href="#Getting-a-Database-1">Getting a Database</a></li><li><a class="toctext" href="#Getting-a-Collection-1">Getting a Collection</a></li><li><a class="toctext" href="#BSON-Documents-1">BSON Documents</a></li><li><a class="toctext" href="#Inserting-Documents-1">Inserting Documents</a></li><li><a class="toctext" href="#Querying-Documents-1">Querying Documents</a></li><li><a class="toctext" href="#Counting-Documents-1">Counting Documents</a></li><li><a class="toctext" href="#Aggregation-and-Map-Reduce-1">Aggregation and Map-Reduce</a></li></ul></li><li><a class="toctext" href="../crud/">CRUD Operations</a></li><li><a class="toctext" href="../authentication/">Authentication</a></li><li><a class="toctext" href="../transaction/">Transactions</a></li><li><a class="toctext" href="../api/">API Reference</a></li></ul></nav><article id="docs"><header><nav><ul><li><a href>Tutorial</a></li></ul><a class="edit-page" href="https://github.com/felipenoris/Mongoc.jl/blob/master/docs/src/tutorial.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Tutorial</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Tutorial-1" href="#Tutorial-1">Tutorial</a></h1><p>This tutorial illustrates common use cases for accessing a MongoDB database with <strong>Mongoc.jl</strong> package.</p><h2><a class="nav-anchor" id="Setup-1" href="#Setup-1">Setup</a></h2><p>First, make sure you have <strong>Mongoc.jl</strong> package installed.</p><pre><code class="language-julia">julia&gt; using Pkg
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Tutorial · Mongoc.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>Mongoc.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../">Home</a></li><li class="current"><a class="toctext" href>Tutorial</a><ul class="internal"><li><a class="toctext" href="#Setup-1">Setup</a></li><li><a class="toctext" href="#Connecting-to-MongoDB-1">Connecting to MongoDB</a></li><li><a class="toctext" href="#Getting-a-Database-1">Getting a Database</a></li><li><a class="toctext" href="#Getting-a-Collection-1">Getting a Collection</a></li><li><a class="toctext" href="#BSON-Documents-1">BSON Documents</a></li><li><a class="toctext" href="#Read/Write-BSON-documents-from/to-IO-Stream-1">Read/Write BSON documents from/to IO Stream</a></li><li><a class="toctext" href="#Inserting-Documents-1">Inserting Documents</a></li><li><a class="toctext" href="#Querying-Documents-1">Querying Documents</a></li><li><a class="toctext" href="#Counting-Documents-1">Counting Documents</a></li><li><a class="toctext" href="#Aggregation-and-Map-Reduce-1">Aggregation and Map-Reduce</a></li></ul></li><li><a class="toctext" href="../crud/">CRUD Operations</a></li><li><a class="toctext" href="../authentication/">Authentication</a></li><li><a class="toctext" href="../transaction/">Transactions</a></li><li><a class="toctext" href="../api/">API Reference</a></li></ul></nav><article id="docs"><header><nav><ul><li><a href>Tutorial</a></li></ul><a class="edit-page" href="https://github.com/felipenoris/Mongoc.jl/blob/master/docs/src/tutorial.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Tutorial</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Tutorial-1" href="#Tutorial-1">Tutorial</a></h1><p>This tutorial illustrates common use cases for accessing a MongoDB database with <strong>Mongoc.jl</strong> package.</p><h2><a class="nav-anchor" id="Setup-1" href="#Setup-1">Setup</a></h2><p>First, make sure you have <strong>Mongoc.jl</strong> package installed.</p><pre><code class="language-julia">julia&gt; using Pkg
 
 julia&gt; Pkg.add(&quot;Mongoc&quot;)</code></pre><p>The following tutorial assumes that a MongoDB instance is running on the default host and port: <code>localhost:27017</code>.</p><p>To start a new server instance on the default location use the following command on your shell.</p><pre><code class="language-shell">$ mkdir db
 
@@ -23,7 +23,43 @@ Dict{String,String} with 1 entry:
 julia&gt; document = Mongoc.BSON(dict)
 BSON(&quot;{ &quot;hey&quot; : &quot;you&quot; }&quot;)</code></pre><p>To convert a BSON document to a Dictionary, use <code>Mongoc.as_dict</code>.</p><pre><code class="language-julia">julia&gt; Mongoc.as_dict(document)
 Dict{Any,Any} with 1 entry:
-  &quot;hey&quot; =&gt; &quot;you&quot;</code></pre><h2><a class="nav-anchor" id="Inserting-Documents-1" href="#Inserting-Documents-1">Inserting Documents</a></h2><p>To insert a single document into a collection, just <code>Base.push!</code> a BSON document to it. The result of this operation wraps the server reply and the inserted oid.</p><pre><code class="language-julia">julia&gt; result = push!(collection, document)
+  &quot;hey&quot; =&gt; &quot;you&quot;</code></pre><h2><a class="nav-anchor" id="Read/Write-BSON-documents-from/to-IO-Stream-1" href="#Read/Write-BSON-documents-from/to-IO-Stream-1">Read/Write BSON documents from/to IO Stream</a></h2><p>You can read and write BSON documents in binary format to IO streams.</p><p>The following shows how to:</p><ol><li>Create a vector of BSON documents.</li><li>Save the vector to a file.</li><li>Read back the vector of BSON documents from a file.</li></ol><pre><code class="language-julia">using Test
+
+filepath = &quot;data.bson&quot;
+list = Vector{Mongoc.BSON}()
+
+let
+    src = Mongoc.BSON()
+    src[&quot;id&quot;] = 1
+    src[&quot;name&quot;] = &quot;1st&quot;
+    push!(list, src)
+end
+
+let
+    src = Mongoc.BSON()
+    src[&quot;id&quot;] = 2
+    src[&quot;name&quot;] = &quot;2nd&quot;
+    push!(list, src)
+end
+
+open(filepath, &quot;w&quot;) do io
+    Mongoc.write_bson(io, list)
+end
+
+list_from_file = Mongoc.read_bson(filepath)
+@test length(list_from_file) == 2
+
+let
+    fst_bson = list_from_file[1]
+    @test fst_bson[&quot;id&quot;] == 1
+    @test fst_bson[&quot;name&quot;] == &quot;1st&quot;
+end
+
+let
+    sec_bson = list_from_file[2]
+    @test sec_bson[&quot;id&quot;] == 2
+    @test sec_bson[&quot;name&quot;] == &quot;2nd&quot;
+end</code></pre><h2><a class="nav-anchor" id="Inserting-Documents-1" href="#Inserting-Documents-1">Inserting Documents</a></h2><p>To insert a single document into a collection, just <code>Base.push!</code> a BSON document to it. The result of this operation wraps the server reply and the inserted oid.</p><pre><code class="language-julia">julia&gt; result = push!(collection, document)
 Mongoc.InsertOneResult(BSON(&quot;{ &quot;insertedCount&quot; : 1 }&quot;), &quot;5b9f115311c3dd25383e0f32&quot;)
 
 julia&gt; result.inserted_oid
