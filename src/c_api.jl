@@ -183,6 +183,72 @@ function bson_free(mem::Ptr{Cvoid})
     ccall((:bson_free, libbson), Cvoid, (Ptr{Cvoid},), mem)
 end
 
+function bson_reader_destroy(bson_reader_handle::Ptr{Cvoid})
+    ccall((:bson_reader_destroy, libbson), Cvoid, (Ptr{Cvoid},), bson_reader_handle)
+end
+
+function bson_reader_new_from_file(filepath::AbstractString, bson_error::BSONError)
+    ccall((:bson_reader_new_from_file, libbson), Ptr{Cvoid}, (Cstring, Ref{BSONError}), filepath, Ref(bson_error))
+end
+
+function bson_reader_new_from_data(data::Ptr{UInt8}, data_length::Integer)
+    ccall((:bson_reader_new_from_data, libbson), Ptr{Cvoid}, (Ptr{UInt8}, Csize_t), data, data_length)
+end
+
+function bson_reader_read(bson_reader_handle::Ptr{Cvoid}, reached_eof_ref::Ref{Bool})
+    ccall((:bson_reader_read, libbson), Ptr{Cvoid}, (Ptr{Cvoid}, Ref{Bool}), bson_reader_handle, reached_eof_ref)
+end
+
+function bson_writer_destroy(bson_writer_handle::Ptr{Cvoid})
+    ccall((:bson_writer_destroy, libbson), Cvoid, (Ptr{Cvoid},), bson_writer_handle)
+end
+
+function bson_writer_begin(bson_writer_handle::Ptr{Cvoid}, bson_document_handle_ref::Ref{Ptr{Cvoid}})
+    ccall((:bson_writer_begin, libbson), Bool, (Ptr{Cvoid}, Ref{Ptr{Cvoid}}), bson_writer_handle, bson_document_handle_ref)
+end
+
+function bson_writer_end(bson_writer_handle::Ptr{Cvoid})
+    ccall((:bson_writer_end, libbson), Cvoid, (Ptr{Cvoid},), bson_writer_handle)
+end
+
+function bson_writer_new(buffer_handle_ref::Ref{Ptr{UInt8}}, buffer_length_ref::Ref{Csize_t}, offset::Csize_t, realloc_func::Ptr{Cvoid}, realloc_func_ctx::Ptr{Cvoid})
+    ccall((:bson_writer_new, libbson), Ptr{Cvoid}, (Ref{Ptr{UInt8}}, Ref{Csize_t}, Csize_t, Ptr{Cvoid}, Ptr{Cvoid}), buffer_handle_ref, buffer_length_ref, offset, realloc_func, realloc_func_ctx)
+end
+
+function bson_writer_get_length(bson_writer_handle::Ptr{Cvoid})
+    ccall((:bson_writer_get_length, libbson), Csize_t, (Ptr{Cvoid},), bson_writer_handle)
+end
+
+function bson_copy_to(src_bson_handle::Ptr{Cvoid}, dst_bson_handle::Ptr{Cvoid})
+    ccall((:bson_copy_to, libbson), Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}), src_bson_handle, dst_bson_handle)
+end
+
+function bson_copy_to_excluding_noinit(src_bson_handle::Ptr{Cvoid}, dst_bson_handle::Ptr{Cvoid})
+
+    # this hack will create a key that is not present in src_bson
+    # since bson_copy_to_excluding_noinit requires at least one `exclude` arg.
+    function exclude_key(bson_handle::Ptr{Cvoid})
+        new_exclude_key() = "___" * string(Int(rand(UInt16)))
+
+        exclude = new_exclude_key()
+        bson = BSON(bson_handle, enable_finalizer=false) # disable finalizer
+
+        while haskey(bson, exclude)
+            exclude = new_exclude_key()
+        end
+
+        return exclude
+    end
+
+    exclude = exclude_key(src_bson_handle)
+
+    ccall((:bson_copy_to_excluding_noinit, libbson), Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Cstring), src_bson_handle, dst_bson_handle, exclude, C_NULL)
+end
+
+function bson_copy_to_excluding_noinit(src_bson_handle::Ptr{Cvoid}, dst_bson_handle::Ptr{Cvoid}, exclude::AbstractString)
+    ccall((:bson_copy_to_excluding_noinit, libbson), Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Cstring), src_bson_handle, dst_bson_handle, exclude, C_NULL)
+end
+
 #
 # libmongoc
 #

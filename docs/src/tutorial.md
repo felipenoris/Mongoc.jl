@@ -135,6 +135,56 @@ Dict{Any,Any} with 1 entry:
   "hey" => "you"
 ```
 
+## Read/Write BSON documents from/to IO Stream
+
+You can read and write BSON documents in binary format to IO streams.
+
+The following shows how to:
+
+1. Create a vector of BSON documents.
+2. Save the vector to a file.
+3. Read back the vector of BSON documents from a file.
+
+```julia
+using Test
+
+filepath = "data.bson"
+list = Vector{Mongoc.BSON}()
+
+let
+    src = Mongoc.BSON()
+    src["id"] = 1
+    src["name"] = "1st"
+    push!(list, src)
+end
+
+let
+    src = Mongoc.BSON()
+    src["id"] = 2
+    src["name"] = "2nd"
+    push!(list, src)
+end
+
+open(filepath, "w") do io
+    Mongoc.write_bson(io, list)
+end
+
+list_from_file = Mongoc.read_bson(filepath)
+@test length(list_from_file) == 2
+
+let
+    fst_bson = list_from_file[1]
+    @test fst_bson["id"] == 1
+    @test fst_bson["name"] == "1st"
+end
+
+let
+    sec_bson = list_from_file[2]
+    @test sec_bson["id"] == 2
+    @test sec_bson["name"] == "2nd"
+end
+```
+
 ## Inserting Documents
 
 To insert a single document into a collection, just `Base.push!` a BSON document to it.

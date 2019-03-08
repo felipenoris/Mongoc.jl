@@ -16,7 +16,6 @@ services:
   - mongodb
 
 julia:
-  - 0.6
   - 0.7
   - 1.0
   - 1.1
@@ -25,8 +24,6 @@ julia:
 matrix:
   allow_failures:
     - julia: nightly
-    - julia: 0.6
-      os: osx
 
 env:
   - JULIA_PROJECT="@."

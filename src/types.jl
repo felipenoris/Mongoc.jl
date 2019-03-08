@@ -54,7 +54,7 @@ mutable struct URI
             error("Failed to parse URI $uri_string. Error Message: $(err)")
         end
         new_uri = new(uri_string, handle)
-        @compat finalizer(destroy!, new_uri)
+        finalizer(destroy!, new_uri)
         return new_uri
     end
 end
@@ -70,7 +70,7 @@ mutable struct Client
             error("Failed connecting to URI $uri.")
         end
         client = new(uri.uri, client_handle)
-        @compat finalizer(destroy!, client)
+        finalizer(destroy!, client)
         return client
     end
 end
@@ -86,7 +86,7 @@ mutable struct Database <: AbstractDatabase
 
     function Database(client::Client, db_name::String)
         db = new(client, db_name, mongoc_client_get_database(client.handle, db_name))
-        @compat finalizer(destroy!, db)
+        finalizer(destroy!, db)
         return db
     end
 end
@@ -103,7 +103,7 @@ mutable struct Collection <: AbstractCollection
             error("Failed creating collection $collection_name on db $(database.name).")
         end
         collection = new(database, collection_name, collection_handle)
-        @compat finalizer(destroy!, collection)
+        finalizer(destroy!, collection)
         return collection
     end
 end
@@ -117,7 +117,7 @@ mutable struct Cursor{T<:CursorSource}
 
     function Cursor(source::T, handle::Ptr{Cvoid}) where {T<:CursorSource}
         cursor = new{T}(source, handle)
-        @compat finalizer(destroy!, cursor)
+        finalizer(destroy!, cursor)
         return cursor
     end
 end
@@ -134,7 +134,7 @@ mutable struct BulkOperation
             error("Failed to create a new bulk operation.")
         end
         bulk_operation = new(collection, handle, false)
-        @compat finalizer(destroy!, bulk_operation)
+        finalizer(destroy!, bulk_operation)
         return bulk_operation
     end
 end
@@ -217,7 +217,7 @@ mutable struct SessionOptions
         end
 
         session_options = new(session_options_handle)
-        @compat finalizer(destroy!, session_options)
+        finalizer(destroy!, session_options)
         set_casual_consistency!(session_options, casual_consistency)
         return session_options
     end
@@ -235,7 +235,7 @@ mutable struct Session
             error("$err")
         end
         session = new(client, options, session_handle)
-        @compat finalizer(destroy!, session)
+        finalizer(destroy!, session)
         return session
     end
 end

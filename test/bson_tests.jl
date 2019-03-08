@@ -1,12 +1,8 @@
 
 import Mongoc
 
-if VERSION < v"0.7-"
-    using Base.Test
-else
-    using Test
-    using Dates
-end
+using Test
+using Dates
 
 @testset "BSON" begin
 
@@ -165,5 +161,145 @@ end
         @test doc["c"] == "string"
         @test doc["d"] == nothing
         @test dict == Mongoc.as_dict(doc)
+    end
+
+    @testset "BSON copy" begin
+        @testset "exclude one key" begin
+            src = Mongoc.BSON()
+            src["hey"] = "you"
+            src["out"] = 1
+            dst = Mongoc.BSON()
+            Mongoc.bson_copy_to_excluding_noinit(src.handle, dst.handle, "out")
+            @test !haskey(dst, "out")
+            @test dst["hey"] == "you"
+        end
+
+        @testset "no exclude keys" begin
+            src = Mongoc.BSON()
+            src["hey"] = "you"
+            src["out"] = 1
+            dst = Mongoc.BSON()
+            Mongoc.bson_copy_to_excluding_noinit(src.handle, dst.handle)
+            @test Mongoc.as_dict(src) == Mongoc.as_dict(dst)
+        end
+    end
+
+    @testset "BSON Write to IO" begin
+
+        @testset "write_bson closure" begin
+            io = IOBuffer()
+
+            Mongoc.bson_writer(io, initial_buffer_capacity=1) do writer
+                Mongoc.write_bson(writer) do bson
+                    bson["id"] = 10
+                    bson["str"] = "aa"
+                end
+            end
+
+            @test io.data == [0x1d,0x00,0x00,0x00,0x12,0x69,0x64,0x00,0x0a,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x02,0x73,0x74,0x72,0x00,0x03,0x00,0x00,0x00,0x61,0x61,0x00,0x00,0x00,0x00,0x00]
+        end
+
+        @testset "BSON copy single doc" begin
+            src = Mongoc.BSON()
+            src["id"] = 10
+            src["str"] = "aa"
+
+            io = IOBuffer()
+            Mongoc.write_bson(io, src)
+
+            @test io.data == [0x1d,0x00,0x00,0x00,0x12,0x69,0x64,0x00,0x0a,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x02,0x73,0x74,0x72,0x00,0x03,0x00,0x00,0x00,0x61,0x61,0x00,0x00,0x00,0x00,0x00]
+        end
+
+        @testset "BSON copy doc list" begin
+            list = Vector{Mongoc.BSON}()
+
+            let
+                src = Mongoc.BSON()
+                src["id"] = 1
+                src["name"] = "1st"
+                push!(list, src)
+            end
+
+            let
+                src = Mongoc.BSON()
+                src["id"] = 2
+                src["name"] = "2nd"
+                push!(list, src)
+            end
+
+            io = IOBuffer()
+            Mongoc.write_bson(io, list)
+
+            seekstart(io)
+            vec_bson = Mongoc.read_bson(io)
+            @test length(vec_bson) == 2
+
+            let
+                fst_bson = vec_bson[1]
+                @test fst_bson["id"] == 1
+                @test fst_bson["name"] == "1st"
+            end
+
+            let
+                sec_bson = vec_bson[2]
+                @test sec_bson["id"] == 2
+                @test sec_bson["name"] == "2nd"
+            end
+        end
+
+        @testset "read BSON from data" begin
+            vec_bson = Mongoc.read_bson([0x1d,0x00,0x00,0x00,0x12,0x69,0x64,0x00,0x0a,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x02,0x73,0x74,0x72,0x00,0x03,0x00,0x00,0x00,0x61,0x61,0x00,0x00,0x00,0x00,0x00])
+            @test length(vec_bson) == 1
+            bson = vec_bson[1]
+            @test bson["id"] == 10
+            @test bson["str"] == "aa"
+        end
+
+        @testset "read/write BSON to/from File" begin
+            filepath = joinpath(@__DIR__, "data.bson")
+            isfile(filepath) && rm(filepath)
+
+            list = Vector{Mongoc.BSON}()
+
+            let
+                src = Mongoc.BSON()
+                src["id"] = 1
+                src["name"] = "1st"
+                push!(list, src)
+            end
+
+            let
+                src = Mongoc.BSON()
+                src["id"] = 2
+                src["name"] = "2nd"
+                push!(list, src)
+            end
+
+            try
+                open(filepath, "w") do io
+                    Mongoc.write_bson(io, list)
+                end
+
+                @test isfile(filepath)
+
+                list_from_file = Mongoc.read_bson(filepath)
+                @test length(list_from_file) == 2
+
+                let
+                    fst_bson = list_from_file[1]
+                    @test fst_bson["id"] == 1
+                    @test fst_bson["name"] == "1st"
+                end
+
+                let
+                    sec_bson = list_from_file[2]
+                    @test sec_bson["id"] == 2
+                    @test sec_bson["name"] == "2nd"
+                end
+
+            finally
+                isfile(filepath) && rm(filepath)
+            end
+        end
     end
 end

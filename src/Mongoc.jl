@@ -1,22 +1,7 @@
 
-__precompile__(true)
 module Mongoc
 
-# Compat
-@static if VERSION < v"0.7-"
-    const Nothing = Void
-    const Cvoid   = Void
-else
-    using Dates
-end
-
-function undef_vector(::Type{T}, len::Integer) where T
-    @static if VERSION < v"0.7-"
-        Vector{T}(len)
-    else
-        Vector{T}(undef, len)
-    end
-end
+using Dates
 
 # load libmongoc
 const libmongocpath = joinpath(dirname(@__FILE__), "..", "deps", "deps.jl")
@@ -30,13 +15,11 @@ const ISODATE_OFFSET = Dates.UNIXEPOCH + 31536000000 # offsets an additional yea
 isodate2datetime(millis::Int64) = Dates.epochms2datetime(millis + ISODATE_OFFSET)
 datetime2isodate(dt::DateTime) = Dates.datetime2epochms(dt) - ISODATE_OFFSET
 
-include("compat.jl")
 include("bson.jl")
 include("types.jl")
 include("c_api.jl")
 include("api.jl")
 include("session.jl")
-include("deprecated.jl")
 
 function __init__()
     check_deps()

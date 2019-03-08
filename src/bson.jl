@@ -141,9 +141,11 @@ end
 mutable struct BSON
     handle::Ptr{Cvoid}
 
-    function BSON(handle::Ptr{Cvoid})
+    function BSON(handle::Ptr{Cvoid}; enable_finalizer::Bool=true)
         new_bson = new(handle)
-        @compat finalizer(destroy!, new_bson)
+        if enable_finalizer
+            finalizer(destroy!, new_bson)
+        end
         return new_bson
     end
 end
@@ -160,6 +162,77 @@ function Base.deepcopy(bson::BSON) :: BSON
     return BSON(bson_copy(bson.handle))
 end
 
+mutable struct BSONReader
+    handle::Ptr{Cvoid}
+    data::Vector{UInt8}
+
+    function BSONReader(handle::Ptr{Cvoid}, data::Vector{UInt8})
+        new_reader = new(handle, data)
+        finalizer(destroy!, new_reader)
+        return new_reader
+    end
+end
+
+function destroy!(reader::BSONReader)
+    if reader.handle != C_NULL
+        bson_reader_destroy(reader.handle)
+        reader.handle = C_NULL
+    end
+    nothing
+end
+
+const DEFAULT_BSON_WRITER_BUFFER_CAPACITY = 2^10
+
+# buffer_handle must be a valid pointer to a Buffer object.
+# A reference to this buffer must be kept from outside this function
+# to avoid GC on it.
+function unsafe_buffer_realloc(buffer_ptr::Ptr{UInt8}, num_bytes::Csize_t, writer_objref::Ptr{Cvoid})
+    local writer::BSONWriter = unsafe_pointer_to_objref(writer_objref)
+    @assert buffer_ptr == pointer(writer.buffer) "Is this the same BSONWriter?"
+
+    current_len = length(writer.buffer)
+    inc = num_bytes - current_len
+    if inc > 0
+        append!(writer.buffer, [ UInt8(0) for i in 1:inc ])
+    end
+
+    @assert length(writer.buffer) == num_bytes
+    writer.buffer_length_ref[] = num_bytes
+
+    return pointer(writer.buffer)
+end
+
+mutable struct BSONWriter
+    handle::Ptr{Cvoid}
+    buffer::Vector{UInt8}
+    buffer_handle_ref::Ref{Ptr{UInt8}}
+    buffer_length_ref::Ref{Csize_t}
+
+    function BSONWriter(initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY, buffer_offset::Integer=0)
+        buffer = zeros(UInt8, initial_buffer_capacity)
+        new_writer = new(C_NULL, buffer, Ref(pointer(buffer)), Ref(Csize_t(initial_buffer_capacity)))
+        finalizer(destroy!, new_writer)
+
+        realloc_func = @cfunction(unsafe_buffer_realloc, Ptr{UInt8}, (Ptr{UInt8}, Csize_t, Ptr{Cvoid}))
+
+        handle = bson_writer_new(new_writer.buffer_handle_ref, new_writer.buffer_length_ref, Csize_t(buffer_offset), realloc_func, pointer_from_objref(new_writer))
+        if handle == C_NULL
+            error("Failed to create a BSONWriter.")
+        end
+        new_writer.handle = handle
+
+        return new_writer
+    end
+end
+
+function destroy!(writer::BSONWriter)
+    if writer.handle != C_NULL
+        bson_writer_destroy(writer.handle)
+        writer.handle = C_NULL
+    end
+    nothing
+end
+
 #
 # API
 #
@@ -171,10 +244,6 @@ Base.convert(::Type{BSONObjectId}, oid_string::String) = BSONObjectId(oid_string
 Base.convert(::Type{String}, code::BSONCode) = code.code
 Base.string(code::BSONCode) = convert(String, code)
 Base.convert(::Type{BSONCode}, code_string::String) = BSONCode(code_string)
-
-@static if VERSION < v"0.7-"
-    Base.:(==)(c1::BSONCode, c2::BSONCode) = c1.code == c2.code
-end
 
 Base.show(io::IO, oid::BSONObjectId) = print(io, "BSONObjectId(\"", string(oid), "\")")
 Base.show(io::IO, bson::BSON) = print(io, "BSON(\"", as_json(bson), "\")")
@@ -264,11 +333,7 @@ function as_json(bson::BSON; canonical::Bool=false) :: String
     end
     result = unsafe_string(cstring)
 
-    @static if VERSION < v"0.7-"
-        bson_free(convert(Ptr{Cvoid}, convert(Ptr{UInt8}, cstring)))
-    else
-        bson_free(convert(Ptr{Cvoid}, cstring))
-    end
+    bson_free(convert(Ptr{Cvoid}, cstring))
 
     return result
 end
@@ -341,17 +406,13 @@ function get_value(iter_ref::Ref{BSONIter})
         end
     elseif bson_type == BSON_TYPE_BINARY
 
-        lengthPtr = undef_vector(UInt32, 1)
-        dataPtr = undef_vector(Ptr{UInt8}, 1)
+        lengthPtr = Vector{UInt32}(undef, 1)
+        dataPtr = Vector{Ptr{UInt8}}(undef, 1)
         bson_iter_binary(iter_ref, lengthPtr, dataPtr)
         len = Int(lengthPtr[1])
-        dataArray = undef_vector(UInt8, len)
+        dataArray = Vector{UInt8}(undef, len)
 
-        @static if VERSION < v"0.7-"
-            unsafe_copy!(pointer(dataArray), dataPtr[1], len)
-        else
-            unsafe_copyto!(pointer(dataArray), dataPtr[1], len)
-        end
+        unsafe_copyto!(pointer(dataArray), dataPtr[1], len)
 
         return dataArray
     elseif bson_type == BSON_TYPE_CODE
@@ -442,7 +503,6 @@ end
 
 Base.setindex!(document::BSON, value::Dict, key::String) = setindex!(document, BSON(value), key)
 
-
 function Base.setindex!(document::BSON, value::Vector{T}, key::String) where T
     sub_document = BSON(value)
     ok = bson_append_array(document.handle, key, -1, sub_document.handle)
@@ -478,4 +538,201 @@ function Base.setindex!(document::BSON, ::Nothing, key::String)
         error("Couldn't append missing value to BSON document.")
     end
     nothing
+end
+
+#
+# Write/Read BSON to/from IO
+#
+
+function _get_number_of_bytes_written_to_buffer(buffer::Vector{UInt8}) :: Int64
+    isempty(buffer) && return 0
+
+    # the first 4 bytes in data is a size int32
+    doc_size = reinterpret(Int32, buffer[1:4])[1]
+    local total_size::Int64 = 0
+    while doc_size != 0
+        total_size += doc_size
+
+        if length(buffer) < total_size + 4
+            break
+        end
+
+        doc_size = reinterpret(Int32, buffer[total_size+1:total_size+4])[1]
+    end
+    return total_size
+end
+
+_get_number_of_bytes_written_to_buffer(writer::BSONWriter) = _get_number_of_bytes_written_to_buffer(writer.buffer)
+
+function bson_writer(f::Function, io::IO; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+    writer = BSONWriter(initial_buffer_capacity)
+
+    try
+        f(writer)
+
+        @assert bson_writer_get_length(writer.handle) == _get_number_of_bytes_written_to_buffer(writer)
+
+        for byte_index in 1:bson_writer_get_length(writer.handle)
+            write(io, writer.buffer[byte_index])
+        end
+
+        flush(io)
+    finally
+        destroy!(writer)
+    end
+
+    nothing
+end
+
+function write_bson(f::Function, writer::BSONWriter)
+    bson_handle_ref = Ref{Ptr{Cvoid}}(C_NULL)
+    ok = bson_writer_begin(writer.handle, bson_handle_ref)
+    if !ok
+        error("Failed to write bson document to IO: there was not enough space in buffer. Increase the buffer initial capacity.")
+    end
+
+    bson = BSON(bson_handle_ref[], enable_finalizer=false)
+    f(bson)
+    bson_writer_end(writer.handle)
+end
+
+"""
+    write_bson(io::IO, bson::BSON; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+
+Writes a single BSON document to `io` in binary format.
+"""
+function write_bson(io::IO, bson::BSON; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+    bson_writer(io, initial_buffer_capacity=initial_buffer_capacity) do writer
+        write_bson(writer) do dest
+            bson_copy_to_excluding_noinit(bson.handle, dest.handle)
+        end
+    end
+
+    nothing
+end
+
+"""
+    write_bson(io::IO, bson_list::Vector{BSON}; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+
+Writes a vector of BSON documents to `io` in binary format.
+
+# Example
+
+```julia
+list = Vector{Mongoc.BSON}()
+
+let
+    src = Mongoc.BSON()
+    src["id"] = 1
+    src["name"] = "1st"
+    push!(list, src)
+end
+
+let
+    src = Mongoc.BSON()
+    src["id"] = 2
+    src["name"] = "2nd"
+    push!(list, src)
+end
+
+open("documents.bson", "w") do io
+    Mongoc.write_bson(io, list)
+end
+```
+"""
+function write_bson(io::IO, bson_list::Vector{BSON}; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+    bson_writer(io, initial_buffer_capacity=initial_buffer_capacity) do writer
+        for src_bson in bson_list
+            write_bson(writer) do dest
+                bson_copy_to_excluding_noinit(src_bson.handle, dest.handle)
+            end
+        end
+    end
+
+    nothing
+end
+
+"""
+    read_bson(io::IO) :: Vector{BSON}
+
+Reads all BSON documents from `io`.
+This method will continue to read from `io` until
+it reaches eof.
+"""
+read_bson(io::IO) :: Vector{BSON} = read_bson(read(io))
+
+"""
+    read_bson(data::Vector{UInt8}) :: Vector{BSON}
+
+Parses a vector of bytes to a vector of BSON documents.
+Useful when reading BSON as binary from a stream.
+"""
+function read_bson(data::Vector{UInt8}) :: Vector{BSON}
+    if isempty(data)
+        return result
+    end
+
+    data_shrinked = data[1:_get_number_of_bytes_written_to_buffer(data)]
+
+    reader_handle = bson_reader_new_from_data(pointer(data_shrinked), length(data_shrinked))
+    if reader_handle == C_NULL
+        error("Failed to create a BSONReader.")
+    end
+    reader = BSONReader(reader_handle, data_shrinked)
+    return read_bson(reader)
+end
+
+"""
+    read_bson(filepath::AbstractString) :: Vector{BSON}
+
+Reads all BSON documents from a file located at `filepath`.
+
+This will open a `Mongoc.BSONReader` pointing to the file
+and will parse file contents to BSON documents.
+"""
+function read_bson(filepath::AbstractString) :: Vector{BSON}
+    @assert isfile(filepath) "$filepath not found."
+    err = BSONError()
+    reader_handle = bson_reader_new_from_file(filepath, err)
+    if reader_handle == C_NULL
+        error("$err")
+    end
+    reader = BSONReader(reader_handle, Vector{UInt8}())
+    return read_bson(reader)
+end
+
+"""
+    read_bson(reader::BSONReader) :: Vector{BSON}
+
+Reads all BSON documents from a `reader`.
+"""
+function read_bson(reader::BSONReader) :: Vector{BSON}
+    result = Vector{BSON}()
+    bson = read_next_bson(reader)
+    while bson != nothing
+        push!(result, bson)
+        bson = read_next_bson(reader)
+    end
+    return result
+end
+
+"""
+    read_next_bson(reader::BSONReader) :: Union{Nothing, BSON}
+
+Reads the next BSON document available in the stream pointed by `reader`.
+Returns `nothing` if reached the end of the stream.
+"""
+function read_next_bson(reader::BSONReader) :: Union{Nothing, BSON}
+    reached_eof_ref = Ref(false)
+    bson_handle = bson_reader_read(reader.handle, reached_eof_ref)
+
+    if bson_handle == C_NULL
+        if !reached_eof_ref[]
+            @warn("Finished reading BSON from stream, but didn't reach stream's eof.")
+        end
+        return nothing
+    end
+
+    bson_copy_handle = bson_copy(bson_handle) # creates a copy with its own lifetime
+    return BSON(bson_copy_handle)
 end
