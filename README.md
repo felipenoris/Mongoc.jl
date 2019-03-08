@@ -4,7 +4,7 @@
 [![License][license-img]](LICENSE)
 [![travis][travis-img]][travis-url]
 [![codecov][codecov-img]][codecov-url]
-[![latest][docs-latest-img]][docs-latest-url]
+[![dev][docs-dev-img]][docs-dev-url]
 [![stable][docs-stable-img]][docs-stable-url]
 
 [license-img]: http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat
@@ -12,8 +12,8 @@
 [travis-url]: https://travis-ci.org/felipenoris/Mongoc.jl
 [codecov-img]: https://img.shields.io/codecov/c/github/felipenoris/Mongoc.jl/master.svg?label=codecov
 [codecov-url]: http://codecov.io/github/felipenoris/Mongoc.jl?branch=master
-[docs-latest-img]: https://img.shields.io/badge/docs-latest-blue.svg
-[docs-latest-url]: https://felipenoris.github.io/Mongoc.jl/latest
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[docs-dev-url]: https://felipenoris.github.io/Mongoc.jl/dev
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [docs-stable-url]: https://felipenoris.github.io/Mongoc.jl/stable
 
