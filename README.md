@@ -58,7 +58,7 @@ please open an [issue](https://github.com/felipenoris/Mongoc.jl/issues).
 
 ## Documentation
 
-The documentation for this package is hosted at https://felipenoris.github.io/Mongoc.jl/latest/.
+The documentation for this package is hosted at https://felipenoris.github.io/Mongoc.jl/stable.
 
 ## License
 
