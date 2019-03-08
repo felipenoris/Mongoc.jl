@@ -1,7 +1,7 @@
 var documenterSearchIndex = {"docs": [
 
 {
-    "location": "index.html#",
+    "location": "#",
     "page": "Home",
     "title": "Home",
     "category": "page",
@@ -9,7 +9,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "index.html#Mongoc.jl-1",
+    "location": "#Mongoc.jl-1",
     "page": "Home",
     "title": "Mongoc.jl",
     "category": "section",
@@ -17,7 +17,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "index.html#Introduction-1",
+    "location": "#Introduction-1",
     "page": "Home",
     "title": "Introduction",
     "category": "section",
@@ -25,7 +25,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "index.html#Requirements-1",
+    "location": "#Requirements-1",
     "page": "Home",
     "title": "Requirements",
     "category": "section",
@@ -33,7 +33,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "index.html#Installation-1",
+    "location": "#Installation-1",
     "page": "Home",
     "title": "Installation",
     "category": "section",
@@ -41,7 +41,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "index.html#MongoDB-C-Driver-1",
+    "location": "#MongoDB-C-Driver-1",
     "page": "Home",
     "title": "MongoDB C Driver",
     "category": "section",
@@ -49,7 +49,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "index.html#Source-Code-1",
+    "location": "#Source-Code-1",
     "page": "Home",
     "title": "Source Code",
     "category": "section",
@@ -57,7 +57,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "index.html#License-1",
+    "location": "#License-1",
     "page": "Home",
     "title": "License",
     "category": "section",
@@ -65,7 +65,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "index.html#References-1",
+    "location": "#References-1",
     "page": "Home",
     "title": "References",
     "category": "section",
@@ -73,7 +73,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "tutorial.html#",
+    "location": "tutorial/#",
     "page": "Tutorial",
     "title": "Tutorial",
     "category": "page",
@@ -81,7 +81,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "tutorial.html#Tutorial-1",
+    "location": "tutorial/#Tutorial-1",
     "page": "Tutorial",
     "title": "Tutorial",
     "category": "section",
@@ -89,7 +89,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "tutorial.html#Setup-1",
+    "location": "tutorial/#Setup-1",
     "page": "Tutorial",
     "title": "Setup",
     "category": "section",
@@ -97,15 +97,15 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "tutorial.html#Connecting-to-MongoDB-1",
+    "location": "tutorial/#Connecting-to-MongoDB-1",
     "page": "Tutorial",
     "title": "Connecting to MongoDB",
     "category": "section",
-    "text": "Connect to a MongoDB instance using a Mongoc.Client. Use the MongoDB URI format to set the server location.julia> import Mongoc\n\njulia> client = Mongoc.Client(\"mongodb://localhost:27017\")As a shorthand, you can also use:julia> client = Mongoc.Client(\"localhost\", 27017)To connect to the server at the default location localhost:27017 you can use the Mongoc.Client constructor with no arguments.julia> client = Mongoc.Client()"
+    "text": "Connect to a MongoDB instance using a Mongoc.Client. Use the MongoDB URI format to set the server location.julia> import Mongoc\n\njulia> client = Mongoc.Client(\"mongodb://localhost:27017\")As a shorthand, you can also use:julia> client = Mongoc.Client(\"localhost\", 27017)To connect to the server at the default location localhost:27017 you can use the Mongoc.Client constructor with no arguments.julia> client = Mongoc.Client()One thing to keep in mind about MongoDB is that operations are usually lazy. So you don\'t actually connect to the database until you need to issue a command or query.If you need to check the connection status before sending commands, use Mongoc.ping(client) to ping the server.julia> Mongoc.ping(client)"
 },
 
 {
-    "location": "tutorial.html#Getting-a-Database-1",
+    "location": "tutorial/#Getting-a-Database-1",
     "page": "Tutorial",
     "title": "Getting a Database",
     "category": "section",
@@ -113,7 +113,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "tutorial.html#Getting-a-Collection-1",
+    "location": "tutorial/#Getting-a-Collection-1",
     "page": "Tutorial",
     "title": "Getting a Collection",
     "category": "section",
@@ -121,15 +121,15 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "tutorial.html#BSON-Documents-1",
+    "location": "tutorial/#BSON-Documents-1",
     "page": "Tutorial",
     "title": "BSON Documents",
     "category": "section",
-    "text": "BSON is the document format for MongoDB.To create a BSON document instance in Mongoc.jl just use Dictionary syntax, using Strings as keys.julia> document = Mongoc.BSON()\n\njulia> document[\"name\"] = \"Felipe\"\n\njulia> document[\"age\"] = 35\n\njulia> document[\"preferences\"] = [ \"Music\", \"Computer\", \"Photography\" ]\n\njulia> using Dates; document[\"details\"] = Dict(\"birth date\" => DateTime(1983, 4, 16), \"location\" => \"Rio de Janeiro\")To convert a BSON to a JSON string, use:julia> Mongoc.as_json(document)\n\"{ \\\"name\\\" : \\\"Felipe\\\", \\\"age\\\" : 35, \\\"preferences\\\" : [ \\\"Music\\\", \\\"Computer\\\", \\\"Photography\\\" ], \\\"details\\\" : { \\\"location\\\" : \\\"Rio de Janeiro\\\", \\\"birth date\\\" : { \\\"\\$date\\\" : \\\"1983-04-16T00:00:00Z\\\" } } }\"You can also create a BSON document from a JSON string.julia> document = Mongoc.BSON(\"\"\"{ \"hey\" : \"you\" }\"\"\")And also from a Dictionary.julia> dict = Dict(\"hey\" => \"you\")\nDict{String,String} with 1 entry:\n  \"hey\" => \"you\"\n\njulia> document = Mongoc.BSON(dict)\nBSON(\"{ \"hey\" : \"you\" }\")To convert a BSON document to a Dictionary, use Mongoc.as_dict.julia> Mongoc.as_dict(document)\nDict{Any,Any} with 1 entry:\n  \"hey\" => \"you\""
+    "text": "BSON is the document format for MongoDB.To create a BSON document instance in Mongoc.jl just use Dictionary syntax, using Strings as keys.julia> document = Mongoc.BSON()\n\njulia> document[\"name\"] = \"Felipe\"\n\njulia> document[\"age\"] = 35\n\njulia> document[\"preferences\"] = [ \"Music\", \"Computer\", \"Photography\" ]\n\njulia> document[\"null_value\"] = nothing # maps to BSON null value\n\njulia> using Dates; document[\"details\"] = Dict(\"birth date\" => DateTime(1983, 4, 16), \"location\" => \"Rio de Janeiro\")To convert a BSON to a JSON string, use:julia> Mongoc.as_json(document)\n\"{ \\\"name\\\" : \\\"Felipe\\\", \\\"age\\\" : 35, \\\"preferences\\\" : [ \\\"Music\\\", \\\"Computer\\\", \\\"Photography\\\" ], \\\"null_value\\\" : null, \\\"details\\\" : { \\\"location\\\" : \\\"Rio de Janeiro\\\", \\\"birth date\\\" : { \\\"\\$date\\\" : \\\"1983-04-16T00:00:00Z\\\" } } }\"You can also create a BSON document from a JSON string.julia> document = Mongoc.BSON(\"\"\"{ \"hey\" : \"you\" }\"\"\")And also from a Dictionary.julia> dict = Dict(\"hey\" => \"you\")\nDict{String,String} with 1 entry:\n  \"hey\" => \"you\"\n\njulia> document = Mongoc.BSON(dict)\nBSON(\"{ \"hey\" : \"you\" }\")To convert a BSON document to a Dictionary, use Mongoc.as_dict.julia> Mongoc.as_dict(document)\nDict{Any,Any} with 1 entry:\n  \"hey\" => \"you\""
 },
 
 {
-    "location": "tutorial.html#Inserting-Documents-1",
+    "location": "tutorial/#Inserting-Documents-1",
     "page": "Tutorial",
     "title": "Inserting Documents",
     "category": "section",
@@ -137,7 +137,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "tutorial.html#Querying-Documents-1",
+    "location": "tutorial/#Querying-Documents-1",
     "page": "Tutorial",
     "title": "Querying Documents",
     "category": "section",
@@ -145,7 +145,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "tutorial.html#Counting-Documents-1",
+    "location": "tutorial/#Counting-Documents-1",
     "page": "Tutorial",
     "title": "Counting Documents",
     "category": "section",
@@ -153,7 +153,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "tutorial.html#Aggregation-and-Map-Reduce-1",
+    "location": "tutorial/#Aggregation-and-Map-Reduce-1",
     "page": "Tutorial",
     "title": "Aggregation and Map-Reduce",
     "category": "section",
@@ -161,7 +161,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "crud.html#",
+    "location": "crud/#",
     "page": "CRUD Operations",
     "title": "CRUD Operations",
     "category": "page",
@@ -169,7 +169,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "crud.html#CRUD-Operations-1",
+    "location": "crud/#CRUD-Operations-1",
     "page": "CRUD Operations",
     "title": "CRUD Operations",
     "category": "section",
@@ -177,7 +177,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "crud.html#Insert-1",
+    "location": "crud/#Insert-1",
     "page": "CRUD Operations",
     "title": "Insert",
     "category": "section",
@@ -185,7 +185,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "crud.html#API-1",
+    "location": "crud/#API-1",
     "page": "CRUD Operations",
     "title": "API",
     "category": "section",
@@ -193,7 +193,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "crud.html#Examples-1",
+    "location": "crud/#Examples-1",
     "page": "CRUD Operations",
     "title": "Examples",
     "category": "section",
@@ -201,7 +201,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "crud.html#Select-1",
+    "location": "crud/#Select-1",
     "page": "CRUD Operations",
     "title": "Select",
     "category": "section",
@@ -209,7 +209,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "crud.html#API-2",
+    "location": "crud/#API-2",
     "page": "CRUD Operations",
     "title": "API",
     "category": "section",
@@ -217,7 +217,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "crud.html#Examples-2",
+    "location": "crud/#Examples-2",
     "page": "CRUD Operations",
     "title": "Examples",
     "category": "section",
@@ -225,7 +225,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "crud.html#Update-1",
+    "location": "crud/#Update-1",
     "page": "CRUD Operations",
     "title": "Update",
     "category": "section",
@@ -233,7 +233,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "crud.html#API-3",
+    "location": "crud/#API-3",
     "page": "CRUD Operations",
     "title": "API",
     "category": "section",
@@ -241,7 +241,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "crud.html#Examples-3",
+    "location": "crud/#Examples-3",
     "page": "CRUD Operations",
     "title": "Examples",
     "category": "section",
@@ -249,7 +249,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "crud.html#Delete-1",
+    "location": "crud/#Delete-1",
     "page": "CRUD Operations",
     "title": "Delete",
     "category": "section",
@@ -257,7 +257,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "crud.html#API-4",
+    "location": "crud/#API-4",
     "page": "CRUD Operations",
     "title": "API",
     "category": "section",
@@ -265,7 +265,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "crud.html#Examples-4",
+    "location": "crud/#Examples-4",
     "page": "CRUD Operations",
     "title": "Examples",
     "category": "section",
@@ -273,7 +273,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "authentication.html#",
+    "location": "authentication/#",
     "page": "Authentication",
     "title": "Authentication",
     "category": "page",
@@ -281,7 +281,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "authentication.html#Authentication-1",
+    "location": "authentication/#Authentication-1",
     "page": "Authentication",
     "title": "Authentication",
     "category": "section",
@@ -289,7 +289,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "authentication.html#Basic-Authentication-(SCRAM)-1",
+    "location": "authentication/#Basic-Authentication-(SCRAM)-1",
     "page": "Authentication",
     "title": "Basic Authentication (SCRAM)",
     "category": "section",
@@ -297,7 +297,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "authentication.html#Enable-Auth-1",
+    "location": "authentication/#Enable-Auth-1",
     "page": "Authentication",
     "title": "Enable Auth",
     "category": "section",
@@ -305,7 +305,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "authentication.html#.-Start-MongoDB-without-access-control-1",
+    "location": "authentication/#.-Start-MongoDB-without-access-control-1",
     "page": "Authentication",
     "title": "1. Start MongoDB without access control",
     "category": "section",
@@ -313,7 +313,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "authentication.html#.-Connect-to-the-database-and-create-an-admin-user.-1",
+    "location": "authentication/#.-Connect-to-the-database-and-create-an-admin-user.-1",
     "page": "Authentication",
     "title": "2. Connect to the database and create an admin user.",
     "category": "section",
@@ -321,7 +321,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "authentication.html#.-Re-start-the-MongoDB-instance-with-access-control-1",
+    "location": "authentication/#.-Re-start-the-MongoDB-instance-with-access-control-1",
     "page": "Authentication",
     "title": "3. Re-start the MongoDB instance with access control",
     "category": "section",
@@ -329,7 +329,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "authentication.html#Connect-and-authenticate-1",
+    "location": "authentication/#Connect-and-authenticate-1",
     "page": "Authentication",
     "title": "Connect and authenticate",
     "category": "section",
@@ -337,7 +337,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "transaction.html#",
+    "location": "transaction/#",
     "page": "Transactions",
     "title": "Transactions",
     "category": "page",
@@ -345,7 +345,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "transaction.html#Transactions-1",
+    "location": "transaction/#Transactions-1",
     "page": "Transactions",
     "title": "Transactions",
     "category": "section",
@@ -353,7 +353,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "transaction.html#Setting-up-a-Replica-Set-1",
+    "location": "transaction/#Setting-up-a-Replica-Set-1",
     "page": "Transactions",
     "title": "Setting up a Replica Set",
     "category": "section",
@@ -361,7 +361,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "transaction.html#Executing-Transactions-1",
+    "location": "transaction/#Executing-Transactions-1",
     "page": "Transactions",
     "title": "Executing Transactions",
     "category": "section",
@@ -369,7 +369,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "transaction.html#Example-1",
+    "location": "transaction/#Example-1",
     "page": "Transactions",
     "title": "Example",
     "category": "section",
@@ -377,7 +377,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#",
+    "location": "api/#",
     "page": "API Reference",
     "title": "API Reference",
     "category": "page",
@@ -385,7 +385,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.QUERY_FLAG_AWAIT_DATA",
+    "location": "api/#Mongoc.QUERY_FLAG_AWAIT_DATA",
     "page": "API Reference",
     "title": "Mongoc.QUERY_FLAG_AWAIT_DATA",
     "category": "constant",
@@ -393,7 +393,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.QUERY_FLAG_EXHAUST",
+    "location": "api/#Mongoc.QUERY_FLAG_EXHAUST",
     "page": "API Reference",
     "title": "Mongoc.QUERY_FLAG_EXHAUST",
     "category": "constant",
@@ -401,7 +401,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.QUERY_FLAG_NONE",
+    "location": "api/#Mongoc.QUERY_FLAG_NONE",
     "page": "API Reference",
     "title": "Mongoc.QUERY_FLAG_NONE",
     "category": "constant",
@@ -409,7 +409,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.QUERY_FLAG_NO_CURSOR_TIMEOUT",
+    "location": "api/#Mongoc.QUERY_FLAG_NO_CURSOR_TIMEOUT",
     "page": "API Reference",
     "title": "Mongoc.QUERY_FLAG_NO_CURSOR_TIMEOUT",
     "category": "constant",
@@ -417,7 +417,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.QUERY_FLAG_OPLOG_REPLAY",
+    "location": "api/#Mongoc.QUERY_FLAG_OPLOG_REPLAY",
     "page": "API Reference",
     "title": "Mongoc.QUERY_FLAG_OPLOG_REPLAY",
     "category": "constant",
@@ -425,7 +425,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.QUERY_FLAG_PARTIAL",
+    "location": "api/#Mongoc.QUERY_FLAG_PARTIAL",
     "page": "API Reference",
     "title": "Mongoc.QUERY_FLAG_PARTIAL",
     "category": "constant",
@@ -433,7 +433,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.QUERY_FLAG_SLAVE_OK",
+    "location": "api/#Mongoc.QUERY_FLAG_SLAVE_OK",
     "page": "API Reference",
     "title": "Mongoc.QUERY_FLAG_SLAVE_OK",
     "category": "constant",
@@ -441,7 +441,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.QUERY_FLAG_TAILABLE_CURSOR",
+    "location": "api/#Mongoc.QUERY_FLAG_TAILABLE_CURSOR",
     "page": "API Reference",
     "title": "Mongoc.QUERY_FLAG_TAILABLE_CURSOR",
     "category": "constant",
@@ -449,7 +449,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.BSON",
+    "location": "api/#Mongoc.BSON",
     "page": "API Reference",
     "title": "Mongoc.BSON",
     "category": "type",
@@ -457,7 +457,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.BSONCode",
+    "location": "api/#Mongoc.BSONCode",
     "page": "API Reference",
     "title": "Mongoc.BSONCode",
     "category": "type",
@@ -465,7 +465,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.BSONError",
+    "location": "api/#Mongoc.BSONError",
     "page": "API Reference",
     "title": "Mongoc.BSONError",
     "category": "type",
@@ -473,7 +473,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.BSONIter",
+    "location": "api/#Mongoc.BSONIter",
     "page": "API Reference",
     "title": "Mongoc.BSONIter",
     "category": "type",
@@ -481,7 +481,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.BSONObjectId",
+    "location": "api/#Mongoc.BSONObjectId",
     "page": "API Reference",
     "title": "Mongoc.BSONObjectId",
     "category": "type",
@@ -489,7 +489,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.BSONSubType",
+    "location": "api/#Mongoc.BSONSubType",
     "page": "API Reference",
     "title": "Mongoc.BSONSubType",
     "category": "type",
@@ -497,7 +497,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.BSONType",
+    "location": "api/#Mongoc.BSONType",
     "page": "API Reference",
     "title": "Mongoc.BSONType",
     "category": "type",
@@ -505,7 +505,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.Client",
+    "location": "api/#Mongoc.Client",
     "page": "API Reference",
     "title": "Mongoc.Client",
     "category": "type",
@@ -513,7 +513,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.Collection",
+    "location": "api/#Mongoc.Collection",
     "page": "API Reference",
     "title": "Mongoc.Collection",
     "category": "type",
@@ -521,7 +521,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.Cursor",
+    "location": "api/#Mongoc.Cursor",
     "page": "API Reference",
     "title": "Mongoc.Cursor",
     "category": "type",
@@ -529,7 +529,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.Database",
+    "location": "api/#Mongoc.Database",
     "page": "API Reference",
     "title": "Mongoc.Database",
     "category": "type",
@@ -537,7 +537,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.QueryFlags",
+    "location": "api/#Mongoc.QueryFlags",
     "page": "API Reference",
     "title": "Mongoc.QueryFlags",
     "category": "type",
@@ -545,7 +545,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.URI",
+    "location": "api/#Mongoc.URI",
     "page": "API Reference",
     "title": "Mongoc.URI",
     "category": "type",
@@ -553,7 +553,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.add_user",
+    "location": "api/#Mongoc.add_user",
     "page": "API Reference",
     "title": "Mongoc.add_user",
     "category": "function",
@@ -561,7 +561,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.as_json-Tuple{Mongoc.BSON}",
+    "location": "api/#Mongoc.as_json-Tuple{Mongoc.BSON}",
     "page": "API Reference",
     "title": "Mongoc.as_json",
     "category": "method",
@@ -569,7 +569,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.command_simple-Tuple{Mongoc.Database,Mongoc.BSON}",
+    "location": "api/#Mongoc.command_simple-Tuple{Mongoc.Database,Mongoc.BSON}",
     "page": "API Reference",
     "title": "Mongoc.command_simple",
     "category": "method",
@@ -577,7 +577,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.find_one",
+    "location": "api/#Mongoc.find_one",
     "page": "API Reference",
     "title": "Mongoc.find_one",
     "category": "function",
@@ -585,7 +585,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.get_server_mongodb_version-Tuple{Mongoc.Client}",
+    "location": "api/#Mongoc.get_server_mongodb_version-Tuple{Mongoc.Client}",
     "page": "API Reference",
     "title": "Mongoc.get_server_mongodb_version",
     "category": "method",
@@ -593,7 +593,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.has_user-Tuple{Mongoc.Database,String}",
+    "location": "api/#Mongoc.has_user-Tuple{Mongoc.Database,String}",
     "page": "API Reference",
     "title": "Mongoc.has_user",
     "category": "method",
@@ -601,7 +601,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.remove_user-Tuple{Mongoc.Database,String}",
+    "location": "api/#Mongoc.remove_user-Tuple{Mongoc.Database,String}",
     "page": "API Reference",
     "title": "Mongoc.remove_user",
     "category": "method",
@@ -609,7 +609,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.set_appname!-Tuple{Mongoc.Client,String}",
+    "location": "api/#Mongoc.set_appname!-Tuple{Mongoc.Client,String}",
     "page": "API Reference",
     "title": "Mongoc.set_appname!",
     "category": "method",
@@ -617,7 +617,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#Mongoc.transaction-Tuple{Function,Mongoc.Client}",
+    "location": "api/#Mongoc.transaction-Tuple{Function,Mongoc.Client}",
     "page": "API Reference",
     "title": "Mongoc.transaction",
     "category": "method",
@@ -625,7 +625,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api.html#API-Reference-1",
+    "location": "api/#API-Reference-1",
     "page": "API Reference",
     "title": "API Reference",
     "category": "section",
