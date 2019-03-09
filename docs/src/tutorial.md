@@ -226,16 +226,20 @@ julia> document = Mongoc.find_one(collection, Mongoc.BSON("""{ "hey" : "you" }""
 BSON("{ "_id" : { "$oid" : "5b9ef9cc11c3dd1da14675c3" }, "hey" : "you" }")
 ```
 
-To query multiple documents, use `Mongoc.find`. Pass a BSON query argument as a query filter.
-It returns a iterator of BSON documents that can be read using a `for` loop.
+To iterate all documents from a collection, just use a for loop on a `collection`.
 
 ```julia
-julia> for document in Mongoc.find(collection)
+julia> for document in collection
         println(document)
        end
 BSON("{ "_id" : { "$oid" : "5b9f02fb11c3dd1f4f3e26e5" }, "hey" : "you", "out" : "there" }")
 BSON("{ "_id" : { "$oid" : "5b9f02fb11c3dd1f4f3e26e6" }, "hey" : "others", "in the" : "cold" }")
+```
 
+To query multiple documents, use `Mongoc.find`. Pass a BSON query argument as a query filter.
+It returns a iterator of BSON documents that can be read using a `for` loop.
+
+```julia
 julia> for document in Mongoc.find(collection, Mongoc.BSON("""{ "in the" : "cold" }"""))
            println(document)
        end

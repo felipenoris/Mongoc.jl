@@ -81,7 +81,7 @@ const DB_NAME = "mongoc"
             @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
 
             i = 0
-            for bson in Mongoc.find(coll)
+            for bson in coll
                 @test haskey(bson, "hello") || haskey(bson, "hey")
                 i += 1
             end

@@ -358,6 +358,21 @@ end
 
 Base.iterate(cursor::Cursor, state::Nothing=nothing) = _iterate(cursor, state)
 
+function Base.iterate(coll::Collection)
+    cursor = find(coll)
+    return iterate(coll, cursor)
+end
+
+function Base.iterate(coll::Collection, state::Cursor)
+    next = _iterate(state)
+    if next == nothing
+        return nothing
+    else
+        doc, _ = next
+        return doc, state
+    end
+end
+
 Base.show(io::IO, uri::URI) = print(io, "URI(\"", uri.uri, "\")")
 Base.show(io::IO, client::Client) = print(io, "Client(URI(\"", client.uri, "\"))")
 Base.show(io::IO, db::Database) = print(io, "Database($(db.client), \"", db.name, "\")")
