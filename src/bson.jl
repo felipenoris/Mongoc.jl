@@ -141,9 +141,11 @@ end
 mutable struct BSON
     handle::Ptr{Cvoid}
 
-    function BSON(handle::Ptr{Cvoid})
+    function BSON(handle::Ptr{Cvoid}; enable_finalizer::Bool=true)
         new_bson = new(handle)
-        @compat finalizer(destroy!, new_bson)
+        if enable_finalizer
+            @compat finalizer(destroy!, new_bson)
+        end
         return new_bson
     end
 end

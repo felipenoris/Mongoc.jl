@@ -336,16 +336,13 @@ end
 #
 
 function _iterate(cursor::Cursor, state::Nothing=nothing)
-    next = BSON()
-    handle = next.handle
-    handle_ref = Ref{Ptr{Cvoid}}(handle)
-    has_next = mongoc_cursor_next(cursor.handle, handle_ref)
-    next.handle = handle_ref[]
+    bson_handle_ref = Ref{Ptr{Cvoid}}()
+    has_next = mongoc_cursor_next(cursor.handle, bson_handle_ref)
 
     if has_next
         # The bson document is valid only until the next call to mongoc_cursor_next.
         # So we should return a deepcopy.
-        return deepcopy(next), nothing
+        return deepcopy(BSON(bson_handle_ref[], enable_finalizer=false)), nothing
     else
         err = BSONError()
         if mongoc_cursor_error(cursor.handle, err)
