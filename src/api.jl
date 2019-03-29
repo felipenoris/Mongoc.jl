@@ -185,7 +185,7 @@ function insert_one(collection::Collection, document::BSON; options::Union{Nothi
     if !ok
         error("$err.")
     end
-    return InsertOneResult(reply, string(inserted_oid))
+    return InsertOneResult(reply, (inserted_oid==nothing ? nothing : string(inserted_oid)))
 end
 
 function delete_one(collection::Collection, selector::BSON; options::Union{Nothing, BSON}=nothing)
@@ -269,7 +269,7 @@ function insert_many(collection::Collection, documents::Vector{BSON}; bulk_optio
     for doc in documents
         doc, inserted_oid = _new_id(doc)
         bulk_insert!(bulk_operation, doc, options=insert_options)
-        push!(inserted_oids, string(inserted_oid))
+        push!(inserted_oids, (inserted_oid==nothing ? nothing : string(inserted_oid)))
     end
     result = execute!(bulk_operation)
     append!(result.inserted_oids, inserted_oids)
