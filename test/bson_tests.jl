@@ -34,6 +34,14 @@ using Dates
         @test Mongoc.bson_oid_compare(y, y) == 0
     end
 
+    @testset "oid copy" begin
+        x = Mongoc.BSONObjectId()
+        y = copy(x)
+        @test x == y
+        @test hash(x) == hash(y)
+        @test Mongoc.bson_oid_compare(x, y) == 0
+    end
+
     @testset "oid string" begin
         x = Mongoc.BSONObjectId()
         y = Mongoc.BSONObjectId(string(x))
