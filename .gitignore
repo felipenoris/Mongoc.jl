@@ -2,3 +2,4 @@ deps/deps.jl
 deps/usr/**
 deps/build.log
 docs/build/
+*.swp

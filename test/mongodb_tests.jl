@@ -66,10 +66,32 @@ const DB_NAME = "mongoc"
 
         @testset "new_collection" begin
             coll = client[DB_NAME]["new_collection"]
-            result = push!(coll, Mongoc.BSON("""{ "hello" : "world" }"""))
-            @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
-            result = push!(coll, Mongoc.BSON("""{ "hey" : "you" }"""))
-            @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
+
+            @testset "Insert One with generated OID" begin
+                io = IOBuffer()
+                result = push!(coll, Mongoc.BSON("""{ "hello" : "world" }"""))
+                @test isa(result, Mongoc.InsertOneResult)
+                show(io, result)
+                @test result.inserted_oid != nothing
+                first_inserted_oid = result.inserted_oid
+                @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
+                result = push!(coll, Mongoc.BSON("""{ "hey" : "you" }"""))
+                show(io, result)
+                @test result.inserted_oid != nothing
+                @test result.inserted_oid != first_inserted_oid
+                @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
+            end
+
+            @testset "Insert One with custom OID" begin
+                io = IOBuffer()
+                bson = Mongoc.BSON()
+                bson["_id"] = 123
+                bson["out"] = "there"
+                result = push!(coll, bson)
+                show(io, result)
+                @test result.inserted_oid == nothing
+                @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
+            end
 
             bson = Mongoc.BSON()
             bson["hey"] = "you"
@@ -82,7 +104,8 @@ const DB_NAME = "mongoc"
 
             i = 0
             for bson in coll
-                @test haskey(bson, "hello") || haskey(bson, "hey")
+                @test haskey(bson, "hello") || haskey(bson, "hey") || haskey(bson, "out")
+                @test haskey(bson, "_id")
                 i += 1
             end
             @test i == length(coll)
@@ -155,7 +178,14 @@ const DB_NAME = "mongoc"
             push!(vector, Mongoc.BSON("""{ "out" : "there" }"""))
             push!(vector, Mongoc.BSON("""{ "count" : 3 }"""))
 
-            append!(collection, vector)
+            result = append!(collection, vector)
+            @test isa(result, Mongoc.BulkOperationResult)
+            @test result.reply["nInserted"] == 3
+            for oid in result.inserted_oids
+                @test oid != nothing
+            end
+            io = IOBuffer()
+            show(io, result)
             @test length(collection) == 3
             @test length(collect(collection)) == 3
 
@@ -168,7 +198,7 @@ const DB_NAME = "mongoc"
             doc = Mongoc.BSON("""{ "to" : "delete", "hey" : "you" }""")
             doc2 = Mongoc.BSON("""{ "to" : "keep", "out" : "there" }""")
             insert_result = push!(collection, doc)
-            oid = Mongoc.BSONObjectId(insert_result.inserted_oid)
+            oid = insert_result.inserted_oid
             push!(collection, doc2)
 
             selector = Mongoc.BSON()
@@ -183,7 +213,7 @@ const DB_NAME = "mongoc"
 
         @testset "delete_many" begin
             collection = client[DB_NAME]["delete_many"]
-            append!(collection, [ Mongoc.BSON("""{ "first" : 1, "delete" : true }"""), Mongoc.BSON("""{ "second" : 2, "delete" : true }"""), Mongoc.BSON("""{ "third" : 3, "delete" : false }""") ])
+            result = append!(collection, [ Mongoc.BSON("""{ "first" : 1, "delete" : true }"""), Mongoc.BSON("""{ "second" : 2, "delete" : true }"""), Mongoc.BSON("""{ "third" : 3, "delete" : false }""") ])
             @test length(collection) == 3
             result = Mongoc.delete_many(collection, Mongoc.BSON("""{ "delete" : true }"""))
             @test result["deletedCount"] == 2

@@ -109,6 +109,12 @@ function BSONObjectId(oid_string::String)
     return oid_ref[]
 end
 
+function BSONObjectId(oid::BSONObjectId)
+    return BSONObjectId(oid.bytes)
+end
+
+Base.copy(oid::BSONObjectId) = BSONObjectId(oid)
+
 """
 Mirrors C struct `bson_error_t` and can be allocated in the stack.
 

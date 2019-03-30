@@ -139,15 +139,15 @@ mutable struct BulkOperation
     end
 end
 
-struct InsertOneResult
+struct InsertOneResult{T}
     reply::BSON
-    inserted_oid::Union{Nothing, String}
+    inserted_oid::T
 end
 
-struct BulkOperationResult
+struct BulkOperationResult{T}
     reply::BSON
     server_id::UInt32
-    inserted_oids::Vector{Union{Nothing, String}}
+    inserted_oids::Vector{T}
 end
 
 #
