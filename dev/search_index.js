@@ -101,7 +101,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "Connecting to MongoDB",
     "category": "section",
-    "text": "Connect to a MongoDB instance using a Mongoc.Client. Use the MongoDB URI format to set the server location.julia> import Mongoc\n\njulia> client = Mongoc.Client(\"mongodb://localhost:27017\")As a shorthand, you can also use:julia> client = Mongoc.Client(\"localhost\", 27017)To connect to the server at the default location localhost:27017 you can use the Mongoc.Client constructor with no arguments.julia> client = Mongoc.Client()One thing to keep in mind about MongoDB is that operations are usually lazy. So you don\'t actually connect to the database until you need to issue a command or query.If you need to check the connection status before sending commands, use Mongoc.ping(client) to ping the server.julia> Mongoc.ping(client)"
+    "text": "Connect to a MongoDB instance using a Mongoc.Client. Use the MongoDB URI format to set the server location.julia> import Mongoc\n\njulia> client = Mongoc.Client(\"mongodb://localhost:27017\")\nClient(URI(\"mongodb://localhost:27017\"))As a shorthand, you can also use:julia> client = Mongoc.Client(\"localhost\", 27017)To connect to the server at the default location localhost:27017 you can use the Mongoc.Client constructor with no arguments.julia> client = Mongoc.Client()One thing to keep in mind about MongoDB is that operations are usually lazy. So you don\'t actually connect to the database until you need to issue a command or query.If you need to check the connection status before sending commands, use Mongoc.ping(client) to ping the server.julia> Mongoc.ping(client)\nBSON(\"{ \"ok\" : 1.0 }\")"
 },
 
 {
@@ -109,7 +109,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "Getting a Database",
     "category": "section",
-    "text": "A MongoDB instance consists on a set of independent databases. You get a Database reference using the following command.julia> database = client[\"my-database\"]If \"my-database\" does not exist on your MongoDB instance, it will be created in the first time you insert a document in it."
+    "text": "A MongoDB instance consists on a set of independent databases. You get a Database reference using the following command.julia> database = client[\"my-database\"]\nDatabase(Client(URI(\"mongodb://localhost:27017\")), \"my-database\")If \"my-database\" does not exist on your MongoDB instance, it will be created in the first time you insert a document in it."
 },
 
 {
@@ -117,7 +117,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "Getting a Collection",
     "category": "section",
-    "text": "A Collection is a set of documents in a MongoDB database. You get a collection reference using the following command.julia> collection = database[\"my-collection\"]If it does not exist inside your database, the Collection is created in the first time you insert a document in it."
+    "text": "A Collection is a set of documents in a MongoDB database. You get a collection reference using the following command.julia> collection = database[\"my-collection\"]\nCollection(Database(Client(URI(\"mongodb://localhost:27017\")), \"my-database\"), \"my-collection\")If it does not exist inside your database, the Collection is created in the first time you insert a document in it."
 },
 
 {
@@ -141,7 +141,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Tutorial",
     "title": "Inserting Documents",
     "category": "section",
-    "text": "To insert a single document into a collection, just Base.push! a BSON document to it. The result of this operation wraps the server reply and the inserted oid.julia> result = push!(collection, document)\nMongoc.InsertOneResult(BSON(\"{ \"insertedCount\" : 1 }\"), \"5b9f115311c3dd25383e0f32\")\n\njulia> result.inserted_oid\n\"5b9f115311c3dd25383e0f32\"Use Base.append! to insert a vector of documents to a collection. The result of this operation also wraps the server reply and the inserted oids.julia> doc1 = Mongoc.BSON(\"\"\"{ \"hey\" : \"you\", \"out\" : \"there\" }\"\"\")\nBSON(\"{ \"hey\" : \"you\", \"out\" : \"there\" }\")\n\njulia> doc2 = Mongoc.BSON(\"\"\"{ \"hey\" : \"others\", \"in the\" : \"cold\" }\"\"\")\nBSON(\"{ \"hey\" : \"others\", \"in the\" : \"cold\" }\")\n\njulia> vector = [ doc1, doc2 ]\n2-element Array{Mongoc.BSON,1}:\n BSON(\"{ \"hey\" : \"you\", \"out\" : \"there\" }\")\n BSON(\"{ \"hey\" : \"others\", \"in the\" : \"cold\" }\")\n\njulia> append!(collection, vector)\nMongoc.BulkOperationResult(BSON(\"{ \"nInserted\" : 2, \"nMatched\" : 0, \"nModified\" : 0, \"nRemoved\" : 0, \"nUpserted\" : 0, \"writeErrors\" : [  ] }\"), 0x00000001, Union{Nothing, String}[\"5b9f11ba11c3dd25841c7dc2\", \"5b9f11ba11c3dd25841c7dc3\"])"
+    "text": "To insert a single document into a collection, just Base.push! a BSON document to it. The result of this operation wraps the server reply and the inserted oid.julia> document = Mongoc.BSON(\"\"\"{ \"hey\" : \"you\" }\"\"\")\nBSON(\"{ \"hey\" : \"you\" }\")\n\njulia> result = push!(collection, document)\nMongoc.InsertOneResult{Mongoc.BSONObjectId}(BSON(\"{ \"insertedCount\" : 1 }\"), BSONObjectId(\"5c9fdb5d11c3dd04a83ba6c2\"))\n\njulia> result.inserted_oid\nBSONObjectId(\"5c9fdb5d11c3dd04a83ba6c2\")Use Base.append! to insert a vector of documents to a collection. The result of this operation also wraps the server reply and the inserted oids.julia> doc1 = Mongoc.BSON(\"\"\"{ \"hey\" : \"you\", \"out\" : \"there\" }\"\"\")\nBSON(\"{ \"hey\" : \"you\", \"out\" : \"there\" }\")\n\njulia> doc2 = Mongoc.BSON(\"\"\"{ \"hey\" : \"others\", \"in the\" : \"cold\" }\"\"\")\nBSON(\"{ \"hey\" : \"others\", \"in the\" : \"cold\" }\")\n\njulia> vector = [ doc1, doc2 ]\n2-element Array{Mongoc.BSON,1}:\n BSON(\"{ \"hey\" : \"you\", \"out\" : \"there\" }\")\n BSON(\"{ \"hey\" : \"others\", \"in the\" : \"cold\" }\")\n\njulia> append!(collection, vector)\nMongoc.BulkOperationResult{Union{Nothing, BSONObjectId}}(BSON(\"{ \"nInserted\" : 2, \"nMatched\" : 0, \"nModified\" : 0, \"nRemoved\" : 0, \"nUpserted\" : 0, \"writeErrors\" : [  ] }\"), 0x00000001, Union{Nothing, BSONObjectId}[BSONObjectId(\"5c9fdbab11c3dd04a83ba6c3\"), BSONObjectId(\"5c9fdbab11c3dd04a83ba6c4\")])"
 },
 
 {
