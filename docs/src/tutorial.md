@@ -33,6 +33,7 @@ Use the [MongoDB URI format](https://docs.mongodb.com/manual/reference/connectio
 julia> import Mongoc
 
 julia> client = Mongoc.Client("mongodb://localhost:27017")
+Client(URI("mongodb://localhost:27017"))
 ```
 
 As a shorthand, you can also use:
@@ -56,6 +57,7 @@ use Mongoc.ping(client) to ping the server.
 
 ```julia
 julia> Mongoc.ping(client)
+BSON("{ "ok" : 1.0 }")
 ```
 
 ## Getting a Database
@@ -65,6 +67,7 @@ You get a Database reference using the following command.
 
 ```julia
 julia> database = client["my-database"]
+Database(Client(URI("mongodb://localhost:27017")), "my-database")
 ```
 
 If `"my-database"` does not exist on your MongoDB instance, it will be created
@@ -77,6 +80,7 @@ You get a collection reference using the following command.
 
 ```julia
 julia> collection = database["my-collection"]
+Collection(Database(Client(URI("mongodb://localhost:27017")), "my-database"), "my-collection")
 ```
 
 If it does not exist inside your database, the Collection
@@ -191,11 +195,14 @@ To insert a single document into a collection, just `Base.push!` a BSON document
 The result of this operation wraps the server reply and the inserted oid.
 
 ```julia
+julia> document = Mongoc.BSON("""{ "hey" : "you" }""")
+BSON("{ "hey" : "you" }")
+
 julia> result = push!(collection, document)
-Mongoc.InsertOneResult(BSON("{ "insertedCount" : 1 }"), "5b9f115311c3dd25383e0f32")
+Mongoc.InsertOneResult{Mongoc.BSONObjectId}(BSON("{ "insertedCount" : 1 }"), BSONObjectId("5c9fdb5d11c3dd04a83ba6c2"))
 
 julia> result.inserted_oid
-"5b9f115311c3dd25383e0f32"
+BSONObjectId("5c9fdb5d11c3dd04a83ba6c2")
 ```
 
 Use `Base.append!` to insert a vector of documents to a collection.
@@ -214,7 +221,7 @@ julia> vector = [ doc1, doc2 ]
  BSON("{ "hey" : "others", "in the" : "cold" }")
 
 julia> append!(collection, vector)
-Mongoc.BulkOperationResult(BSON("{ "nInserted" : 2, "nMatched" : 0, "nModified" : 0, "nRemoved" : 0, "nUpserted" : 0, "writeErrors" : [  ] }"), 0x00000001, Union{Nothing, String}["5b9f11ba11c3dd25841c7dc2", "5b9f11ba11c3dd25841c7dc3"])
+Mongoc.BulkOperationResult{Union{Nothing, BSONObjectId}}(BSON("{ "nInserted" : 2, "nMatched" : 0, "nModified" : 0, "nRemoved" : 0, "nUpserted" : 0, "writeErrors" : [  ] }"), 0x00000001, Union{Nothing, BSONObjectId}[BSONObjectId("5c9fdbab11c3dd04a83ba6c3"), BSONObjectId("5c9fdbab11c3dd04a83ba6c4")])
 ```
 
 ## Querying Documents
