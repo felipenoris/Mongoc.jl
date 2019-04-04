@@ -48,10 +48,10 @@ mutable struct URI
     handle::Ptr{Cvoid}
 
     function URI(uri_string::String)
-        err = BSONError()
-        handle = mongoc_uri_new_with_error(uri_string, err)
+        err_ref = Ref{BSONError}()
+        handle = mongoc_uri_new_with_error(uri_string, err_ref)
         if handle == C_NULL
-            error("Failed to parse URI $uri_string. Error Message: $(err)")
+            throw(err_ref[])
         end
         new_uri = new(uri_string, handle)
         finalizer(destroy!, new_uri)
@@ -66,9 +66,7 @@ mutable struct Client
 
     function Client(uri::URI)
         client_handle = mongoc_client_new_from_uri(uri.handle)
-        if client_handle == C_NULL
-            error("Failed connecting to URI $uri.")
-        end
+        @assert client_handle != C_NULL "Failed to create client handle to URI $uri."
         client = new(uri.uri, client_handle)
         finalizer(destroy!, client)
         return client
@@ -99,9 +97,7 @@ mutable struct Collection <: AbstractCollection
 
     function Collection(database::Database, collection_name::String)
         collection_handle = mongoc_database_get_collection(database.handle, collection_name)
-        if collection_handle == C_NULL
-            error("Failed creating collection $collection_name on db $(database.name).")
-        end
+        @assert collection_handle != C_NULL "Failed to create a collection handle to $collection_name on db $(database.name)."
         collection = new(database, collection_name, collection_handle)
         finalizer(destroy!, collection)
         return collection
@@ -130,9 +126,7 @@ mutable struct BulkOperation
     function BulkOperation(collection::Collection; options::Union{Nothing, BSON}=nothing)
         options_handle = options == nothing ? C_NULL : options.handle
         handle = mongoc_collection_create_bulk_operation_with_opts(collection.handle, options_handle)
-        if handle == C_NULL
-            error("Failed to create a new bulk operation.")
-        end
+        @assert handle != C_NULL "Failed to create a bulk operation handle."
         bulk_operation = new(collection, handle, false)
         finalizer(destroy!, bulk_operation)
         return bulk_operation
@@ -212,10 +206,7 @@ mutable struct SessionOptions
 
     function SessionOptions(; casual_consistency::Bool=true)
         session_options_handle = mongoc_session_opts_new()
-        if session_options_handle == C_NULL
-            error("Couldn't create SessionOptions.")
-        end
-
+        @assert session_options_handle != C_NULL "Failed to create session options handle."
         session_options = new(session_options_handle)
         finalizer(destroy!, session_options)
         set_casual_consistency!(session_options, casual_consistency)
@@ -229,10 +220,10 @@ mutable struct Session
     handle::Ptr{Cvoid}
 
     function Session(client::Client; options::SessionOptions=SessionOptions())
-        err = BSONError()
-        session_handle = mongoc_client_start_session(client.handle, options.handle, err)
+        err_ref = Ref{BSONError}()
+        session_handle = mongoc_client_start_session(client.handle, options.handle, err_ref)
         if session_handle == C_NULL
-            error("$err")
+            throw(err_ref[]) 
         end
         session = new(client, options, session_handle)
         finalizer(destroy!, session)

@@ -24,7 +24,7 @@ const DB_NAME = "mongoc"
 
     @testset "Types" begin
         bson = Mongoc.BSON()
-        @test_throws ErrorException Mongoc.Client("////invalid-url")
+        @test_throws Mongoc.BSONError Mongoc.Client("////invalid-url")
         @test client.uri == "mongodb://localhost:27017"
         Mongoc.set_appname!(client, "Runtests")
         db = client[DB_NAME]
@@ -136,7 +136,7 @@ const DB_NAME = "mongoc"
             # issue #15
             invalid_client = Mongoc.Client("mongodb://invalid_url")
             collection = invalid_client["db_name"]["collection_name"]
-            @test_throws ErrorException Mongoc.find_one(collection, Mongoc.BSON(""" { "a" : 1 } """))
+            @test_throws Mongoc.BSONError Mongoc.find_one(collection, Mongoc.BSON(""" { "a" : 1 } """))
         end
 
         @testset "Binary data" begin

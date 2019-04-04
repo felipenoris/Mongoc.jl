@@ -130,12 +130,10 @@ typedef struct {
 } bson_error_t;
 ```
 """
-mutable struct BSONError
+struct BSONError <: Exception
     domain::UInt32
     code::UInt32
     message::NTuple{504, UInt8}
-
-    BSONError() = new(0, 0, tuple(zeros(UInt8, 504)...))
 end
 
 "BSON element with JavaScript source code."
@@ -255,7 +253,7 @@ Base.show(io::IO, oid::BSONObjectId) = print(io, "BSONObjectId(\"", string(oid),
 Base.show(io::IO, bson::BSON) = print(io, "BSON(\"", as_json(bson), "\")")
 Base.show(io::IO, code::BSONCode) = print(io::IO, "BSONCode(\"$(code.code)\")")
 
-function Base.show(io::IO, err::BSONError)
+function Base.showerror(io::IO, err::BSONError)
     for c in err.message
         c_char = Char(c)
         if c_char == '\0'
@@ -698,10 +696,10 @@ and will parse file contents to BSON documents.
 """
 function read_bson(filepath::AbstractString) :: Vector{BSON}
     @assert isfile(filepath) "$filepath not found."
-    err = BSONError()
-    reader_handle = bson_reader_new_from_file(filepath, err)
+    err_ref = Ref{BSONError}()
+    reader_handle = bson_reader_new_from_file(filepath, err_ref)
     if reader_handle == C_NULL
-        error("$err")
+        throw(err_ref[])
     end
     reader = BSONReader(reader_handle, Vector{UInt8}())
     return read_bson(reader)
