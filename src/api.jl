@@ -51,20 +51,24 @@ BSON("{ "ok" : 1.0 }")
 """
 function command_simple(database::Database, command::BSON) :: BSON
     reply = BSON()
-    err = BSONError()
-    ok = mongoc_database_command_simple(database.handle, command.handle, C_NULL, reply.handle, err)
+    err_ref = Ref{BSONError}()
+    ok = mongoc_database_command_simple(database.handle, command.handle, C_NULL, reply.handle,
+        err_ref)
+
     if !ok
-        error("$err.")
+        throw(err_ref[])
     end
     return reply
 end
 
 function command_simple(collection::Collection, command::BSON) :: BSON
     reply = BSON()
-    err = BSONError()
-    ok = mongoc_collection_command_simple(collection.handle, command.handle, C_NULL, reply.handle, err)
+    err_ref = Ref{BSONError}()
+    ok = mongoc_collection_command_simple(collection.handle, command.handle, C_NULL, reply.handle,
+        err_ref)
+
     if !ok
-        error("$err.")
+        throw(err_ref[])
     end
     return reply
 end
@@ -96,7 +100,8 @@ function get_database_names(client::Client; options::Union{Nothing, BSON}=nothin
     return result
 end
 
-function has_database(client::Client, database_name::String; options::Union{Nothing, BSON}=nothing) :: Bool
+function has_database(client::Client, database_name::String;
+                      options::Union{Nothing, BSON}=nothing) :: Bool
     for bson_database in find_databases(client, options=options)
         if bson_database["name"] == database_name
             return true
@@ -106,19 +111,23 @@ function has_database(client::Client, database_name::String; options::Union{Noth
 end
 
 """
-    add_user(database::Database, username::String, password::String, roles::Union{Nothing, BSON}, custom_data::Union{Nothing, BSON}=nothing)
+    add_user(database::Database, username::String, password::String, roles::Union{Nothing, BSON},
+        custom_data::Union{Nothing, BSON}=nothing)
 
 This function shall create a new user with access to database.
 
 Warning: Do not call this function without TLS.
 """
-function add_user(database::Database, username::String, password::String, roles::Union{Nothing, BSON}, custom_data::Union{Nothing, BSON}=nothing)
-    err = BSONError()
+function add_user(database::Database, username::String, password::String,
+        roles::Union{Nothing, BSON}, custom_data::Union{Nothing, BSON}=nothing)
+
+    err_ref = Ref{BSONError}()
     roles_handle = roles == nothing ? C_NULL : roles.handle
     custom_data_handle = custom_data == nothing ? C_NULL : custom_data.handle
-    ok = mongoc_database_add_user(database.handle, username, password, roles_handle, custom_data_handle, err)
+    ok = mongoc_database_add_user(database.handle, username, password, roles_handle,
+                                  custom_data_handle, err_ref)
     if !ok
-        error("$err")
+        throw(err_ref[])
     end
     nothing
 end
@@ -129,10 +138,10 @@ end
 Removes a user from database.
 """
 function remove_user(database::Database, username::String)
-    err = BSONError()
-    ok = mongoc_database_remove_user(database.handle, username, err)
+    err_ref = Ref{BSONError}()
+    ok = mongoc_database_remove_user(database.handle, username, err_ref)
     if !ok
-        error("$err")
+        throw(err_ref[])
     end
     nothing
 end
@@ -156,7 +165,8 @@ function find_collections(database::Database; options::Union{Nothing, BSON}=noth
     return Cursor(database, cursor_handle)
 end
 
-function get_collection_names(database::Database; options::Union{Nothing, BSON}=nothing) :: Vector{String}
+function get_collection_names(database::Database;
+                              options::Union{Nothing, BSON}=nothing) :: Vector{String}
     result = Vector{String}()
     for bson_collection in find_collections(database, options=options)
         push!(result, bson_collection["name"])
@@ -176,63 +186,78 @@ function _new_id(document::BSON)
     end
 end
 
-function insert_one(collection::Collection, document::BSON; options::Union{Nothing, BSON}=nothing) :: InsertOneResult
+function insert_one(collection::Collection, document::BSON;
+        options::Union{Nothing, BSON}=nothing) :: InsertOneResult
+
     document, inserted_oid = _new_id(document)
     reply = BSON()
-    err = BSONError()
+    err_ref = Ref{BSONError}()
     options_handle = options == nothing ? C_NULL : options.handle
-    ok = mongoc_collection_insert_one(collection.handle, document.handle, options_handle, reply.handle, err)
+    ok = mongoc_collection_insert_one(collection.handle, document.handle, options_handle,
+                                      reply.handle, err_ref)
     if !ok
-        error("$err.")
+        throw(err_ref[])
     end
     return InsertOneResult(reply, inserted_oid)
 end
 
 function delete_one(collection::Collection, selector::BSON; options::Union{Nothing, BSON}=nothing)
     reply = BSON()
-    err = BSONError()
+    err_ref = Ref{BSONError}()
     options_handle = options == nothing ? C_NULL : options.handle
-    ok = mongoc_collection_delete_one(collection.handle, selector.handle, options_handle, reply.handle, err)
+    ok = mongoc_collection_delete_one(collection.handle, selector.handle, options_handle,
+                                      reply.handle, err_ref)
     if !ok
-        error("$err.")
+        throw(err_ref[])
     end
     return reply
 end
 
 function delete_many(collection::Collection, selector::BSON; options::Union{Nothing, BSON}=nothing)
     reply = BSON()
-    err = BSONError()
+    err_ref = Ref{BSONError}()
     options_handle = options == nothing ? C_NULL : options.handle
-    ok = mongoc_collection_delete_many(collection.handle, selector.handle, options_handle, reply.handle, err)
+    ok = mongoc_collection_delete_many(collection.handle, selector.handle, options_handle,
+                                       reply.handle, err_ref)
     if !ok
-        error("$err.")
+        throw(err_ref[])
     end
     return reply
 end
 
-function update_one(collection::Collection, selector::BSON, update::BSON; options::Union{Nothing, BSON}=nothing)
+function update_one(collection::Collection, selector::BSON, update::BSON;
+        options::Union{Nothing, BSON}=nothing)
+
     reply = BSON()
-    err = BSONError()
+    err_ref = Ref{BSONError}()
     options_handle = options == nothing ? C_NULL : options.handle
-    ok = mongoc_collection_update_one(collection.handle, selector.handle, update.handle, options_handle, reply.handle, err)
+    ok = mongoc_collection_update_one(collection.handle, selector.handle, update.handle,
+                                      options_handle, reply.handle, err_ref)
     if !ok
-        error("$err.")
+        throw(err_ref[])
     end
     return reply
 end
 
-function update_many(collection::Collection, selector::BSON, update::BSON; options::Union{Nothing, BSON}=nothing)
+function update_many(collection::Collection, selector::BSON, update::BSON;
+        options::Union{Nothing, BSON}=nothing)
+
     reply = BSON()
-    err = BSONError()
+    err_ref = Ref{BSONError}()
     options_handle = options == nothing ? C_NULL : options.handle
-    ok = mongoc_collection_update_many(collection.handle, selector.handle, update.handle, options_handle, reply.handle, err)
+
+    ok = mongoc_collection_update_many(collection.handle, selector.handle, update.handle,
+        options_handle, reply.handle, err_ref)
+
     if !ok
-        error("$err.")
+        throw_err(err_ref[])
     end
     return reply
 end
 
-BulkOperationResult(reply::BSON, server_id::UInt32) = BulkOperationResult(reply, server_id, Vector{Union{Nothing, BSONObjectId}}())
+function BulkOperationResult(reply::BSON, server_id::UInt32)
+    BulkOperationResult(reply, server_id, Vector{Union{Nothing, BSONObjectId}}())
+end
 
 function execute!(bulk_operation::BulkOperation) :: BulkOperationResult
     if bulk_operation.executed
@@ -241,10 +266,13 @@ function execute!(bulk_operation::BulkOperation) :: BulkOperationResult
 
     try
         reply = BSON()
-        err = BSONError()
-        bulk_operation_result = mongoc_bulk_operation_execute(bulk_operation.handle, reply.handle, err)
+        err_ref = Ref{BSONError}()
+
+        bulk_operation_result = mongoc_bulk_operation_execute(bulk_operation.handle,
+            reply.handle, err_ref)
+
         if bulk_operation_result == 0
-            error("Bulk operation execution failed. $err.")
+            throw(err_ref[])
         end
         return BulkOperationResult(reply, bulk_operation_result)
     finally
@@ -252,17 +280,23 @@ function execute!(bulk_operation::BulkOperation) :: BulkOperationResult
     end
 end
 
-function bulk_insert!(bulk_operation::BulkOperation, document::BSON; options::Union{Nothing, BSON}=nothing)
-    err = BSONError()
+function bulk_insert!(bulk_operation::BulkOperation, document::BSON;
+        options::Union{Nothing, BSON}=nothing)
+
+    err_ref = Ref{BSONError}()
     options_handle = options == nothing ? C_NULL : options.handle
-    ok = mongoc_bulk_operation_insert_with_opts(bulk_operation.handle, document.handle, options_handle, err)
+    ok = mongoc_bulk_operation_insert_with_opts(bulk_operation.handle, document.handle,
+        options_handle, err_ref)
+
     if !ok
-        error("Bulk insert failed. $err.")
+        throw(err_ref[])
     end
     nothing
 end
 
-function insert_many(collection::Collection, documents::Vector{BSON}; bulk_options::Union{Nothing, BSON}=nothing, insert_options::Union{Nothing, BSON}=nothing)
+function insert_many(collection::Collection, documents::Vector{BSON};
+        bulk_options::Union{Nothing, BSON}=nothing, insert_options::Union{Nothing, BSON}=nothing)
+
     inserted_oids = Vector{Union{Nothing, BSONObjectId}}()
 
     bulk_operation = BulkOperation(collection, options=bulk_options)
@@ -276,21 +310,29 @@ function insert_many(collection::Collection, documents::Vector{BSON}; bulk_optio
     return result
 end
 
-function find(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) :: Cursor
+function find(collection::Collection, bson_filter::BSON=BSON();
+        options::Union{Nothing, BSON}=nothing) :: Cursor
+
     options_handle = options == nothing ? C_NULL : options.handle
-    cursor_handle = mongoc_collection_find_with_opts(collection.handle, bson_filter.handle, options_handle, C_NULL)
+    cursor_handle = mongoc_collection_find_with_opts(collection.handle, bson_filter.handle,
+        options_handle, C_NULL)
+
     if cursor_handle == C_NULL
         error("Couldn't execute query.")
     end
     return Cursor(collection, cursor_handle)
 end
 
-function count_documents(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing)
-    err = BSONError()
+function count_documents(collection::Collection, bson_filter::BSON=BSON();
+        options::Union{Nothing, BSON}=nothing)
+
+    err_ref = Ref{BSONError}()
     options_handle = options == nothing ? C_NULL : options.handle
-    len = mongoc_collection_count_documents(collection.handle, bson_filter.handle, options_handle, C_NULL, C_NULL, err)
+    len = mongoc_collection_count_documents(collection.handle, bson_filter.handle,
+        options_handle, C_NULL, C_NULL, err_ref)
+
     if len == -1
-        error("Couldn't count number of elements in $collection. $err.")
+        throw(err_ref[])
     end
     return Int(len)
 end
@@ -344,9 +386,9 @@ function _iterate(cursor::Cursor, state::Nothing=nothing)
         # So we should return a deepcopy.
         return deepcopy(BSON(bson_handle_ref[], enable_finalizer=false)), nothing
     else
-        err = BSONError()
-        if mongoc_cursor_error(cursor.handle, err)
-            error("$err")
+        err_ref = Ref{BSONError}()
+        if mongoc_cursor_error(cursor.handle, err_ref)
+            throw(err_ref[])
         end
 
         return nothing

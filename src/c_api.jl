@@ -12,19 +12,27 @@ function bson_oid_init(oid_ref::Ref{BSONObjectId}, context::Ptr{Cvoid})
 end
 
 function bson_oid_init_from_string(oid_ref::Ref{BSONObjectId}, oid_string::String)
-    ccall((:bson_oid_init_from_string, libbson), Cvoid, (Ref{BSONObjectId}, Cstring), oid_ref, oid_string)
+    ccall((:bson_oid_init_from_string, libbson), Cvoid,
+          (Ref{BSONObjectId}, Cstring),
+          oid_ref, oid_string)
 end
 
 function bson_oid_to_string(oid::BSONObjectId)
     buffer_len = 25
     buffer = zeros(UInt8, buffer_len)
-    ccall((:bson_oid_to_string, libbson), Cvoid, (Ref{BSONObjectId}, Ref{UInt8}), Ref(oid), Ref(buffer, 1))
+
+    ccall((:bson_oid_to_string, libbson), Cvoid,
+          (Ref{BSONObjectId}, Ref{UInt8}),
+          Ref(oid), Ref(buffer, 1))
+
     @assert buffer[end] == 0
     return String(buffer[1:end-1])
 end
 
 function bson_oid_compare(oid1::BSONObjectId, oid2::BSONObjectId)
-    ccall((:bson_oid_compare, libbson), Cint, (Ref{BSONObjectId}, Ref{BSONObjectId}), Ref(oid1), Ref(oid2))
+    ccall((:bson_oid_compare, libbson), Cint,
+          (Ref{BSONObjectId}, Ref{BSONObjectId}),
+          Ref(oid1), Ref(oid2))
 end
 
 function bson_oid_get_time_t(oid::BSONObjectId)
@@ -37,52 +45,78 @@ function bson_oid_is_valid(str::String)
 end
 
 function bson_append_oid(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::BSONObjectId)
-    ccall((:bson_append_oid, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Ref{BSONObjectId}), bson_document, key, key_length, value)
+    ccall((:bson_append_oid, libbson), Bool,
+          (Ptr{Cvoid}, Cstring, Cint, Ref{BSONObjectId}),
+          bson_document, key, key_length, value)
 end
 
 function bson_append_int32(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Int32)
-    ccall((:bson_append_int32, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Cint), bson_document, key, key_length, value)
+    ccall((:bson_append_int32, libbson), Bool,
+          (Ptr{Cvoid}, Cstring, Cint, Cint),
+          bson_document, key, key_length, value)
 end
 
 function bson_append_int64(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Int64)
-    ccall((:bson_append_int64, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Clonglong), bson_document, key, key_length, value)
+    ccall((:bson_append_int64, libbson), Bool,
+          (Ptr{Cvoid}, Cstring, Cint, Clonglong),
+          bson_document, key, key_length, value)
 end
 
-function bson_append_utf8(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::AbstractString, len::Int)
-    ccall((:bson_append_utf8, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Cstring, Cint), bson_document, key, key_length, value, len)
+function bson_append_utf8(bson_document::Ptr{Cvoid},
+                          key::String, key_length::Int, value::AbstractString, len::Int)
+    ccall((:bson_append_utf8, libbson), Bool,
+          (Ptr{Cvoid}, Cstring, Cint, Cstring, Cint),
+          bson_document, key, key_length, value, len)
 end
 
 function bson_append_bool(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Bool)
-    ccall((:bson_append_bool, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Bool), bson_document, key, key_length, value)
+    ccall((:bson_append_bool, libbson), Bool,
+          (Ptr{Cvoid}, Cstring, Cint, Bool),
+          bson_document, key, key_length, value)
 end
 
 function bson_append_double(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Float64)
-    ccall((:bson_append_double, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Cdouble), bson_document, key, key_length, value)
+    ccall((:bson_append_double, libbson), Bool,
+          (Ptr{Cvoid}, Cstring, Cint, Cdouble),
+          bson_document, key, key_length, value)
 end
 
 function bson_append_date_time(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Int64)
-    ccall((:bson_append_date_time, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Clonglong), bson_document, key, key_length, value)
+    ccall((:bson_append_date_time, libbson), Bool,
+          (Ptr{Cvoid}, Cstring, Cint, Clonglong),
+          bson_document, key, key_length, value)
 end
 
 function bson_append_document(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Ptr{Cvoid})
-    ccall((:bson_append_document, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Ptr{Cvoid}), bson_document, key, key_length, value)
+    ccall((:bson_append_document, libbson), Bool,
+          (Ptr{Cvoid}, Cstring, Cint, Ptr{Cvoid}),
+          bson_document, key, key_length, value)
 end
 
 function bson_append_array(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Ptr{Cvoid})
-    ccall((:bson_append_array, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Ptr{Cvoid}), bson_document, key, key_length, value)
+    ccall((:bson_append_array, libbson), Bool,
+          (Ptr{Cvoid}, Cstring, Cint, Ptr{Cvoid}),
+          bson_document, key, key_length, value)
 end
 
-function bson_append_binary(bson_document::Ptr{Cvoid}, key::String, key_length::Int, subtype::BSONSubType, value::Vector{UInt8}, val_length::UInt32)
-    ccall((:bson_append_binary, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, BSONSubType, Ptr{Cvoid}, Culong), bson_document, key, key_length, subtype, value, val_length)
+function bson_append_binary(bson_document::Ptr{Cvoid}, key::String, key_length::Int,
+                            subtype::BSONSubType, value::Vector{UInt8}, val_length::UInt32)
+    ccall((:bson_append_binary, libbson), Bool,
+          (Ptr{Cvoid}, Cstring, Cint, BSONSubType, Ptr{Cvoid}, Culong),
+          bson_document, key, key_length, subtype, value, val_length)
 end
 
 function bson_append_code(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::String)
-    ccall((:bson_append_code, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Cstring), bson_document, key, key_length, value)
+    ccall((:bson_append_code, libbson), Bool,
+          (Ptr{Cvoid}, Cstring, Cint, Cstring),
+          bson_document, key, key_length, value)
 end
 
 #bool bson_append_null (bson_t *bson, const char *key, int key_length);
 function bson_append_null(bson_document::Ptr{Cvoid}, key::String, key_length::Int)
-    ccall((:bson_append_null, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint), bson_document, key, key_length)
+    ccall((:bson_append_null, libbson), Bool,
+          (Ptr{Cvoid}, Cstring, Cint),
+          bson_document, key, key_length)
 end
 
 function bson_new()
@@ -90,7 +124,9 @@ function bson_new()
 end
 
 function bson_new_from_json(data::String, len::Int=-1)
-    ccall((:bson_new_from_json, libbson), Ptr{Cvoid}, (Ptr{UInt8}, Cssize_t, Ptr{Cvoid}), data, len, C_NULL)
+    ccall((:bson_new_from_json, libbson), Ptr{Cvoid},
+          (Ptr{UInt8}, Cssize_t, Ptr{Cvoid}),
+          data, len, C_NULL)
 end
 
 function bson_destroy(bson_document::Ptr{Cvoid})
@@ -98,11 +134,15 @@ function bson_destroy(bson_document::Ptr{Cvoid})
 end
 
 function bson_as_canonical_extended_json(bson_document::Ptr{Cvoid})
-    ccall((:bson_as_canonical_extended_json, libbson), Cstring, (Ptr{Cvoid}, Ptr{Cvoid}), bson_document, C_NULL)
+    ccall((:bson_as_canonical_extended_json, libbson), Cstring,
+          (Ptr{Cvoid}, Ptr{Cvoid}),
+          bson_document, C_NULL)
 end
 
 function bson_as_relaxed_extended_json(bson_document::Ptr{Cvoid})
-    ccall((:bson_as_relaxed_extended_json, libbson), Cstring, (Ptr{Cvoid}, Ptr{Cvoid}), bson_document, C_NULL)
+    ccall((:bson_as_relaxed_extended_json, libbson), Cstring,
+          (Ptr{Cvoid}, Ptr{Cvoid}),
+          bson_document, C_NULL)
 end
 
 function bson_copy(bson_document::Ptr{Cvoid})
@@ -126,7 +166,9 @@ function bson_iter_find(iter_ref::Ref{BSONIter}, key::String)
 end
 
 function bson_iter_init_find(iter_ref::Ref{BSONIter}, bson_document::Ptr{Cvoid}, key::String)
-    ccall((:bson_iter_init_find, libbson), Bool, (Ref{BSONIter}, Ptr{Cvoid}, Cstring), iter_ref, bson_document, key)
+    ccall((:bson_iter_init_find, libbson), Bool,
+          (Ref{BSONIter}, Ptr{Cvoid}, Cstring),
+          iter_ref, bson_document, key)
 end
 
 function bson_iter_type(iter_ref::Ref{BSONIter})
@@ -175,8 +217,9 @@ end
 
 function bson_iter_binary(iter_ref::Ref{BSONIter}, lengthPtr::Array{UInt32}, dataPtr::Array{Ptr{UInt8}})
     bsonsubtype = BSON_SUBTYPE_BINARY
-    ccall((:bson_iter_binary, libbson), Cvoid, (Ref{BSONIter}, Ref{BSONSubType}, Ptr{UInt32}, Ptr{Ptr{UInt8}}),iter_ref, bsonsubtype, lengthPtr, dataPtr)
-    nothing
+    ccall((:bson_iter_binary, libbson), Cvoid,
+          (Ref{BSONIter}, Ref{BSONSubType}, Ptr{UInt32}, Ptr{Ptr{UInt8}}),
+          iter_ref, bsonsubtype, lengthPtr, dataPtr)
 end
 
 function bson_free(mem::Ptr{Cvoid})
@@ -187,8 +230,10 @@ function bson_reader_destroy(bson_reader_handle::Ptr{Cvoid})
     ccall((:bson_reader_destroy, libbson), Cvoid, (Ptr{Cvoid},), bson_reader_handle)
 end
 
-function bson_reader_new_from_file(filepath::AbstractString, bson_error::BSONError)
-    ccall((:bson_reader_new_from_file, libbson), Ptr{Cvoid}, (Cstring, Ref{BSONError}), filepath, Ref(bson_error))
+function bson_reader_new_from_file(filepath::AbstractString, bson_error_ref::Ref{BSONError})
+    ccall((:bson_reader_new_from_file, libbson), Ptr{Cvoid},
+          (Cstring, Ref{BSONError}),
+          filepath, bson_error_ref)
 end
 
 function bson_reader_new_from_data(data::Ptr{UInt8}, data_length::Integer)
@@ -196,7 +241,9 @@ function bson_reader_new_from_data(data::Ptr{UInt8}, data_length::Integer)
 end
 
 function bson_reader_read(bson_reader_handle::Ptr{Cvoid}, reached_eof_ref::Ref{Bool})
-    ccall((:bson_reader_read, libbson), Ptr{Cvoid}, (Ptr{Cvoid}, Ref{Bool}), bson_reader_handle, reached_eof_ref)
+    ccall((:bson_reader_read, libbson), Ptr{Cvoid},
+          (Ptr{Cvoid}, Ref{Bool}),
+          bson_reader_handle, reached_eof_ref)
 end
 
 function bson_writer_destroy(bson_writer_handle::Ptr{Cvoid})
@@ -204,15 +251,20 @@ function bson_writer_destroy(bson_writer_handle::Ptr{Cvoid})
 end
 
 function bson_writer_begin(bson_writer_handle::Ptr{Cvoid}, bson_document_handle_ref::Ref{Ptr{Cvoid}})
-    ccall((:bson_writer_begin, libbson), Bool, (Ptr{Cvoid}, Ref{Ptr{Cvoid}}), bson_writer_handle, bson_document_handle_ref)
+    ccall((:bson_writer_begin, libbson), Bool,
+          (Ptr{Cvoid}, Ref{Ptr{Cvoid}}),
+          bson_writer_handle, bson_document_handle_ref)
 end
 
 function bson_writer_end(bson_writer_handle::Ptr{Cvoid})
     ccall((:bson_writer_end, libbson), Cvoid, (Ptr{Cvoid},), bson_writer_handle)
 end
 
-function bson_writer_new(buffer_handle_ref::Ref{Ptr{UInt8}}, buffer_length_ref::Ref{Csize_t}, offset::Csize_t, realloc_func::Ptr{Cvoid}, realloc_func_ctx::Ptr{Cvoid})
-    ccall((:bson_writer_new, libbson), Ptr{Cvoid}, (Ref{Ptr{UInt8}}, Ref{Csize_t}, Csize_t, Ptr{Cvoid}, Ptr{Cvoid}), buffer_handle_ref, buffer_length_ref, offset, realloc_func, realloc_func_ctx)
+function bson_writer_new(buffer_handle_ref::Ref{Ptr{UInt8}}, buffer_length_ref::Ref{Csize_t},
+                         offset::Csize_t, realloc_func::Ptr{Cvoid}, realloc_func_ctx::Ptr{Cvoid})
+    ccall((:bson_writer_new, libbson), Ptr{Cvoid},
+         (Ref{Ptr{UInt8}}, Ref{Csize_t}, Csize_t, Ptr{Cvoid}, Ptr{Cvoid}),
+         buffer_handle_ref, buffer_length_ref, offset, realloc_func, realloc_func_ctx)
 end
 
 function bson_writer_get_length(bson_writer_handle::Ptr{Cvoid})
@@ -242,11 +294,16 @@ function bson_copy_to_excluding_noinit(src_bson_handle::Ptr{Cvoid}, dst_bson_han
 
     exclude = exclude_key(src_bson_handle)
 
-    ccall((:bson_copy_to_excluding_noinit, libbson), Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Cstring), src_bson_handle, dst_bson_handle, exclude, C_NULL)
+    ccall((:bson_copy_to_excluding_noinit, libbson), Cvoid,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Cstring),
+          src_bson_handle, dst_bson_handle, exclude, C_NULL)
 end
 
-function bson_copy_to_excluding_noinit(src_bson_handle::Ptr{Cvoid}, dst_bson_handle::Ptr{Cvoid}, exclude::AbstractString)
-    ccall((:bson_copy_to_excluding_noinit, libbson), Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Cstring), src_bson_handle, dst_bson_handle, exclude, C_NULL)
+function bson_copy_to_excluding_noinit(src_bson_handle::Ptr{Cvoid}, dst_bson_handle::Ptr{Cvoid},
+                                       exclude::AbstractString)
+    ccall((:bson_copy_to_excluding_noinit, libbson), Cvoid,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Cstring),
+          src_bson_handle, dst_bson_handle, exclude, C_NULL)
 end
 
 #
@@ -257,8 +314,10 @@ function mongoc_init()
     ccall((:mongoc_init, libmongoc), Cvoid, ())
 end
 
-function mongoc_uri_new_with_error(uri_string::String, bson_error::BSONError)
-    ccall((:mongoc_uri_new_with_error, libmongoc), Ptr{Cvoid}, (Cstring, Ref{BSONError}), uri_string, Ref(bson_error))
+function mongoc_uri_new_with_error(uri_string::String, bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_uri_new_with_error, libmongoc), Ptr{Cvoid},
+          (Cstring, Ref{BSONError}),
+          uri_string, bson_error_ref)
 end
 
 function mongoc_uri_destroy(uri_handle::Ptr{Cvoid})
@@ -278,35 +337,55 @@ function mongoc_client_set_appname(client_handle::Ptr{Cvoid}, appname::String)
 end
 
 function mongoc_client_get_database(client_handle::Ptr{Cvoid}, db_name::String)
-    ccall((:mongoc_client_get_database, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Cstring), client_handle, db_name)
+    ccall((:mongoc_client_get_database, libmongoc), Ptr{Cvoid},
+          (Ptr{Cvoid}, Cstring),
+          client_handle, db_name)
 end
 
 function mongoc_client_find_databases_with_opts(client_handle::Ptr{Cvoid}, bson_opts::Ptr{Cvoid})
-    ccall((:mongoc_client_find_databases_with_opts, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}), client_handle, bson_opts)
+    ccall((:mongoc_client_find_databases_with_opts, libmongoc), Ptr{Cvoid},
+          (Ptr{Cvoid}, Ptr{Cvoid}),
+          client_handle, bson_opts)
 end
 
-function mongoc_client_start_session(client_handle::Ptr{Cvoid}, session_options_handle::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_client_start_session, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), client_handle, session_options_handle, Ref(bson_error))
+function mongoc_client_start_session(client_handle::Ptr{Cvoid}, session_options_handle::Ptr{Cvoid},
+                                     bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_client_start_session, libmongoc), Ptr{Cvoid},
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          client_handle, session_options_handle, bson_error_ref)
 end
 
 function mongoc_client_session_destroy(session_handle::Ptr{Cvoid})
     ccall((:mongoc_client_session_destroy, libmongoc), Cvoid, (Ptr{Cvoid},), session_handle)
 end
 
-function mongoc_client_session_append(session_handle::Ptr{Cvoid}, bson_opts::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_client_session_append, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), session_handle, bson_opts, Ref(bson_error))
+function mongoc_client_session_append(session_handle::Ptr{Cvoid}, bson_opts::Ptr{Cvoid},
+                                      bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_client_session_append, libmongoc), Bool,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          session_handle, bson_opts, bson_error_ref)
 end
 
-function mongoc_client_session_start_transaction(session_handle::Ptr{Cvoid}, transaction_options_handle::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_client_session_start_transaction, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), session_handle, transaction_options_handle, Ref(bson_error))
+function mongoc_client_session_start_transaction(session_handle::Ptr{Cvoid},
+                                                 transaction_options_handle::Ptr{Cvoid},
+                                                 bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_client_session_start_transaction, libmongoc), Bool,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          session_handle, transaction_options_handle, bson_error_ref)
 end
 
-function mongoc_client_session_abort_transaction(session_handle::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_client_session_abort_transaction, libmongoc), Bool, (Ptr{Cvoid}, Ref{BSONError}), session_handle, Ref(bson_error))
+function mongoc_client_session_abort_transaction(session_handle::Ptr{Cvoid},
+                                                 bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_client_session_abort_transaction, libmongoc), Bool,
+          (Ptr{Cvoid}, Ref{BSONError}),
+          session_handle, bson_error_ref)
 end
 
-function mongoc_client_session_commit_transaction(session_handle::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_client_session_commit_transaction, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), session_handle, bson_reply, Ref(bson_error))
+function mongoc_client_session_commit_transaction(session_handle::Ptr{Cvoid}, bson_reply::Ptr{Cvoid},
+                                                  bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_client_session_commit_transaction, libmongoc), Bool,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          session_handle, bson_reply, bson_error_ref)
 end
 
 function mongoc_client_session_in_transaction(session_handle::Ptr{Cvoid})
@@ -322,11 +401,16 @@ function mongoc_session_opts_destroy(session_options_handle::Ptr{Cvoid})
 end
 
 function mongoc_session_opts_get_causal_consistency(session_options_handle::Ptr{Cvoid})
-    ccall((:mongoc_session_opts_get_causal_consistency, libmongoc), Bool, (Ptr{Cvoid},), session_options_handle)
+    ccall((:mongoc_session_opts_get_causal_consistency, libmongoc), Bool,
+          (Ptr{Cvoid},),
+          session_options_handle)
 end
 
-function mongoc_session_opts_set_causal_consistency(session_options_handle::Ptr{Cvoid}, casual_consistency::Bool)
-    ccall((:mongoc_session_opts_set_causal_consistency, libmongoc), Cvoid, (Ptr{Cvoid}, Bool), session_options_handle, casual_consistency)
+function mongoc_session_opts_set_causal_consistency(session_options_handle::Ptr{Cvoid},
+                                                    casual_consistency::Bool)
+    ccall((:mongoc_session_opts_set_causal_consistency, libmongoc), Cvoid,
+          (Ptr{Cvoid}, Bool),
+          session_options_handle, casual_consistency)
 end
 
 function mongoc_database_destroy(database_handle::Ptr{Cvoid})
@@ -334,67 +418,120 @@ function mongoc_database_destroy(database_handle::Ptr{Cvoid})
 end
 
 function mongoc_database_get_collection(database_handle::Ptr{Cvoid}, collection_name::String)
-    ccall((:mongoc_database_get_collection, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Cstring), database_handle, collection_name)
+    ccall((:mongoc_database_get_collection, libmongoc), Ptr{Cvoid},
+          (Ptr{Cvoid}, Cstring),
+          database_handle, collection_name)
 end
 
 function mongoc_database_find_collections_with_opts(database_handle::Ptr{Cvoid}, bson_opts::Ptr{Cvoid})
-    ccall((:mongoc_database_find_collections_with_opts, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}), database_handle, bson_opts)
+    ccall((:mongoc_database_find_collections_with_opts, libmongoc), Ptr{Cvoid},
+          (Ptr{Cvoid}, Ptr{Cvoid}),
+          database_handle, bson_opts)
 end
 
-function mongoc_database_command_simple(database_handle::Ptr{Cvoid}, bson_command::Ptr{Cvoid}, read_prefs::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_database_command_simple, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), database_handle, bson_command, read_prefs, bson_reply, Ref(bson_error))
+function mongoc_database_command_simple(database_handle::Ptr{Cvoid}, bson_command::Ptr{Cvoid},
+                                        read_prefs::Ptr{Cvoid}, bson_reply::Ptr{Cvoid},
+                                        bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_database_command_simple, libmongoc), Bool,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          database_handle, bson_command, read_prefs, bson_reply, bson_error_ref)
 end
 
-function mongoc_database_add_user(database_handle::Ptr{Cvoid}, username::String, password::String, bson_roles::Ptr{Cvoid}, bson_custom_data::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_database_add_user, libmongoc), Bool, (Ptr{Cvoid}, Cstring, Cstring, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), database_handle, username, password, bson_roles, bson_custom_data, Ref(bson_error))
+function mongoc_database_add_user(database_handle::Ptr{Cvoid}, username::String, password::String,
+                                  bson_roles::Ptr{Cvoid}, bson_custom_data::Ptr{Cvoid},
+                                  bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_database_add_user, libmongoc), Bool,
+          (Ptr{Cvoid}, Cstring, Cstring, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          database_handle, username, password, bson_roles, bson_custom_data, bson_error_ref)
 end
 
-function mongoc_database_remove_user(database_handle::Ptr{Cvoid}, username::String, bson_error::BSONError)
-    ccall((:mongoc_database_remove_user, libmongoc), Bool, (Ptr{Cvoid}, Cstring, Ref{BSONError}), database_handle, username, Ref(bson_error))
+function mongoc_database_remove_user(database_handle::Ptr{Cvoid}, username::String,
+                                     bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_database_remove_user, libmongoc), Bool,
+          (Ptr{Cvoid}, Cstring, Ref{BSONError}),
+          database_handle, username, bson_error_ref)
 end
 
-function mongoc_collection_command_simple(collection_handle::Ptr{Cvoid}, bson_command::Ptr{Cvoid}, read_prefs::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_collection_command_simple, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_command, read_prefs, bson_reply, Ref(bson_error))
+function mongoc_collection_command_simple(collection_handle::Ptr{Cvoid}, bson_command::Ptr{Cvoid},
+                                          read_prefs::Ptr{Cvoid}, bson_reply::Ptr{Cvoid},
+                                          bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_collection_command_simple, libmongoc), Bool,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          collection_handle, bson_command, read_prefs, bson_reply, bson_error_ref)
 end
 
 function mongoc_collection_destroy(collection_handle::Ptr{Cvoid})
     ccall((:mongoc_collection_destroy, libmongoc), Cvoid, (Ptr{Cvoid},), collection_handle)
 end
 
-function mongoc_collection_insert_one(collection_handle::Ptr{Cvoid}, bson_document::Ptr{Cvoid}, bson_options::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_collection_insert_one, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_document, bson_options, bson_reply, Ref(bson_error))
+function mongoc_collection_insert_one(collection_handle::Ptr{Cvoid}, bson_document::Ptr{Cvoid},
+                                      bson_options::Ptr{Cvoid}, bson_reply::Ptr{Cvoid},
+                                      bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_collection_insert_one, libmongoc), Bool,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          collection_handle, bson_document, bson_options, bson_reply, bson_error_ref)
 end
 
-function mongoc_collection_find_with_opts(collection_handle::Ptr{Cvoid}, bson_filter::Ptr{Cvoid}, bson_opts::Ptr{Cvoid}, read_prefs::Ptr{Cvoid})
-    ccall((:mongoc_collection_find_with_opts, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}), collection_handle, bson_filter, bson_opts, read_prefs)
+function mongoc_collection_find_with_opts(collection_handle::Ptr{Cvoid}, bson_filter::Ptr{Cvoid},
+                                          bson_opts::Ptr{Cvoid}, read_prefs::Ptr{Cvoid})
+    ccall((:mongoc_collection_find_with_opts, libmongoc), Ptr{Cvoid},
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}),
+          collection_handle, bson_filter, bson_opts, read_prefs)
 end
 
-function mongoc_collection_count_documents(collection_handle::Ptr{Cvoid}, bson_filter::Ptr{Cvoid}, bson_opts::Ptr{Cvoid}, read_prefs::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_collection_count_documents, libmongoc), Int64, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_filter, bson_opts, read_prefs, bson_reply, Ref(bson_error))
+function mongoc_collection_count_documents(collection_handle::Ptr{Cvoid}, bson_filter::Ptr{Cvoid},
+                                           bson_opts::Ptr{Cvoid}, read_prefs::Ptr{Cvoid},
+                                           bson_reply::Ptr{Cvoid}, bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_collection_count_documents, libmongoc), Int64,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          collection_handle, bson_filter, bson_opts, read_prefs, bson_reply, bson_error_ref)
 end
 
-function mongoc_collection_create_bulk_operation_with_opts(collection_handle::Ptr{Cvoid}, bson_opts::Ptr{Cvoid})
-    ccall((:mongoc_collection_create_bulk_operation_with_opts, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Ptr{Cvoid}), collection_handle, bson_opts)
+function mongoc_collection_create_bulk_operation_with_opts(collection_handle::Ptr{Cvoid},
+                                                           bson_opts::Ptr{Cvoid})
+    ccall((:mongoc_collection_create_bulk_operation_with_opts, libmongoc), Ptr{Cvoid},
+          (Ptr{Cvoid}, Ptr{Cvoid}),
+          collection_handle, bson_opts)
 end
 
-function mongoc_collection_delete_one(collection_handle::Ptr{Cvoid}, bson_selector::Ptr{Cvoid}, bson_opts::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_collection_delete_one, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_selector, bson_opts, bson_reply, Ref(bson_error))
+function mongoc_collection_delete_one(collection_handle::Ptr{Cvoid}, bson_selector::Ptr{Cvoid},
+                                      bson_opts::Ptr{Cvoid}, bson_reply::Ptr{Cvoid},
+                                      bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_collection_delete_one, libmongoc), Bool,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          collection_handle, bson_selector, bson_opts, bson_reply, bson_error_ref)
 end
 
-function mongoc_collection_delete_many(collection_handle::Ptr{Cvoid}, bson_selector::Ptr{Cvoid}, bson_opts::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_collection_delete_many, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_selector, bson_opts, bson_reply, Ref(bson_error))
+function mongoc_collection_delete_many(collection_handle::Ptr{Cvoid}, bson_selector::Ptr{Cvoid},
+                                       bson_opts::Ptr{Cvoid}, bson_reply::Ptr{Cvoid},
+                                       bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_collection_delete_many, libmongoc), Bool,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          collection_handle, bson_selector, bson_opts, bson_reply, bson_error_ref)
 end
 
-function mongoc_collection_update_one(collection_handle::Ptr{Cvoid}, bson_selector::Ptr{Cvoid}, bson_update::Ptr{Cvoid}, bson_opts::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_collection_update_one, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_selector, bson_update, bson_opts, bson_reply, Ref(bson_error))
+function mongoc_collection_update_one(collection_handle::Ptr{Cvoid}, bson_selector::Ptr{Cvoid},
+                                      bson_update::Ptr{Cvoid}, bson_opts::Ptr{Cvoid},
+                                      bson_reply::Ptr{Cvoid}, bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_collection_update_one, libmongoc), Bool,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          collection_handle, bson_selector, bson_update, bson_opts, bson_reply, bson_error_ref)
 end
 
-function mongoc_collection_update_many(collection_handle::Ptr{Cvoid}, bson_selector::Ptr{Cvoid}, bson_update::Ptr{Cvoid}, bson_opts::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_collection_update_many, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), collection_handle, bson_selector, bson_update, bson_opts, bson_reply, Ref(bson_error))
+function mongoc_collection_update_many(collection_handle::Ptr{Cvoid}, bson_selector::Ptr{Cvoid},
+                                       bson_update::Ptr{Cvoid}, bson_opts::Ptr{Cvoid},
+                                       bson_reply::Ptr{Cvoid}, bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_collection_update_many, libmongoc), Bool,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          collection_handle, bson_selector, bson_update, bson_opts, bson_reply, bson_error_ref)
 end
 
-function mongoc_collection_aggregate(collection_handle::Ptr{Cvoid}, flags::QueryFlags, bson_pipeline::Ptr{Cvoid}, bson_opts::Ptr{Cvoid}, read_prefs::Ptr{Cvoid})
-    ccall((:mongoc_collection_aggregate, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid}, Cint, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}), collection_handle, flags, bson_pipeline, bson_opts, read_prefs)
+function mongoc_collection_aggregate(collection_handle::Ptr{Cvoid}, flags::QueryFlags,
+                                     bson_pipeline::Ptr{Cvoid}, bson_opts::Ptr{Cvoid},
+                                     read_prefs::Ptr{Cvoid})
+    ccall((:mongoc_collection_aggregate, libmongoc), Ptr{Cvoid},
+          (Ptr{Cvoid}, Cint, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}),
+          collection_handle, flags, bson_pipeline, bson_opts, read_prefs)
 end
 
 function mongoc_cursor_destroy(cursor_handle::Ptr{Cvoid})
@@ -402,25 +539,37 @@ function mongoc_cursor_destroy(cursor_handle::Ptr{Cvoid})
 end
 
 function mongoc_cursor_next(cursor_handle::Ptr{Cvoid}, bson_document_ref::Ref{Ptr{Cvoid}})
-    ccall((:mongoc_cursor_next, libmongoc), Bool, (Ptr{Cvoid}, Ref{Ptr{Cvoid}}), cursor_handle, bson_document_ref)
+    ccall((:mongoc_cursor_next, libmongoc), Bool,
+          (Ptr{Cvoid}, Ref{Ptr{Cvoid}}),
+          cursor_handle, bson_document_ref)
 end
 
 function mongoc_cursor_set_limit(cursor_handle::Ptr{Cvoid}, limit::Int)
     ccall((:mongoc_cursor_set_limit, libmongoc), Bool, (Ptr{Cvoid}, Int64), cursor_handle, limit)
 end
 
-function mongoc_cursor_error(cursor_handle::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_cursor_error, libmongoc), Bool, (Ptr{Cvoid}, Ref{BSONError}), cursor_handle, Ref(bson_error))
+function mongoc_cursor_error(cursor_handle::Ptr{Cvoid}, bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_cursor_error, libmongoc), Bool,
+          (Ptr{Cvoid}, Ref{BSONError}),
+          cursor_handle, bson_error_ref)
 end
 
 function mongoc_bulk_operation_destroy(bulk_operation_handle::Ptr{Cvoid})
     ccall((:mongoc_bulk_operation_destroy, libmongoc), Cvoid, (Ptr{Cvoid},), bulk_operation_handle)
 end
 
-function mongoc_bulk_operation_insert_with_opts(bulk_operation_handle::Ptr{Cvoid}, bson_document::Ptr{Cvoid}, bson_options::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_bulk_operation_insert_with_opts, libmongoc), Bool, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), bulk_operation_handle, bson_document, bson_options, Ref(bson_error))
+function mongoc_bulk_operation_insert_with_opts(bulk_operation_handle::Ptr{Cvoid},
+                                                bson_document::Ptr{Cvoid},
+                                                bson_options::Ptr{Cvoid},
+                                                bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_bulk_operation_insert_with_opts, libmongoc), Bool,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          bulk_operation_handle, bson_document, bson_options, bson_error_ref)
 end
 
-function mongoc_bulk_operation_execute(bulk_operation_handle::Ptr{Cvoid}, bson_reply::Ptr{Cvoid}, bson_error::BSONError)
-    ccall((:mongoc_bulk_operation_execute, libmongoc), UInt32, (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}), bulk_operation_handle, bson_reply, Ref(bson_error))
+function mongoc_bulk_operation_execute(bulk_operation_handle::Ptr{Cvoid}, bson_reply::Ptr{Cvoid},
+                                       bson_error_ref::Ref{BSONError})
+    ccall((:mongoc_bulk_operation_execute, libmongoc), UInt32,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          bulk_operation_handle, bson_reply, bson_error_ref)
 end

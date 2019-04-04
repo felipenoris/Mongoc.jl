@@ -3,10 +3,10 @@
 # Given that options may be nothing, always use the return value as the new value for options.
 function _join(options::Union{Nothing, BSON}, session::Session) :: BSON
     result = options == nothing ? Mongoc.BSON() : options
-    err = BSONError()
-    ok = mongoc_client_session_append(session.handle, result.handle, err)
+    err_ref = Ref{BSONError}()
+    ok = mongoc_client_session_append(session.handle, result.handle, err_ref)
     if !ok
-        error("$err")
+        throw(err_ref[])
     end
     return result
 end
@@ -23,11 +23,19 @@ end
 get_session(database_session::DatabaseSession) = database_session.session
 get_session(collection_session::CollectionSession) = get_session(collection_session.database_session)
 
-DatabaseSession(session::Session, db_name::String) = DatabaseSession(Database(session.client, db_name), session)
-CollectionSession(database_session::DatabaseSession, collection_name::String) = CollectionSession(database_session, Collection(database_session.database, collection_name))
+function DatabaseSession(session::Session, db_name::String)
+    DatabaseSession(Database(session.client, db_name), session)
+end
+
+function CollectionSession(database_session::DatabaseSession, collection_name::String)
+    CollectionSession(database_session, Collection(database_session.database, collection_name))
+end
 
 Base.getindex(session::Session, db_name::String) = DatabaseSession(session, db_name)
-Base.getindex(database_session::DatabaseSession, collection_name::String) = CollectionSession(database_session, collection_name)
+
+function Base.getindex(database_session::DatabaseSession, collection_name::String)
+    CollectionSession(database_session, collection_name)
+end
 
 #
 # Overload
@@ -42,52 +50,65 @@ function get_collection_names(database::DatabaseSession; options::Union{Nothing,
     get_collection_names(database.database, options=options_with_session)
 end
 
-function insert_one(collection::CollectionSession, document::BSON; options::Union{Nothing, BSON}=nothing)
+function insert_one(collection::CollectionSession, document::BSON;
+                    options::Union{Nothing, BSON}=nothing)
     options_with_session = _join(options, get_session(collection))
     insert_one(collection.collection, document, options=options_with_session)
 end
 
-function delete_one(collection::CollectionSession, selector::BSON; options::Union{Nothing, BSON}=nothing)
+function delete_one(collection::CollectionSession, selector::BSON;
+                    options::Union{Nothing, BSON}=nothing)
     options_with_session = _join(options, get_session(collection))
     delete_one(collection.collection, selector, options=options_with_session)
 end
 
-function delete_many(collection::CollectionSession, selector::BSON; options::Union{Nothing, BSON}=nothing)
+function delete_many(collection::CollectionSession, selector::BSON;
+                     options::Union{Nothing, BSON}=nothing)
     options_with_session = _join(options, get_session(collection))
     delete_many(collection.collection, selector, options=options_with_session)
 end
 
-function update_one(collection::CollectionSession, selector::BSON, update::BSON; options::Union{Nothing, BSON}=nothing)
+function update_one(collection::CollectionSession, selector::BSON, update::BSON;
+                    options::Union{Nothing, BSON}=nothing)
     options_with_session = _join(options, get_session(collection))
     update_one(collection.collection, selector, update, options=options_with_session)
 end
 
-function update_many(collection::CollectionSession, selector::BSON, update::BSON; options::Union{Nothing, BSON}=nothing)
+function update_many(collection::CollectionSession, selector::BSON, update::BSON;
+                     options::Union{Nothing, BSON}=nothing)
     options_with_session = _join(options, get_session(collection))
     update_many(collection.collection, selector, update, options=options_with_session)
 end
 
-function insert_many(collection::CollectionSession, documents::Vector{BSON}; bulk_options::Union{Nothing, BSON}=nothing, insert_options::Union{Nothing, BSON}=nothing)
+function insert_many(collection::CollectionSession, documents::Vector{BSON};
+                     bulk_options::Union{Nothing, BSON}=nothing,
+                     insert_options::Union{Nothing, BSON}=nothing)
     bulk_options_with_session = _join(bulk_options, get_session(collection))
-    insert_many(collection.collection, documents, bulk_options=bulk_options_with_session, insert_options=insert_options)
+    insert_many(collection.collection, documents,
+                bulk_options=bulk_options_with_session, insert_options=insert_options)
 end
 
-function find(collection::CollectionSession, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) :: Cursor
+function find(collection::CollectionSession, bson_filter::BSON=BSON();
+              options::Union{Nothing, BSON}=nothing) :: Cursor
     options_with_session = _join(options, get_session(collection))
     find(collection.collection, bson_filter, options=options_with_session)
 end
 
-function count_documents(collection::CollectionSession, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing)
+function count_documents(collection::CollectionSession, bson_filter::BSON=BSON();
+                         options::Union{Nothing, BSON}=nothing)
     options_with_session = _join(options, get_session(collection))
     count_documents(collection.collection, bson_filter, options=options_with_session)
 end
 
-function find_one(collection::CollectionSession, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}
+function find_one(collection::CollectionSession, bson_filter::BSON=BSON();
+                  options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}
     options_with_session = _join(options, get_session(collection))
     find_one(collection.collection, bson_filter, options=options_with_session)
 end
 
-function aggregate(collection::CollectionSession, bson_pipeline::BSON; flags::QueryFlags=QUERY_FLAG_NONE, options::Union{Nothing, BSON}=nothing) :: Cursor
+function aggregate(collection::CollectionSession, bson_pipeline::BSON;
+                   flags::QueryFlags=QUERY_FLAG_NONE,
+                   options::Union{Nothing, BSON}=nothing) :: Cursor
     options_with_session = _join(options, get_session(collection))
     aggregate(collection.collection, bson_pipeline, flags=flags, options=options_with_session)
 end
@@ -97,29 +118,29 @@ end
 #
 
 function start_transaction!(session::Session)
-    err = BSONError()
-    ok = mongoc_client_session_start_transaction(session.handle, C_NULL, err)
+    err_ref = Ref{BSONError}()
+    ok = mongoc_client_session_start_transaction(session.handle, C_NULL, err_ref)
     if !ok
-        error("$err")
+        throw(err_ref[])
     end
     nothing
 end
 
 function abort_transaction!(session::Session)
-    err = BSONError()
-    ok = mongoc_client_session_abort_transaction(session.handle, err)
+    err_ref = Ref{BSONError}()
+    ok = mongoc_client_session_abort_transaction(session.handle, err_ref)
     if !ok
-        error("$err")
+        throw(err_ref[])
     end
     nothing
 end
 
 function commit_transaction!(session::Session) :: BSON
     reply = BSON()
-    err = BSONError()
-    ok = mongoc_client_session_commit_transaction(session.handle, reply.handle, err)
+    err_ref = Ref{BSONError}()
+    ok = mongoc_client_session_commit_transaction(session.handle, reply.handle, err_ref)
     if !ok
-        error("$err")
+        throw(err_ref[])
     end
     return reply
 end
@@ -137,7 +158,8 @@ Use *do-syntax* to execute a transaction.
 
 Transaction will be commited automatically. If an error occurs, the transaction is aborted.
 
-The `session` parameter should be treated the same way as a `Client`: from a `session` you get a `database`,
+The `session` parameter should be treated the same way as a `Client`:
+from a `session` you get a `database`,
 and a `collection` that are bound to the session.
 
 ```julia
