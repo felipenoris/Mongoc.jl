@@ -2,4 +2,5 @@ deps/deps.jl
 deps/usr/**
 deps/build.log
 docs/build/
+docs/Manifest.toml
 *.swp

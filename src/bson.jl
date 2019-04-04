@@ -3,7 +3,7 @@
 # Types
 #
 
-"BSONType mirrors C enum bson_type_t."
+# BSONType mirrors C enum bson_type_t.
 primitive type BSONType 8 end # 1 byte
 
 Base.convert(::Type{T}, t::BSONType) where {T<:Number} = reinterpret(UInt8, t)
@@ -39,7 +39,7 @@ const BSON_TYPE_MINKEY     = BSONType(0xFF)
 
 
 
-"BSONSubType mirrors C enum bson_subtype_t."
+# BSONSubType mirrors C enum bson_subtype_t.
 primitive type BSONSubType 8 end
 
 Base.convert(::Type{T}, t::BSONSubType) where {T<:Number} = reinterpret(UInt8, t)
@@ -58,9 +58,7 @@ const BSON_SUBTYPE_UUID              = BSONSubType(0x04)
 const BSON_SUBTYPE_MD5               = BSONSubType(0x05)
 const BSON_SUBTYPE_USER              = BSONSubType(0x80)
 
-
-
-"""
+#=
 BSONIter mirrors C struct bson_iter_t and can be allocated in the stack.
 
 According to [libbson documentation](http://mongoc.org/libbson/current/bson_iter_t.html),
@@ -74,15 +72,28 @@ Inspecting its size in C, we get:
 ```c
 sizeof(bson_iter_t) == 80
 ```
-"""
+=#
 primitive type BSONIter 80 * 8 end # 80 bytes
 
 """
-Mirrors C struct `bson_oid_t`.
+A `BSONObjectId` represents a unique identifier
+for a BSON document.
+
+# Example
+
+The following generates a new `BSONObjectId`.
+
+```julia
+julia> Mongoc.BSONObjectId()
+```
+
+# C API
 
 `BSONObjectId` instances addresses are passed
 to libbson/libmongoc API using `Ref(oid)`,
 and are owned by the Julia process.
+
+Mirrors C struct `bson_oid_t`:
 
 ```c
 typedef struct {
@@ -116,7 +127,12 @@ end
 Base.copy(oid::BSONObjectId) = BSONObjectId(oid)
 
 """
-Mirrors C struct `bson_error_t` and can be allocated in the stack.
+`BSONError` is the default `Exception`
+for BSON/MongoDB function call errors.
+
+# C API
+
+Mirrors C struct `bson_error_t`.
 
 `BSONError` instances addresses are passed
 to libbson/libmongoc API using `Ref(error)`,
@@ -136,12 +152,46 @@ struct BSONError <: Exception
     message::NTuple{504, UInt8}
 end
 
-"BSON element with JavaScript source code."
+"""
+`BSONCode` is a BSON element
+with JavaScript source code.
+
+# Example
+
+```julia
+bson = Mongoc.BSON()
+bson["source"] = Mongoc.BSONCode("function() = 1")
+```
+"""
 struct BSONCode
     code::String
 end
 
-"`BSON` is a wrapper for C struct `bson_t`."
+"""
+A `BSON` represents a document in *Binary JSON* format,
+defined at http://bsonspec.org/.
+
+In Julia, you can manipulate a `BSON` instance
+just like a `Dict`.
+
+# Example
+
+```julia
+bson = Mongoc.BSON()
+bson["name"] = "my name"
+bson["num"] = 10.0
+```
+
+Yields:
+
+```
+BSON("{ "name" : "my name", "num" : 10.199999999999999289, "num" : 10.0 }")
+```
+
+# C API
+
+`BSON` is a wrapper for C struct `bson_t`.
+"""
 mutable struct BSON
     handle::Ptr{Cvoid}
 
@@ -373,12 +423,17 @@ function bson_iter_init(document::BSON) :: Ref{BSONIter}
     return iter_ref
 end
 
-function as_dict(document::BSON)
+"""
+    as_dict(document::BSON) :: Dict
+
+Converts a BSON document to a Julia `Dict`.
+"""
+function as_dict(document::BSON) :: Dict
     iter_ref = bson_iter_init(document)
     return as_dict(iter_ref)
 end
 
-function as_dict(iter_ref::Ref{BSONIter})
+function as_dict(iter_ref::Ref{BSONIter}) :: Dict
     result = Dict()
     while bson_iter_next(iter_ref)
         result[unsafe_string(bson_iter_key(iter_ref))] = get_value(iter_ref)

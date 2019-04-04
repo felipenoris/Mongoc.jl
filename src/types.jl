@@ -1,11 +1,43 @@
 
 """
-Mirrors C struct `mongoc_query_flags_t`.
+`QueryFlags` correspond to the MongoDB wire protocol.
+They may be bitwise or’d together.
+They may modify how a query is performed in the MongoDB server.
 
-These flags correspond to the MongoDB wire protocol.
-They may be bitwise or’d together. They may modify how a query is performed in the MongoDB server.
+These flags are passed as optional argument
+for the aggregation function `Mongoc.aggregate`.
 
-From: http://mongoc.org/libmongoc/current/mongoc_query_flags_t.html
+This data type mirrors C struct `mongoc_query_flags_t`.
+See: http://mongoc.org/libmongoc/current/mongoc_query_flags_t.html
+
+# Constants
+
+Mongoc.QUERY_FLAG_NONE:
+Specify no query flags.
+
+Mongoc.QUERY_FLAG_TAILABLE_CURSOR:
+Cursor will not be closed when the last data is retrieved. You can resume this cursor later.
+
+Mongoc.QUERY_FLAG_SLAVE_OK:
+Allow query of replica set secondaries.
+
+Mongoc.QUERY_FLAG_OPLOG_REPLAY:
+Used internally by MongoDB.
+
+Mongoc.QUERY_FLAG_NO_CURSOR_TIMEOUT:
+The server normally times out an idle cursor after an inactivity period (10 minutes).
+This prevents that.
+
+Mongoc.QUERY_FLAG_AWAIT_DATA:
+Use with MONGOC_QUERY_TAILABLE_CURSOR. Block rather than returning no data.
+After a period, time out.
+
+Mongoc.QUERY_FLAG_EXHAUST:
+Stream the data down full blast in multiple “reply” packets.
+Faster when you are pulling down a lot of data and you know you want to retrieve it all.
+
+Mongoc.QUERY_FLAG_PARTIAL:
+Get partial results from mongos if some shards are down (instead of throwing an error).
 """
 primitive type QueryFlags sizeof(Cint) * 8 end
 
@@ -18,31 +50,16 @@ Base.:(|)(flag1::QueryFlags, flag2::QueryFlags) = QueryFlags( Cint(flag1) | Cint
 Base.:(&)(flag1::QueryFlags, flag2::QueryFlags) = QueryFlags( Cint(flag1) & Cint(flag2) )
 Base.show(io::IO, flags::QueryFlags) = print(io, "QueryFlags($(Cint(flags)))")
 
-"Specify no query flags."
 const QUERY_FLAG_NONE              = QueryFlags(0)
-
-"Cursor will not be closed when the last data is retrieved. You can resume this cursor later."
 const QUERY_FLAG_TAILABLE_CURSOR   = QueryFlags(1 << 1)
-
-"Allow query of replica set secondaries."
 const QUERY_FLAG_SLAVE_OK          = QueryFlags(1 << 2)
-
-"Used internally by MongoDB."
 const QUERY_FLAG_OPLOG_REPLAY      = QueryFlags(1 << 3)
-
-"The server normally times out an idle cursor after an inactivity period (10 minutes). This prevents that."
 const QUERY_FLAG_NO_CURSOR_TIMEOUT = QueryFlags(1 << 4)
-
-"Use with MONGOC_QUERY_TAILABLE_CURSOR. Block rather than returning no data. After a period, time out."
 const QUERY_FLAG_AWAIT_DATA        = QueryFlags(1 << 5)
-
-"Stream the data down full blast in multiple “reply” packets. Faster when you are pulling down a lot of data and you know you want to retrieve it all."
 const QUERY_FLAG_EXHAUST           = QueryFlags(1 << 6)
-
-"Get partial results from mongos if some shards are down (instead of throwing an error)."
 const QUERY_FLAG_PARTIAL           = QueryFlags(1 << 7)
 
-"`URI` is a wrapper for C struct `mongoc_uri_t`."
+# `URI` is a wrapper for C struct `mongoc_uri_t`."
 mutable struct URI
     uri::String
     handle::Ptr{Cvoid}
@@ -59,7 +76,7 @@ mutable struct URI
     end
 end
 
-"`Client` is a wrapper for C struct `mongoc_client_t`."
+# `Client` is a wrapper for C struct `mongoc_client_t`.
 mutable struct Client
     uri::String
     handle::Ptr{Cvoid}
@@ -76,7 +93,7 @@ end
 abstract type AbstractDatabase end
 abstract type AbstractCollection end
 
-"`Database` is a wrapper for C struct `mongoc_database_t`."
+# `Database` is a wrapper for C struct `mongoc_database_t`.
 mutable struct Database <: AbstractDatabase
     client::Client
     name::String
@@ -89,7 +106,7 @@ mutable struct Database <: AbstractDatabase
     end
 end
 
-"`Collection` is a wrapper for C struct `mongoc_collection_t`."
+# `Collection` is a wrapper for C struct `mongoc_collection_t`.
 mutable struct Collection <: AbstractCollection
     database::Database
     name::String
@@ -106,7 +123,7 @@ end
 
 const CursorSource = Union{Client, AbstractDatabase, AbstractCollection}
 
-"`Cursor` is a wrapper for C struct `mongoc_cursor_t`."
+# `Cursor` is a wrapper for C struct `mongoc_cursor_t`.
 mutable struct Cursor{T<:CursorSource}
     source::T
     handle::Ptr{Cvoid}
