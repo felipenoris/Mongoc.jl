@@ -1,6 +1,60 @@
 
 # API Reference
 
-```@autodocs
-Modules = [Mongoc]
+## BSON
+
+```@docs
+Mongoc.BSON
+Mongoc.BSONObjectId
+Mongoc.BSONCode
+Mongoc.as_json
+Mongoc.as_dict
+Mongoc.read_bson
+Mongoc.write_bson
+Mongoc.read_next_bson
+Mongoc.BSONError
+```
+
+## Client
+
+```@docs
+Mongoc.Client
+Mongoc.set_appname!
+Mongoc.ping
+Mongoc.get_server_mongodb_version
+Mongoc.find_databases
+Mongoc.get_database_names
+Mongoc.has_database
+```
+
+## Database
+
+```@docs
+Mongoc.command_simple
+Mongoc.add_user
+Mongoc.remove_user
+Mongoc.has_user
+Mongoc.find_collections
+Mongoc.get_collection_names
+```
+
+## Collection
+
+```@docs
+Mongoc.find
+Mongoc.find_one
+Mongoc.count_documents
+```
+
+## Aggregation
+
+```@docs
+Mongoc.aggregate
+Mongoc.QueryFlags
+```
+
+## Session
+
+```@docs
+Mongoc.transaction
 ```

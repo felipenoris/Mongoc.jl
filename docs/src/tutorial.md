@@ -264,6 +264,32 @@ BSON("{ "_id" : { "$oid" : "5b9f02fb11c3dd1f4f3e26e5" }, "hey" : "you", "out" : 
 BSON("{ "_id" : { "$oid" : "5b9f02fb11c3dd1f4f3e26e6" }, "hey" : "others", "in the" : "cold" }")
 ```
 
+## Project fields to Return from Query
+
+To select which fields you want a query to return,
+use a `projection` command in the `options` argument
+of `Mongoc.find` or `Mongoc.find_one`.
+
+As an example:
+
+```julia
+function find_contract_codes(collection, criteria::Dict=Dict()) :: Vector{String}
+    result = Vector{String}()
+
+    let
+        bson_filter = Mongoc.BSON(criteria)
+        bson_options = Mongoc.BSON("""{ "projection" : { "_id" : true }, "sort" : { "_id" : 1 } }""")
+        for bson_document in Mongoc.find(collection, bson_filter, options=bson_options)
+            push!(result, bson_document["_id"])
+        end
+    end
+
+    return result
+end
+```
+
+Check the [libmongoc documentation for options field](http://mongoc.org/libmongoc/current/mongoc_collection_find_with_opts.html) for details.
+
 ## Counting Documents
 
 Use `Base.length` function to count the number of documents in a collection.
@@ -346,4 +372,36 @@ The result of the script above is:
 BSON("{ "result" : "order_totals", "timeMillis" : 135, "counts" : { "input" : 3, "emit" : 3, "reduce" : 1, "output" : 2 }, "ok" : 1.0 }")
 BSON("{ "_id" : "A123", "value" : 750.0 }")
 BSON("{ "_id" : "B212", "value" : 200.0 }")
+```
+
+## "distinct" command
+
+This example demonstrates the `distinct` command,
+following http://mongoc.org/libmongoc/current/distinct-mapreduce.html.
+
+```julia
+import Mongoc
+client = Mongoc.Client()
+
+docs = [
+    Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 500, "status" : "A" }"""),
+    Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 250, "status" : "A" }"""),
+    Mongoc.BSON("""{ "cust_id" : "B212", "amount" : 200, "status" : "A" }"""),
+    Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 300, "status" : "D" }""")
+]
+
+collection = client["my-database"]["my-collection"]
+append!(collection, docs)
+
+distinct_cmd = Mongoc.BSON()
+distinct_cmd["distinct"] = "my-collection"
+distinct_cmd["key"] = "status"
+
+result = Mongoc.command_simple(client["my-database"], distinct_cmd)
+```
+
+Which yields:
+
+```
+BSON("{ "values" : [ "A", "D" ], "ok" : 1.0 }")
 ```
