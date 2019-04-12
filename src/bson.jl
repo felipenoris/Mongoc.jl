@@ -467,7 +467,7 @@ function Base.setindex!(document::BSON, value::Int32, key::String)
     nothing
 end
 
-function Base.setindex!(document::BSON, value::AbstractString, key::String)
+function Base.setindex!(document::BSON, value::S1, key::S2) where {S1 <: AbstractString, S2 <: AbstractString}
     ok = bson_append_utf8(document.handle, key, -1, value, -1)
     if !ok
         error("Couldn't append String to BSON document.")
