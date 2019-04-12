@@ -48,7 +48,7 @@ function bson_append_int64(bson_document::Ptr{Cvoid}, key::String, key_length::I
     ccall((:bson_append_int64, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Clonglong), bson_document, key, key_length, value)
 end
 
-function bson_append_utf8(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::String, len::Int)
+function bson_append_utf8(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::AbstractString, len::Int)
     ccall((:bson_append_utf8, libbson), Bool, (Ptr{Cvoid}, Cstring, Cint, Cstring, Cint), bson_document, key, key_length, value, len)
 end
 

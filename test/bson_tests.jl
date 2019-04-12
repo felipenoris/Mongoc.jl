@@ -132,6 +132,9 @@ using Dates
         bson["source"] = Mongoc.BSONCode("function() = 1")
         bson["null"] = nothing
         @test_throws ErrorException bson["key"] = Date(2018, 9, 18)
+        str = "the real string"
+        sub = SubString(str, 4, 7)
+        bson["substring"] = sub
 
         let
             sub_bson = Mongoc.BSON()
@@ -153,6 +156,7 @@ using Dates
         @test bson["vector"] == collect(1:10)
         @test bson["source"] == Mongoc.BSONCode("function() = 1")
         @test bson["null"] == nothing
+        @test bson["substring"] == sub
 
         let
             sub_bson = bson["sub_document"]
