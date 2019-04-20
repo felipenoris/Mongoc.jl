@@ -175,11 +175,33 @@ using Dates
         @test dict == Mongoc.as_dict(doc)
     end
 
+    @testset "BSON Dict API" begin
+        doc = Mongoc.BSON("a" => 1, "b" => false, "c" => "string", "d" => nothing)
+
+        @test doc["a"] == 1
+        @test doc["b"] == false
+        @test doc["c"] == "string"
+        @test doc["d"] == nothing
+
+        for (key, value) in doc
+            if key == "a"
+                @test value == 1
+            elseif key == "b"
+                @test value == false
+            elseif key == "c"
+                @test value == "string"
+            elseif key == "d"
+                @test value == nothing
+            else
+                # test fails
+                @test false
+            end
+        end
+    end
+
     @testset "BSON copy" begin
         @testset "exclude one key" begin
-            src = Mongoc.BSON()
-            src["hey"] = "you"
-            src["out"] = 1
+            src = Mongoc.BSON("hey" => "you", "out" => 1)
             dst = Mongoc.BSON()
             Mongoc.bson_copy_to_excluding_noinit(src.handle, dst.handle, "out")
             @test !haskey(dst, "out")
@@ -187,9 +209,7 @@ using Dates
         end
 
         @testset "no exclude keys" begin
-            src = Mongoc.BSON()
-            src["hey"] = "you"
-            src["out"] = 1
+            src = Mongoc.BSON("hey" => "you", "out" => 1)
             dst = Mongoc.BSON()
             Mongoc.bson_copy_to_excluding_noinit(src.handle, dst.handle)
             @test Mongoc.as_dict(src) == Mongoc.as_dict(dst)
@@ -212,9 +232,7 @@ using Dates
         end
 
         @testset "BSON copy single doc" begin
-            src = Mongoc.BSON()
-            src["id"] = 10
-            src["str"] = "aa"
+            src = Mongoc.BSON("id" => 10, "str" => "aa")
 
             io = IOBuffer()
             Mongoc.write_bson(io, src)
@@ -226,16 +244,12 @@ using Dates
             list = Vector{Mongoc.BSON}()
 
             let
-                src = Mongoc.BSON()
-                src["id"] = 1
-                src["name"] = "1st"
+                src = Mongoc.BSON("id" => 1, "name" => "1st")
                 push!(list, src)
             end
 
             let
-                src = Mongoc.BSON()
-                src["id"] = 2
-                src["name"] = "2nd"
+                src = Mongoc.BSON("id" => 2, "name" => "2nd")
                 push!(list, src)
             end
 
@@ -274,16 +288,12 @@ using Dates
             list = Vector{Mongoc.BSON}()
 
             let
-                src = Mongoc.BSON()
-                src["id"] = 1
-                src["name"] = "1st"
+                src = Mongoc.BSON("id" => 1, "name" => "1st")
                 push!(list, src)
             end
 
             let
-                src = Mongoc.BSON()
-                src["id"] = 2
-                src["name"] = "2nd"
+                src = Mongoc.BSON("id" => 2, "name" => "2nd")
                 push!(list, src)
             end
 

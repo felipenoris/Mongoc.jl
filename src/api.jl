@@ -436,10 +436,7 @@ produces the same output.
 # Example
 
 ```julia
-selector = Mongoc.BSON()
-selector["_id"] = oid
-
-result = length(collection, selector)
+result = length(collection, Mongoc.BSON("_id" => oid))
 ```
 """
 function count_documents(collection::Collection, bson_filter::BSON=BSON();

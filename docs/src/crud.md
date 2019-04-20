@@ -77,8 +77,7 @@ Mongoc.delete_many(collection::Collection, selector::BSON; options::Union{Nothin
 ### Examples
 
 ```julia
-selector = Mongoc.BSON()
-selector["_id"] = oid
+selector = Mongoc.BSON("_id" => oid)
 Mongoc.delete_one(collection, selector)
 
 # deletes all elements in a collection

@@ -107,6 +107,13 @@ julia> document["null_value"] = nothing # maps to BSON null value
 julia> using Dates; document["details"] = Dict("birth date" => DateTime(1983, 4, 16), "location" => "Rio de Janeiro")
 ```
 
+As another example:
+
+```julia
+julia> document = Mongoc.BSON("a" => 1, "b" => "field_b", "c" => [1, 2, 3])
+BSON("{ "a" : 1, "b" : "field_b", "c" : [ 1, 2, 3 ] }")
+```
+
 To convert a BSON to a JSON string, use:
 
 ```julia
