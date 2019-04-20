@@ -565,7 +565,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API Reference",
     "title": "Mongoc.add_user",
     "category": "function",
-    "text": "add_user(database::Database, username::String, password::String, roles::Union{Nothing, BSON}, custom_data::Union{Nothing, BSON}=nothing)\n\nThis function shall create a new user with access to database.\n\nWarning: Do not call this function without TLS.\n\n\n\n\n\n"
+    "text": "add_user(database::Database, username::String, password::String, roles::Union{Nothing, BSON},\n    custom_data::Union{Nothing, BSON}=nothing)\n\nThis function shall create a new user with access to database.\n\nWarning: Do not call this function without TLS.\n\n\n\n\n\n"
 },
 
 {
@@ -573,7 +573,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API Reference",
     "title": "Mongoc.as_json",
     "category": "method",
-    "text": "as_json(bson::BSON; canonical::Bool=false) :: String\n\nConverts a bson object to a JSON string.\n\nExample\n\njulia> document = Mongoc.BSON(\"{ \"hey\" : 1 }\")\nBSON(\"{ \"hey\" : 1 }\")\n\njulia> Mongoc.as_json(document)\n\"{ \"hey\" : 1 }\"\n\njulia> Mongoc.as_json(document, canonical=true)\n\"{ \"hey\" : { \"$numberInt\" : \"1\" } }\"\n\nC API\n\nbson_as_canonical_extended_json\nbson_as_relaxed_extended_json\n\n\n\n\n\n"
+    "text": "as_json(bson::BSON; canonical::Bool=false) :: String\n\nConverts a bson object to a JSON string.\n\nExample\n\njulia> document = Mongoc.BSON(\"{ \"hey\" : 1 }\")\nBSON(\"{ \"hey\" : 1 }\")\n\njulia> Mongoc.as_json(document)\n\"{ \"hey\" : 1 }\"\n\njulia> Mongoc.as_json(document, canonical=true)\n\"{ \"hey\" : { \"$numberInt\" : \"1\" } }\"\n\nC API\n\n[bson_as_canonical_extended_json]\n\n(http://mongoc.org/libbson/current/bsonascanonicalextendedjson.html)\n\n[bson_as_relaxed_extended_json]\n\n(http://mongoc.org/libbson/current/bsonasrelaxedextendedjson.html)\n\n\n\n\n\n"
 },
 
 {
@@ -581,7 +581,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API Reference",
     "title": "Mongoc.command_simple",
     "category": "method",
-    "text": "command_simple(database::Database, command::Union{String, BSON}) :: BSON\n\nExecutes a command given by a JSON string or a BSON instance.\n\nIt returns the first document from the result cursor.\n\nExample\n\njulia> client = Mongoc.Client() # connects to localhost at port 27017\nClient(URI(\"mongodb://localhost:27017\"))\n\njulia> bson_result = Mongoc.command_simple(client[\"admin\"], \"{ \"ping\" : 1 }\")\nBSON(\"{ \"ok\" : 1.0 }\")\n\nC API\n\nmongoc_database_command_simple\n\n\n\n\n\n"
+    "text": "command_simple(database::Database, command::Union{String, BSON}) :: BSON\n\nExecutes a command given by a JSON string or a BSON instance.\n\nIt returns the first document from the result cursor.\n\nExample\n\njulia> client = Mongoc.Client() # connects to localhost at port 27017\nClient(URI(\"mongodb://localhost:27017\"))\n\njulia> bson_result = Mongoc.command_simple(client[\"admin\"], \"{ \"ping\" : 1 }\")\nBSON(\"{ \"ok\" : 1.0 }\")\n\nC API\n\n[mongoc_database_command_simple]\n\n(http://mongoc.org/libmongoc/current/mongocdatabasecommand_simple.html)\n\n\n\n\n\n"
 },
 
 {
@@ -589,7 +589,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API Reference",
     "title": "Mongoc.find_one",
     "category": "function",
-    "text": "find_one(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}\n\nExecute a query to a collection and returns the first element of the result set.\n\nReturns nothing if the result set is empty.\n\n\n\n\n\n"
+    "text": "find_one(collection::Collection, bson_filter::BSON=BSON();\n    options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}\n\nExecute a query to a collection and returns the first element of the result set.\n\nReturns nothing if the result set is empty.\n\n\n\n\n\n"
 },
 
 {
@@ -677,7 +677,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API Reference",
     "title": "Mongoc.write_bson",
     "category": "method",
-    "text": "write_bson(io::IO, bson_list::Vector{BSON}; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)\n\nWrites a vector of BSON documents to io in binary format.\n\nExample\n\nlist = Vector{Mongoc.BSON}()\n\nlet\n    src = Mongoc.BSON()\n    src[\"id\"] = 1\n    src[\"name\"] = \"1st\"\n    push!(list, src)\nend\n\nlet\n    src = Mongoc.BSON()\n    src[\"id\"] = 2\n    src[\"name\"] = \"2nd\"\n    push!(list, src)\nend\n\nopen(\"documents.bson\", \"w\") do io\n    Mongoc.write_bson(io, list)\nend\n\n\n\n\n\n"
+    "text": "write_bson(io::IO, bson_list::Vector{BSON};\n    initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)\n\nWrites a vector of BSON documents to io in binary format.\n\nExample\n\nlist = Vector{Mongoc.BSON}()\n\nlet\n    src = Mongoc.BSON()\n    src[\"id\"] = 1\n    src[\"name\"] = \"1st\"\n    push!(list, src)\nend\n\nlet\n    src = Mongoc.BSON()\n    src[\"id\"] = 2\n    src[\"name\"] = \"2nd\"\n    push!(list, src)\nend\n\nopen(\"documents.bson\", \"w\") do io\n    Mongoc.write_bson(io, list)\nend\n\n\n\n\n\n"
 },
 
 {
@@ -685,7 +685,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API Reference",
     "title": "Mongoc.write_bson",
     "category": "method",
-    "text": "write_bson(io::IO, bson::BSON; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)\n\nWrites a single BSON document to io in binary format.\n\n\n\n\n\n"
+    "text": "write_bson(io::IO, bson::BSON;\n    initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)\n\nWrites a single BSON document to io in binary format.\n\n\n\n\n\n"
 },
 
 {
