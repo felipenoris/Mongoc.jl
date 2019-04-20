@@ -182,12 +182,6 @@ bson["name"] = "my name"
 bson["num"] = 10.0
 ```
 
-Yields:
-
-```
-BSON("{ "name" : "my name", "num" : 10.199999999999999289, "num" : 10.0 }")
-```
-
 # C API
 
 `BSON` is a wrapper for C struct `bson_t`.
@@ -381,12 +375,9 @@ julia> Mongoc.as_json(document, canonical=true)
 
 # C API
 
-* [`bson_as_canonical_extended_json`]
-(http://mongoc.org/libbson/current/bson_as_canonical_extended_json.html)
+* [`bson_as_canonical_extended_json`](http://mongoc.org/libbson/current/bson_as_canonical_extended_json.html)
 
-* [`bson_as_relaxed_extended_json`]
-(http://mongoc.org/libbson/current/bson_as_relaxed_extended_json.html)
-
+* [`bson_as_relaxed_extended_json`](http://mongoc.org/libbson/current/bson_as_relaxed_extended_json.html)
 """
 function as_json(bson::BSON; canonical::Bool=false) :: String
     local bson_cstring::Cstring

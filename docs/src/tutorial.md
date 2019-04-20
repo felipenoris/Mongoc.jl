@@ -377,7 +377,7 @@ BSON("{ "_id" : "B212", "value" : 200.0 }")
 ## "distinct" command
 
 This example demonstrates the `distinct` command,
-following http://mongoc.org/libmongoc/current/distinct-mapreduce.html.
+based on [libmongoc docs](http://mongoc.org/libmongoc/current/distinct-mapreduce.html).
 
 ```julia
 import Mongoc

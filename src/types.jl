@@ -12,31 +12,31 @@ See: http://mongoc.org/libmongoc/current/mongoc_query_flags_t.html
 
 # Constants
 
-Mongoc.QUERY_FLAG_NONE:
+`Mongoc.QUERY_FLAG_NONE`:
 Specify no query flags.
 
-Mongoc.QUERY_FLAG_TAILABLE_CURSOR:
+`Mongoc.QUERY_FLAG_TAILABLE_CURSOR`:
 Cursor will not be closed when the last data is retrieved. You can resume this cursor later.
 
-Mongoc.QUERY_FLAG_SLAVE_OK:
+`Mongoc.QUERY_FLAG_SLAVE_OK`:
 Allow query of replica set secondaries.
 
-Mongoc.QUERY_FLAG_OPLOG_REPLAY:
+`Mongoc.QUERY_FLAG_OPLOG_REPLAY`:
 Used internally by MongoDB.
 
-Mongoc.QUERY_FLAG_NO_CURSOR_TIMEOUT:
+`Mongoc.QUERY_FLAG_NO_CURSOR_TIMEOUT`:
 The server normally times out an idle cursor after an inactivity period (10 minutes).
 This prevents that.
 
-Mongoc.QUERY_FLAG_AWAIT_DATA:
+`Mongoc.QUERY_FLAG_AWAIT_DATA`:
 Use with MONGOC_QUERY_TAILABLE_CURSOR. Block rather than returning no data.
 After a period, time out.
 
-Mongoc.QUERY_FLAG_EXHAUST:
+`Mongoc.QUERY_FLAG_EXHAUST`:
 Stream the data down full blast in multiple “reply” packets.
 Faster when you are pulling down a lot of data and you know you want to retrieve it all.
 
-Mongoc.QUERY_FLAG_PARTIAL:
+`Mongoc.QUERY_FLAG_PARTIAL`:
 Get partial results from mongos if some shards are down (instead of throwing an error).
 """
 primitive type QueryFlags sizeof(Cint) * 8 end
