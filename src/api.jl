@@ -46,7 +46,8 @@ BSON("{ "ok" : 1.0 }")
 
 # C API
 
-* [`mongoc_database_command_simple`](http://mongoc.org/libmongoc/current/mongoc_database_command_simple.html)
+* [`mongoc_database_command_simple`]
+(http://mongoc.org/libmongoc/current/mongoc_database_command_simple.html)
 
 """
 function command_simple(database::Database, command::BSON) :: BSON
@@ -346,13 +347,16 @@ function set_limit!(cursor::Cursor, limit::Int)
 end
 
 """
-    find_one(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}
+    find_one(collection::Collection, bson_filter::BSON=BSON();
+        options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}
 
 Execute a query to a collection and returns the first element of the result set.
 
 Returns `nothing` if the result set is empty.
 """
-function find_one(collection::Collection, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}
+function find_one(collection::Collection, bson_filter::BSON=BSON();
+                  options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}
+
     cursor = find(collection, bson_filter, options=options)
     set_limit!(cursor, 1)
     next = _iterate(cursor)
@@ -364,9 +368,14 @@ function find_one(collection::Collection, bson_filter::BSON=BSON(); options::Uni
     end
 end
 
-function aggregate(collection::Collection, bson_pipeline::BSON; flags::QueryFlags=QUERY_FLAG_NONE, options::Union{Nothing, BSON}=nothing) :: Cursor
+function aggregate(collection::Collection, bson_pipeline::BSON;
+                   flags::QueryFlags=QUERY_FLAG_NONE,
+                   options::Union{Nothing, BSON}=nothing) :: Cursor
+
     options_handle = options == nothing ? C_NULL : options.handle
-    cursor_handle = mongoc_collection_aggregate(collection.handle, flags, bson_pipeline.handle, options_handle, C_NULL)
+    cursor_handle = mongoc_collection_aggregate(collection.handle, flags,
+                        bson_pipeline.handle, options_handle, C_NULL)
+
     if cursor_handle == C_NULL
         error("Couldn't execute aggregate command.")
     end
@@ -420,11 +429,27 @@ Base.show(io::IO, coll::Collection) = print(io, "Collection($(coll.database), \"
 Base.getindex(client::Client, database::String) = Database(client, database)
 Base.getindex(database::Database, collection_name::String) = Collection(database, collection_name)
 
-Base.push!(collection::C, document::BSON; options::Union{Nothing, BSON}=nothing) where {C<:AbstractCollection} = insert_one(collection, document; options=options)
-Base.append!(collection::C, documents::Vector{BSON}; bulk_options::Union{Nothing, BSON}=nothing, insert_options::Union{Nothing, BSON}=nothing) where {C<:AbstractCollection}= insert_many(collection, documents; bulk_options=bulk_options, insert_options=insert_options)
+function Base.push!(collection::AbstractCollection, document::BSON;
+                    options::Union{Nothing, BSON}=nothing)
+    insert_one(collection, document; options=options)
+end
 
-Base.length(collection::C, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) where {C<:AbstractCollection} = count_documents(collection, bson_filter; options=options)
-Base.isempty(collection::C, bson_filter::BSON=BSON(); options::Union{Nothing, BSON}=nothing) where {C<:AbstractCollection} = count_documents(collection, bson_filter; options=options) == 0
+function Base.append!(collection::AbstractCollection, documents::Vector{BSON};
+                      bulk_options::Union{Nothing, BSON}=nothing,
+                      insert_options::Union{Nothing, BSON}=nothing)
+    insert_many(collection, documents; bulk_options=bulk_options, insert_options=insert_options)
+end
+
+function Base.length(collection::AbstractCollection, bson_filter::BSON=BSON();
+                     options::Union{Nothing, BSON}=nothing)
+    count_documents(collection, bson_filter; options=options)
+end
+
+function Base.isempty(collection::AbstractCollection, bson_filter::BSON=BSON();
+                      options::Union{Nothing, BSON}=nothing)
+    count_documents(collection, bson_filter; options=options) == 0
+end
+
 Base.empty!(collection::C) where {C<:AbstractCollection} = delete_many(collection, BSON())
 
 function Base.collect(cursor::Cursor) :: Vector{BSON}
@@ -435,4 +460,6 @@ function Base.collect(cursor::Cursor) :: Vector{BSON}
     return result
 end
 
-Base.collect(collection::C, bson_filter::BSON=BSON()) where {C<:AbstractCollection} = collect(find(collection, bson_filter))
+function Base.collect(collection::AbstractCollection, bson_filter::BSON=BSON())
+    return collect(find(collection, bson_filter))
+end

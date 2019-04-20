@@ -212,14 +212,20 @@ mutable struct BSONWriter
     buffer_handle_ref::Ref{Ptr{UInt8}}
     buffer_length_ref::Ref{Csize_t}
 
-    function BSONWriter(initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY, buffer_offset::Integer=0)
+    function BSONWriter(initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY,
+                        buffer_offset::Integer=0)
+
         buffer = zeros(UInt8, initial_buffer_capacity)
         new_writer = new(C_NULL, buffer, Ref(pointer(buffer)), Ref(Csize_t(initial_buffer_capacity)))
         finalizer(destroy!, new_writer)
 
         realloc_func = @cfunction(unsafe_buffer_realloc, Ptr{UInt8}, (Ptr{UInt8}, Csize_t, Ptr{Cvoid}))
 
-        handle = bson_writer_new(new_writer.buffer_handle_ref, new_writer.buffer_length_ref, Csize_t(buffer_offset), realloc_func, pointer_from_objref(new_writer))
+        handle = bson_writer_new(new_writer.buffer_handle_ref,
+                                 new_writer.buffer_length_ref,
+                                 Csize_t(buffer_offset),
+                                 realloc_func,
+                                 pointer_from_objref(new_writer))
         if handle == C_NULL
             error("Failed to create a BSONWriter.")
         end
@@ -325,19 +331,28 @@ julia> Mongoc.as_json(document, canonical=true)
 
 # C API
 
-* [`bson_as_canonical_extended_json`](http://mongoc.org/libbson/current/bson_as_canonical_extended_json.html)
+* [`bson_as_canonical_extended_json`]
+(http://mongoc.org/libbson/current/bson_as_canonical_extended_json.html)
 
-* [`bson_as_relaxed_extended_json`](http://mongoc.org/libbson/current/bson_as_relaxed_extended_json.html)
+* [`bson_as_relaxed_extended_json`]
+(http://mongoc.org/libbson/current/bson_as_relaxed_extended_json.html)
 
 """
 function as_json(bson::BSON; canonical::Bool=false) :: String
-    cstring = canonical ? bson_as_canonical_extended_json(bson.handle) : bson_as_relaxed_extended_json(bson.handle)
-    if cstring == C_NULL
+    local bson_cstring::Cstring
+
+    if canonical
+        bson_cstring = bson_as_canonical_extended_json(bson.handle)
+    else
+        bson_cstring = bson_as_relaxed_extended_json(bson.handle)
+    end
+
+    if bson_cstring == C_NULL
         error("Couldn't convert bson to json.")
     end
-    result = unsafe_string(cstring)
 
-    bson_free(convert(Ptr{Cvoid}, cstring))
+    result = unsafe_string(bson_cstring)
+    bson_free(convert(Ptr{Cvoid}, bson_cstring))
 
     return result
 end
@@ -383,7 +398,8 @@ function get_value(iter_ref::Ref{BSONIter})
     elseif bson_type == BSON_TYPE_DOUBLE
         return bson_iter_double(iter_ref)
     elseif bson_type == BSON_TYPE_OID
-        return unsafe_load(bson_iter_oid(iter_ref)) # converts Ptr{BSONObjectId} to BSONObjectId
+        # converts Ptr{BSONObjectId} to BSONObjectId
+        return unsafe_load(bson_iter_oid(iter_ref))
     elseif bson_type == BSON_TYPE_BOOL
         return bson_iter_bool(iter_ref)
     elseif bson_type == BSON_TYPE_DATE_TIME
@@ -566,9 +582,13 @@ function _get_number_of_bytes_written_to_buffer(buffer::Vector{UInt8}) :: Int64
     return total_size
 end
 
-_get_number_of_bytes_written_to_buffer(writer::BSONWriter) = _get_number_of_bytes_written_to_buffer(writer.buffer)
+function _get_number_of_bytes_written_to_buffer(writer::BSONWriter)
+    _get_number_of_bytes_written_to_buffer(writer.buffer)
+end
 
-function bson_writer(f::Function, io::IO; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+function bson_writer(f::Function, io::IO;
+                     initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+
     writer = BSONWriter(initial_buffer_capacity)
 
     try
@@ -601,11 +621,14 @@ function write_bson(f::Function, writer::BSONWriter)
 end
 
 """
-    write_bson(io::IO, bson::BSON; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+    write_bson(io::IO, bson::BSON;
+        initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
 
 Writes a single BSON document to `io` in binary format.
 """
-function write_bson(io::IO, bson::BSON; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+function write_bson(io::IO, bson::BSON;
+                    initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+
     bson_writer(io, initial_buffer_capacity=initial_buffer_capacity) do writer
         write_bson(writer) do dest
             bson_copy_to_excluding_noinit(bson.handle, dest.handle)
@@ -616,7 +639,8 @@ function write_bson(io::IO, bson::BSON; initial_buffer_capacity::Integer=DEFAULT
 end
 
 """
-    write_bson(io::IO, bson_list::Vector{BSON}; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+    write_bson(io::IO, bson_list::Vector{BSON};
+        initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
 
 Writes a vector of BSON documents to `io` in binary format.
 
@@ -644,7 +668,9 @@ open("documents.bson", "w") do io
 end
 ```
 """
-function write_bson(io::IO, bson_list::Vector{BSON}; initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+function write_bson(io::IO, bson_list::Vector{BSON};
+                    initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
+
     bson_writer(io, initial_buffer_capacity=initial_buffer_capacity) do writer
         for src_bson in bson_list
             write_bson(writer) do dest
