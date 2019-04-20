@@ -152,7 +152,7 @@ for doc in Mongoc.find(database[&quot;order_totals&quot;])
    println(doc)
 end</code></pre><p>The result of the script above is:</p><pre><code class="language-none">BSON(&quot;{ &quot;result&quot; : &quot;order_totals&quot;, &quot;timeMillis&quot; : 135, &quot;counts&quot; : { &quot;input&quot; : 3, &quot;emit&quot; : 3, &quot;reduce&quot; : 1, &quot;output&quot; : 2 }, &quot;ok&quot; : 1.0 }&quot;)
 BSON(&quot;{ &quot;_id&quot; : &quot;A123&quot;, &quot;value&quot; : 750.0 }&quot;)
-BSON(&quot;{ &quot;_id&quot; : &quot;B212&quot;, &quot;value&quot; : 200.0 }&quot;)</code></pre><h2><a class="nav-anchor" id="&quot;distinct&quot;-command-1" href="#&quot;distinct&quot;-command-1">&quot;distinct&quot; command</a></h2><p>This example demonstrates the <code>distinct</code> command, following http://mongoc.org/libmongoc/current/distinct-mapreduce.html.</p><pre><code class="language-julia">import Mongoc
+BSON(&quot;{ &quot;_id&quot; : &quot;B212&quot;, &quot;value&quot; : 200.0 }&quot;)</code></pre><h2><a class="nav-anchor" id="&quot;distinct&quot;-command-1" href="#&quot;distinct&quot;-command-1">&quot;distinct&quot; command</a></h2><p>This example demonstrates the <code>distinct</code> command, based on <a href="http://mongoc.org/libmongoc/current/distinct-mapreduce.html">libmongoc docs</a>.</p><pre><code class="language-julia">import Mongoc
 client = Mongoc.Client()
 
 docs = [
