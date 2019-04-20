@@ -19,8 +19,7 @@ selector = Mongoc.BSON(&quot;&quot;&quot;{ &quot;delete&quot; : true }&quot;&quo
 update = Mongoc.BSON(&quot;&quot;&quot;{ &quot;\$set&quot; : { &quot;delete&quot; : false } }&quot;&quot;&quot;)
 Mongoc.update_many(collection, selector, update)</code></pre><h2><a class="nav-anchor" id="Delete-1" href="#Delete-1">Delete</a></h2><h3><a class="nav-anchor" id="API-4" href="#API-4">API</a></h3><pre><code class="language-julia">Mongoc.delete_one(collection::Collection, selector::BSON; options::Union{Nothing, BSON}=nothing)
 
-Mongoc.delete_many(collection::Collection, selector::BSON; options::Union{Nothing, BSON}=nothing)</code></pre><h3><a class="nav-anchor" id="Examples-4" href="#Examples-4">Examples</a></h3><pre><code class="language-julia">selector = Mongoc.BSON()
-selector[&quot;_id&quot;] = oid
+Mongoc.delete_many(collection::Collection, selector::BSON; options::Union{Nothing, BSON}=nothing)</code></pre><h3><a class="nav-anchor" id="Examples-4" href="#Examples-4">Examples</a></h3><pre><code class="language-julia">selector = Mongoc.BSON(&quot;_id&quot; =&gt; oid)
 Mongoc.delete_one(collection, selector)
 
 # deletes all elements in a collection

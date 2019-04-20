@@ -19,7 +19,8 @@ julia&gt; document[&quot;preferences&quot;] = [ &quot;Music&quot;, &quot;Compute
 
 julia&gt; document[&quot;null_value&quot;] = nothing # maps to BSON null value
 
-julia&gt; using Dates; document[&quot;details&quot;] = Dict(&quot;birth date&quot; =&gt; DateTime(1983, 4, 16), &quot;location&quot; =&gt; &quot;Rio de Janeiro&quot;)</code></pre><p>To convert a BSON to a JSON string, use:</p><pre><code class="language-julia">julia&gt; Mongoc.as_json(document)
+julia&gt; using Dates; document[&quot;details&quot;] = Dict(&quot;birth date&quot; =&gt; DateTime(1983, 4, 16), &quot;location&quot; =&gt; &quot;Rio de Janeiro&quot;)</code></pre><p>As another example:</p><pre><code class="language-julia">julia&gt; document = Mongoc.BSON(&quot;a&quot; =&gt; 1, &quot;b&quot; =&gt; &quot;field_b&quot;, &quot;c&quot; =&gt; [1, 2, 3])
+BSON(&quot;{ &quot;a&quot; : 1, &quot;b&quot; : &quot;field_b&quot;, &quot;c&quot; : [ 1, 2, 3 ] }&quot;)</code></pre><p>To convert a BSON to a JSON string, use:</p><pre><code class="language-julia">julia&gt; Mongoc.as_json(document)
 &quot;{ \&quot;name\&quot; : \&quot;Felipe\&quot;, \&quot;age\&quot; : 35, \&quot;preferences\&quot; : [ \&quot;Music\&quot;, \&quot;Computer\&quot;, \&quot;Photography\&quot; ], \&quot;null_value\&quot; : null, \&quot;details\&quot; : { \&quot;location\&quot; : \&quot;Rio de Janeiro\&quot;, \&quot;birth date\&quot; : { \&quot;\$date\&quot; : \&quot;1983-04-16T00:00:00Z\&quot; } } }&quot;</code></pre><p>You can also create a BSON document from a JSON string.</p><pre><code class="language-julia">julia&gt; document = Mongoc.BSON(&quot;&quot;&quot;{ &quot;hey&quot; : &quot;you&quot; }&quot;&quot;&quot;)</code></pre><p>And also from a Dictionary.</p><pre><code class="language-julia">julia&gt; dict = Dict(&quot;hey&quot; =&gt; &quot;you&quot;)
 Dict{String,String} with 1 entry:
   &quot;hey&quot; =&gt; &quot;you&quot;
