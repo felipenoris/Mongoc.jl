@@ -159,8 +159,8 @@ with JavaScript source code.
 # Example
 
 ```julia
-bson = Mongoc.BSON()
-bson["source"] = Mongoc.BSONCode("function() = 1")
+julia> bson = Mongoc.BSON("source" => Mongoc.BSONCode("function() = 1"))
+BSON("{ "source" : { "\$code" : "function() = 1" } }")
 ```
 """
 struct BSONCode
@@ -334,17 +334,6 @@ function BSON(json_string::String)
     return BSON(handle)
 end
 
-
-function BSON(dict::Dict)
-    result = BSON()
-
-    for (k, v) in pairs(dict)
-        result[k] = v
-    end
-
-    return result
-end
-
 function BSON(vector::Vector)
     result = BSON()
 
@@ -354,6 +343,18 @@ function BSON(vector::Vector)
 
     return result
 end
+
+function BSON(args::Pair...)
+    result = BSON()
+
+    for (k, v) in args
+        result[k] = v
+    end
+
+    return result
+end
+
+BSON(dict::Dict) = BSON(dict...)
 
 """
     as_json(bson::BSON; canonical::Bool=false) :: String
@@ -414,14 +415,44 @@ function bson_iter_init(document::BSON) :: Ref{BSONIter}
     return iter_ref
 end
 
+struct BSONIterator
+    bson_iter_ref::Ref{BSONIter}
+    document::BSON
+
+    function BSONIterator(document::BSON)
+        iter_ref = bson_iter_init(document)
+        return new(iter_ref, document)
+    end
+end
+
+function Base.iterate(document::BSON)
+    itr = BSONIterator(document)
+    iterate(document, itr)
+end
+
+function Base.iterate(document::BSON, state::BSONIterator)
+
+    if bson_iter_next(state.bson_iter_ref)
+        key = unsafe_string(bson_iter_key(state.bson_iter_ref))
+        value = get_value(state.bson_iter_ref)
+
+        return key => value, state
+    end
+
+    return nothing
+end
+
 """
     as_dict(document::BSON) :: Dict
 
 Converts a BSON document to a Julia `Dict`.
 """
 function as_dict(document::BSON) :: Dict
-    iter_ref = bson_iter_init(document)
-    return as_dict(iter_ref)
+    result = Dict()
+    for (k, v) in document
+        result[k] = v
+    end
+    return result
 end
 
 function as_dict(iter_ref::Ref{BSONIter}) :: Dict

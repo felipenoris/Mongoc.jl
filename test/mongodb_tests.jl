@@ -84,9 +84,7 @@ const DB_NAME = "mongoc"
 
             @testset "Insert One with custom OID" begin
                 io = IOBuffer()
-                bson = Mongoc.BSON()
-                bson["_id"] = 123
-                bson["out"] = "there"
+                bson = Mongoc.BSON("_id" => 123, "out" => "there")
                 result = push!(coll, bson)
                 show(io, result)
                 @test result.inserted_oid == nothing
