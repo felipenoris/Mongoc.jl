@@ -3,4 +3,4 @@ Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Mongoc = "4fe8b98c-fc19-5c23-8ec2-168ff83495f2"
 
 [compat]
-Documenter = "~0.20"
+Documenter = "~0.22"
