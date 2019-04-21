@@ -16,7 +16,7 @@ which provides a way to create and manipulate BSON documents.
 
 * MongoDB 3.0 or newer.
 
-* Julia versions v0.7 or newer.
+* Julia versions v1.0 or newer.
 
 * Linux or macOS.
 
