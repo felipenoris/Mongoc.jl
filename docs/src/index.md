@@ -5,7 +5,8 @@
 
 **Mongoc.jl** is a [MongoDB](https://www.mongodb.com/) driver for the Julia Language.
 
-It is implemented as a thin wrapper around [libmongoc](http://mongoc.org/), the official client library for C applications.
+It is implemented as a thin wrapper around [libmongoc](http://mongoc.org/),
+the official client library for C applications.
 
 Given that [BSON](http://bsonspec.org/) is the document format for MongoDB,
 this package also implements a wrapper around [libbson](http://mongoc.org/libbson/current/index.html),
@@ -34,9 +35,10 @@ julia> Pkg.add("Mongoc")
 This packages downloads precompiled binaries for [MongoDB C Driver](http://mongoc.org)
 from [mongo-c-driver-builder](https://github.com/felipenoris/mongo-c-driver-builder).
 
-The binaries are compiled by Travis CI, using [BinaryBuilder.jl](https://github.com/JuliaPackaging/BinaryBuilder.jl).
+The binaries are compiled by Travis CI,
+using [BinaryBuilder.jl](https://github.com/JuliaPackaging/BinaryBuilder.jl).
 
-Windows is currently not supported because the C driver requires Visual Studio to be compiled.
+Windows is currently not supported.
 
 If your platform is not supported and can be compiled by
 [BinaryBuilder.jl](https://github.com/JuliaPackaging/BinaryBuilder.jl),
@@ -49,10 +51,25 @@ The source code for this package is hosted at
 
 ## License
 
-The source code for the package **Mongoc.jl** is licensed under the [MIT License](https://github.com/felipenoris/Mongoc.jl/blob/master/LICENSE).
+The source code for the package **Mongoc.jl** is licensed under
+the [MIT License](https://github.com/felipenoris/Mongoc.jl/blob/master/LICENSE).
 
-This repository distributes binary assets built from [mongo-c-driver](https://github.com/mongodb/mongo-c-driver) source code,
+This repository distributes binary assets built from
+[mongo-c-driver](https://github.com/mongodb/mongo-c-driver) source code,
 which is licensed under [Apache-2.0](https://github.com/mongodb/mongo-c-driver/blob/master/COPYING).
+
+## Getting Help
+
+If you're having any trouble, have any questions about this package
+or want to ask for a new feature,
+just open a new [issue](https://github.com/felipenoris/Mongoc.jl/issues).
+
+## Contributing
+
+Contributions are always welcome!
+
+To contribute, fork the project on [GitHub](https://github.com/felipenoris/Mongoc.jl)
+and send a Pull Request.
 
 ## References
 
