@@ -22,9 +22,28 @@ const DB_NAME = "mongoc"
 
     client = Mongoc.Client()
 
+    @testset "Destroy" begin
+        cli = Mongoc.Client()
+        db = cli["database"]
+        coll = db["collection"]
+
+        Mongoc.destroy!(coll)
+        Mongoc.destroy!(db)
+        Mongoc.destroy!(cli)
+    end
+
     @testset "Types" begin
         bson = Mongoc.BSON()
         @test_throws Mongoc.BSONError Mongoc.Client("////invalid-url")
+
+        try
+            Mongoc.Client("////invalid-url")
+        catch err
+            @test isa(err, Mongoc.BSONError)
+            io = IOBuffer()
+            showerror(io, err)
+        end
+
         @test client.uri == "mongodb://localhost:27017"
         Mongoc.set_appname!(client, "Runtests")
         db = client[DB_NAME]
@@ -256,6 +275,13 @@ const DB_NAME = "mongoc"
         end
 
         @testset "aggregation, map_reduce" begin
+
+            @testset "QueryFlags" begin
+                qf_composite = Mongoc.QUERY_FLAG_PARTIAL | Mongoc.QUERY_FLAG_NO_CURSOR_TIMEOUT
+                @test qf_composite & Mongoc.QUERY_FLAG_PARTIAL == Mongoc.QUERY_FLAG_PARTIAL
+                @test qf_composite & Mongoc.QUERY_FLAG_NO_CURSOR_TIMEOUT == Mongoc.QUERY_FLAG_NO_CURSOR_TIMEOUT
+            end
+
             # reproducing the examples at https://docs.mongodb.com/manual/aggregation/
             docs = [
                 Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 500, "status" : "A" }"""),
