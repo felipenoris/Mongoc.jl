@@ -8,7 +8,8 @@ These flags are passed as optional argument
 for the aggregation function `Mongoc.aggregate`.
 
 This data type mirrors C struct `mongoc_query_flags_t`.
-See: http://mongoc.org/libmongoc/current/mongoc_query_flags_t.html
+See [libmongoc docs](http://mongoc.org/libmongoc/current/mongoc_query_flags_t.html)
+for more information.
 
 # Constants
 
@@ -29,11 +30,11 @@ The server normally times out an idle cursor after an inactivity period (10 minu
 This prevents that.
 
 `Mongoc.QUERY_FLAG_AWAIT_DATA`:
-Use with MONGOC_QUERY_TAILABLE_CURSOR. Block rather than returning no data.
+Use with `Mongoc.MONGOC_QUERY_TAILABLE_CURSOR`. Block rather than returning no data.
 After a period, time out.
 
 `Mongoc.QUERY_FLAG_EXHAUST`:
-Stream the data down full blast in multiple “reply” packets.
+Stream the data down full blast in multiple "reply" packets.
 Faster when you are pulling down a lot of data and you know you want to retrieve it all.
 
 `Mongoc.QUERY_FLAG_PARTIAL`:

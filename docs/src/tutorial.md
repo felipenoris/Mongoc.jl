@@ -114,13 +114,6 @@ julia> document = Mongoc.BSON("a" => 1, "b" => "field_b", "c" => [1, 2, 3])
 BSON("{ "a" : 1, "b" : "field_b", "c" : [ 1, 2, 3 ] }")
 ```
 
-To convert a BSON to a JSON string, use:
-
-```julia
-julia> Mongoc.as_json(document)
-"{ \"name\" : \"Felipe\", \"age\" : 35, \"preferences\" : [ \"Music\", \"Computer\", \"Photography\" ], \"null_value\" : null, \"details\" : { \"location\" : \"Rio de Janeiro\", \"birth date\" : { \"\$date\" : \"1983-04-16T00:00:00Z\" } } }"
-```
-
 You can also create a BSON document from a JSON string.
 
 ```julia
@@ -136,6 +129,37 @@ Dict{String,String} with 1 entry:
 
 julia> document = Mongoc.BSON(dict)
 BSON("{ "hey" : "you" }")
+```
+
+Reading data from a BSON is like reading from a `Dict`.
+
+```julia
+julia> document = Mongoc.BSON("a" => 1, "b" => "field_b", "c" => [1, 2, 3])
+BSON("{ "a" : 1, "b" : "field_b", "c" : [ 1, 2, 3 ] }")
+
+julia> document["a"]
+1
+
+julia> document["b"]
+"field_b"
+```
+
+Like a `Dict`, you can iterate thru BSON's `(key, value)` pairs, like so:
+
+```julia
+julia> for (k, v) in document
+           println("[$k] = $v")
+       end
+[a] = 1
+[b] = field_b
+[c] = Any[1, 2, 3]
+```
+
+To convert a BSON to a JSON string, use:
+
+```julia
+julia> Mongoc.as_json(document)
+"{ \"name\" : \"Felipe\", \"age\" : 35, \"preferences\" : [ \"Music\", \"Computer\", \"Photography\" ], \"null_value\" : null, \"details\" : { \"location\" : \"Rio de Janeiro\", \"birth date\" : { \"\$date\" : \"1983-04-16T00:00:00Z\" } } }"
 ```
 
 To convert a BSON document to a Dictionary, use `Mongoc.as_dict`.

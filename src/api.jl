@@ -407,8 +407,8 @@ function find_contract_codes(collection, criteria::Dict=Dict()) :: Vector{String
 end
 ```
 
-Check the [libmongoc documentation for options field](http://mongoc.org/libmongoc/current/mongoc_collection_find_with_opts.html)
-for details on the `options` argument.
+Check the [libmongoc documentation](http://mongoc.org/libmongoc/current/mongoc_collection_find_with_opts.html)
+for more information.
 """
 function find(collection::Collection, bson_filter::BSON=BSON();
         options::Union{Nothing, BSON}=nothing) :: Cursor
