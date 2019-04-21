@@ -7,14 +7,14 @@
 [![dev][docs-dev-img]][docs-dev-url]
 [![stable][docs-stable-img]][docs-stable-url]
 
-[license-img]: http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat
-[travis-img]: https://img.shields.io/travis/felipenoris/Mongoc.jl/master.svg?label=Linux+/+macOS
+[license-img]: http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
+[travis-img]: https://img.shields.io/travis/felipenoris/Mongoc.jl/master.svg?label=Linux+/+macOS&style=flat-square
 [travis-url]: https://travis-ci.org/felipenoris/Mongoc.jl
-[codecov-img]: https://img.shields.io/codecov/c/github/felipenoris/Mongoc.jl/master.svg?label=codecov
+[codecov-img]: https://img.shields.io/codecov/c/github/felipenoris/Mongoc.jl/master.svg?label=codecov&style=flat-square
 [codecov-url]: http://codecov.io/github/felipenoris/Mongoc.jl?branch=master
-[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg&style=flat-square
 [docs-dev-url]: https://felipenoris.github.io/Mongoc.jl/dev
-[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg&style=flat-square
 [docs-stable-url]: https://felipenoris.github.io/Mongoc.jl/stable
 
 **Mongoc.jl** is a [MongoDB](https://www.mongodb.com/) driver for the Julia Language.
