@@ -320,7 +320,14 @@ using Dates
                 end
 
             finally
-                isfile(filepath) && rm(filepath)
+                if isfile(filepath)
+                    try
+                        rm(filepath)
+                    catch err
+                        @warn("Failed to remove test file $filepath: $(err.msg)")
+                        stacktrace(catch_backtrace())
+                    end
+                end
             end
         end
     end
