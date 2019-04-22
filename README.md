@@ -6,6 +6,7 @@
 [![codecov][codecov-img]][codecov-url]
 [![dev][docs-dev-img]][docs-dev-url]
 [![stable][docs-stable-img]][docs-stable-url]
+[![donate][donate-img]][donate-url]
 
 [license-img]: http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
 [travis-img]: https://img.shields.io/travis/felipenoris/Mongoc.jl/master.svg?label=Linux+/+macOS&style=flat-square
@@ -16,6 +17,8 @@
 [docs-dev-url]: https://felipenoris.github.io/Mongoc.jl/dev
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg?style=flat-square
 [docs-stable-url]: https://felipenoris.github.io/Mongoc.jl/stable
+[donate-img]: https://img.shields.io/badge/Donate-%245-orange.svg?style=flat-square
+[donate-url]: https://buymeacoff.ee/c4Y6ku9p5
 
 **Mongoc.jl** is a [MongoDB](https://www.mongodb.com/) driver for the Julia Language.
 
