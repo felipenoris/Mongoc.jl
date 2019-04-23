@@ -18,7 +18,7 @@ which provides a way to create and manipulate BSON documents.
 
 * Julia versions v1.0 or newer.
 
-* Linux or macOS.
+* Linux, macOS or Windows.
 
 ## Installation
 
@@ -70,6 +70,8 @@ Contributions are always welcome!
 
 To contribute, fork the project on [GitHub](https://github.com/felipenoris/Mongoc.jl)
 and send a Pull Request.
+
+[[https://img.shields.io/badge/Donate%20%E2%9D%A4-%245-orange.svg?style=flat-square]][https://buymeacoff.ee/c4Y6ku9p5]
 
 ## References
 
