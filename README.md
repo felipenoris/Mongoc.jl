@@ -37,7 +37,9 @@ which provides a way to create and manipulate BSON documents.
 
 * Julia v1.0 or newer.
 
-* Linux, macOS or Windows.
+* Linux, macOS
+
+* Windows (experimental).
 
 ## Installation
 
