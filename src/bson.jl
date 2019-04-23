@@ -503,15 +503,15 @@ function get_value(iter_ref::Ref{BSONIter})
         end
     elseif bson_type == BSON_TYPE_BINARY
 
-        lengthPtr = Vector{UInt32}(undef, 1)
-        dataPtr = Vector{Ptr{UInt8}}(undef, 1)
-        bson_iter_binary(iter_ref, lengthPtr, dataPtr)
-        len = Int(lengthPtr[1])
-        dataArray = Vector{UInt8}(undef, len)
+        length_ref = Ref{UInt32}()
+        buffer_ref = Ref{Ptr{UInt8}}()
+        bson_iter_binary(iter_ref, length_ref, buffer_ref)
 
-        unsafe_copyto!(pointer(dataArray), dataPtr[1], len)
+        result_data = Vector{UInt8}(undef, length_ref[])
+        unsafe_copyto!(pointer(result_data), buffer_ref[], length_ref[])
 
-        return dataArray
+        return result_data
+
     elseif bson_type == BSON_TYPE_CODE
         return BSONCode(unsafe_string(bson_iter_code(iter_ref)))
     elseif bson_type == BSON_TYPE_NULL
