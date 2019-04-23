@@ -156,20 +156,22 @@ const DB_NAME = "mongoc"
             @test_throws Mongoc.BSONError Mongoc.find_one(collection, Mongoc.BSON(""" { "a" : 1 } """))
         end
 
-        @testset "Binary data" begin
-            coll = client[DB_NAME]["new_collection"]
-            bsonDoc = Mongoc.BSON()
-            testdata = rand(UInt8, 100)
-            bsonDoc["someId"] = "1234"
-            bsonDoc["bindata"] = testdata
-            result = push!(coll, bsonDoc)
-            @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
+        @static if !Sys.iswindows() # skipping binary tests for windows
+            @testset "Binary data" begin
+                coll = client[DB_NAME]["new_collection"]
+                bsonDoc = Mongoc.BSON()
+                testdata = rand(UInt8, 100)
+                bsonDoc["someId"] = "1234"
+                bsonDoc["bindata"] = testdata
+                result = push!(coll, bsonDoc)
+                @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
 
-            # read data out and confirm
-            selector = Mongoc.BSON("""{ "someId": "1234" }""")
-            results = Mongoc.find_one(coll,  selector)
+                # read data out and confirm
+                selector = Mongoc.BSON("""{ "someId": "1234" }""")
+                results = Mongoc.find_one(coll,  selector)
 
-            @test results["bindata"] == testdata
+                @test results["bindata"] == testdata
+            end
         end
 
         @testset "find_collections" begin
