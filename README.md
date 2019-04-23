@@ -3,14 +3,17 @@
 
 [![License][license-img]](LICENSE)
 [![travis][travis-img]][travis-url]
+[![appveyor][appveyor-img]][appveyor-url]
 [![codecov][codecov-img]][codecov-url]
 [![dev][docs-dev-img]][docs-dev-url]
 [![stable][docs-stable-img]][docs-stable-url]
 [![donate][donate-img]][donate-url]
 
 [license-img]: http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
-[travis-img]: https://img.shields.io/travis/felipenoris/Mongoc.jl/master.svg?label=Linux+/+macOS&style=flat-square
+[travis-img]: https://img.shields.io/travis/felipenoris/Mongoc.jl/master.svg?logo=travis&label=Linux+/+macOS&style=flat-square
 [travis-url]: https://travis-ci.org/felipenoris/Mongoc.jl
+[appveyor-img]: https://img.shields.io/appveyor/ci/felipenoris/mongoc-jl/master.svg?logo=appveyor&label=Windows&style=flat-square
+[appveyor-url]: https://ci.appveyor.com/project/felipenoris/mongoc-jl/branch/master
 [codecov-img]: https://img.shields.io/codecov/c/github/felipenoris/Mongoc.jl/master.svg?label=codecov&style=flat-square
 [codecov-url]: http://codecov.io/github/felipenoris/Mongoc.jl?branch=master
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg?style=flat-square
@@ -34,7 +37,7 @@ which provides a way to create and manipulate BSON documents.
 
 * Julia v1.0 or newer.
 
-* Linux or macOS.
+* Linux, macOS or Windows.
 
 ## Installation
 
