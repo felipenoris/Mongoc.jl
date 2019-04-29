@@ -101,6 +101,7 @@ end
 
 function bson_append_binary(bson_document::Ptr{Cvoid}, key::String, key_length::Int,
                             subtype::BSONSubType, value::Vector{UInt8}, val_length::UInt32)
+
     ccall((:bson_append_binary, libbson), Bool,
           (Ptr{Cvoid}, Cstring, Cint, BSONSubType, Ptr{Cvoid}, Culong),
           bson_document, key, key_length, subtype, value, val_length)
@@ -262,6 +263,7 @@ end
 
 function bson_writer_new(buffer_handle_ref::Ref{Ptr{UInt8}}, buffer_length_ref::Ref{Csize_t},
                          offset::Csize_t, realloc_func::Ptr{Cvoid}, realloc_func_ctx::Ptr{Cvoid})
+
     ccall((:bson_writer_new, libbson), Ptr{Cvoid},
          (Ref{Ptr{UInt8}}, Ref{Csize_t}, Csize_t, Ptr{Cvoid}, Ptr{Cvoid}),
          buffer_handle_ref, buffer_length_ref, offset, realloc_func, realloc_func_ctx)
@@ -301,6 +303,7 @@ end
 
 function bson_copy_to_excluding_noinit(src_bson_handle::Ptr{Cvoid}, dst_bson_handle::Ptr{Cvoid},
                                        exclude::AbstractString)
+
     ccall((:bson_copy_to_excluding_noinit, libbson), Cvoid,
           (Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Cstring),
           src_bson_handle, dst_bson_handle, exclude, C_NULL)
@@ -350,6 +353,7 @@ end
 
 function mongoc_client_start_session(client_handle::Ptr{Cvoid}, session_options_handle::Ptr{Cvoid},
                                      bson_error_ref::Ref{BSONError})
+
     ccall((:mongoc_client_start_session, libmongoc), Ptr{Cvoid},
           (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
           client_handle, session_options_handle, bson_error_ref)
@@ -361,6 +365,7 @@ end
 
 function mongoc_client_session_append(session_handle::Ptr{Cvoid}, bson_opts::Ptr{Cvoid},
                                       bson_error_ref::Ref{BSONError})
+
     ccall((:mongoc_client_session_append, libmongoc), Bool,
           (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
           session_handle, bson_opts, bson_error_ref)
@@ -369,6 +374,7 @@ end
 function mongoc_client_session_start_transaction(session_handle::Ptr{Cvoid},
                                                  transaction_options_handle::Ptr{Cvoid},
                                                  bson_error_ref::Ref{BSONError})
+
     ccall((:mongoc_client_session_start_transaction, libmongoc), Bool,
           (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
           session_handle, transaction_options_handle, bson_error_ref)
@@ -376,6 +382,7 @@ end
 
 function mongoc_client_session_abort_transaction(session_handle::Ptr{Cvoid},
                                                  bson_error_ref::Ref{BSONError})
+
     ccall((:mongoc_client_session_abort_transaction, libmongoc), Bool,
           (Ptr{Cvoid}, Ref{BSONError}),
           session_handle, bson_error_ref)
@@ -383,6 +390,7 @@ end
 
 function mongoc_client_session_commit_transaction(session_handle::Ptr{Cvoid}, bson_reply::Ptr{Cvoid},
                                                   bson_error_ref::Ref{BSONError})
+
     ccall((:mongoc_client_session_commit_transaction, libmongoc), Bool,
           (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
           session_handle, bson_reply, bson_error_ref)
@@ -408,6 +416,7 @@ end
 
 function mongoc_session_opts_set_causal_consistency(session_options_handle::Ptr{Cvoid},
                                                     casual_consistency::Bool)
+
     ccall((:mongoc_session_opts_set_causal_consistency, libmongoc), Cvoid,
           (Ptr{Cvoid}, Bool),
           session_options_handle, casual_consistency)
@@ -432,6 +441,7 @@ end
 function mongoc_database_command_simple(database_handle::Ptr{Cvoid}, bson_command::Ptr{Cvoid},
                                         read_prefs::Ptr{Cvoid}, bson_reply::Ptr{Cvoid},
                                         bson_error_ref::Ref{BSONError})
+
     ccall((:mongoc_database_command_simple, libmongoc), Bool,
           (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
           database_handle, bson_command, read_prefs, bson_reply, bson_error_ref)
@@ -440,6 +450,7 @@ end
 function mongoc_database_add_user(database_handle::Ptr{Cvoid}, username::String, password::String,
                                   bson_roles::Ptr{Cvoid}, bson_custom_data::Ptr{Cvoid},
                                   bson_error_ref::Ref{BSONError})
+
     ccall((:mongoc_database_add_user, libmongoc), Bool,
           (Ptr{Cvoid}, Cstring, Cstring, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
           database_handle, username, password, bson_roles, bson_custom_data, bson_error_ref)
@@ -447,6 +458,7 @@ end
 
 function mongoc_database_remove_user(database_handle::Ptr{Cvoid}, username::String,
                                      bson_error_ref::Ref{BSONError})
+
     ccall((:mongoc_database_remove_user, libmongoc), Bool,
           (Ptr{Cvoid}, Cstring, Ref{BSONError}),
           database_handle, username, bson_error_ref)
@@ -455,6 +467,7 @@ end
 function mongoc_collection_command_simple(collection_handle::Ptr{Cvoid}, bson_command::Ptr{Cvoid},
                                           read_prefs::Ptr{Cvoid}, bson_reply::Ptr{Cvoid},
                                           bson_error_ref::Ref{BSONError})
+
     ccall((:mongoc_collection_command_simple, libmongoc), Bool,
           (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
           collection_handle, bson_command, read_prefs, bson_reply, bson_error_ref)
@@ -467,6 +480,7 @@ end
 function mongoc_collection_insert_one(collection_handle::Ptr{Cvoid}, bson_document::Ptr{Cvoid},
                                       bson_options::Ptr{Cvoid}, bson_reply::Ptr{Cvoid},
                                       bson_error_ref::Ref{BSONError})
+
     ccall((:mongoc_collection_insert_one, libmongoc), Bool,
           (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
           collection_handle, bson_document, bson_options, bson_reply, bson_error_ref)
@@ -474,6 +488,7 @@ end
 
 function mongoc_collection_find_with_opts(collection_handle::Ptr{Cvoid}, bson_filter::Ptr{Cvoid},
                                           bson_opts::Ptr{Cvoid}, read_prefs::Ptr{Cvoid})
+
     ccall((:mongoc_collection_find_with_opts, libmongoc), Ptr{Cvoid},
           (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}),
           collection_handle, bson_filter, bson_opts, read_prefs)
@@ -482,6 +497,7 @@ end
 function mongoc_collection_count_documents(collection_handle::Ptr{Cvoid}, bson_filter::Ptr{Cvoid},
                                            bson_opts::Ptr{Cvoid}, read_prefs::Ptr{Cvoid},
                                            bson_reply::Ptr{Cvoid}, bson_error_ref::Ref{BSONError})
+
     ccall((:mongoc_collection_count_documents, libmongoc), Int64,
           (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
           collection_handle, bson_filter, bson_opts, read_prefs, bson_reply, bson_error_ref)
@@ -489,6 +505,7 @@ end
 
 function mongoc_collection_create_bulk_operation_with_opts(collection_handle::Ptr{Cvoid},
                                                            bson_opts::Ptr{Cvoid})
+
     ccall((:mongoc_collection_create_bulk_operation_with_opts, libmongoc), Ptr{Cvoid},
           (Ptr{Cvoid}, Ptr{Cvoid}),
           collection_handle, bson_opts)
@@ -497,6 +514,7 @@ end
 function mongoc_collection_delete_one(collection_handle::Ptr{Cvoid}, bson_selector::Ptr{Cvoid},
                                       bson_opts::Ptr{Cvoid}, bson_reply::Ptr{Cvoid},
                                       bson_error_ref::Ref{BSONError})
+
     ccall((:mongoc_collection_delete_one, libmongoc), Bool,
           (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
           collection_handle, bson_selector, bson_opts, bson_reply, bson_error_ref)
@@ -505,6 +523,7 @@ end
 function mongoc_collection_delete_many(collection_handle::Ptr{Cvoid}, bson_selector::Ptr{Cvoid},
                                        bson_opts::Ptr{Cvoid}, bson_reply::Ptr{Cvoid},
                                        bson_error_ref::Ref{BSONError})
+
     ccall((:mongoc_collection_delete_many, libmongoc), Bool,
           (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
           collection_handle, bson_selector, bson_opts, bson_reply, bson_error_ref)
@@ -513,6 +532,7 @@ end
 function mongoc_collection_update_one(collection_handle::Ptr{Cvoid}, bson_selector::Ptr{Cvoid},
                                       bson_update::Ptr{Cvoid}, bson_opts::Ptr{Cvoid},
                                       bson_reply::Ptr{Cvoid}, bson_error_ref::Ref{BSONError})
+
     ccall((:mongoc_collection_update_one, libmongoc), Bool,
           (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
           collection_handle, bson_selector, bson_update, bson_opts, bson_reply, bson_error_ref)
@@ -521,6 +541,7 @@ end
 function mongoc_collection_update_many(collection_handle::Ptr{Cvoid}, bson_selector::Ptr{Cvoid},
                                        bson_update::Ptr{Cvoid}, bson_opts::Ptr{Cvoid},
                                        bson_reply::Ptr{Cvoid}, bson_error_ref::Ref{BSONError})
+
     ccall((:mongoc_collection_update_many, libmongoc), Bool,
           (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
           collection_handle, bson_selector, bson_update, bson_opts, bson_reply, bson_error_ref)
@@ -529,6 +550,7 @@ end
 function mongoc_collection_aggregate(collection_handle::Ptr{Cvoid}, flags::QueryFlags,
                                      bson_pipeline::Ptr{Cvoid}, bson_opts::Ptr{Cvoid},
                                      read_prefs::Ptr{Cvoid})
+
     ccall((:mongoc_collection_aggregate, libmongoc), Ptr{Cvoid},
           (Ptr{Cvoid}, Cint, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}),
           collection_handle, flags, bson_pipeline, bson_opts, read_prefs)
@@ -562,6 +584,7 @@ function mongoc_bulk_operation_insert_with_opts(bulk_operation_handle::Ptr{Cvoid
                                                 bson_document::Ptr{Cvoid},
                                                 bson_options::Ptr{Cvoid},
                                                 bson_error_ref::Ref{BSONError})
+
     ccall((:mongoc_bulk_operation_insert_with_opts, libmongoc), Bool,
           (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
           bulk_operation_handle, bson_document, bson_options, bson_error_ref)
@@ -569,7 +592,23 @@ end
 
 function mongoc_bulk_operation_execute(bulk_operation_handle::Ptr{Cvoid}, bson_reply::Ptr{Cvoid},
                                        bson_error_ref::Ref{BSONError})
+
     ccall((:mongoc_bulk_operation_execute, libmongoc), UInt32,
           (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
           bulk_operation_handle, bson_reply, bson_error_ref)
+end
+
+#=
+bool
+mongoc_collection_drop_with_opts (mongoc_collection_t *collection,
+                                  bson_t *opts,
+                                  bson_error_t *error);
+=#
+function mongoc_collection_drop_with_opts(collection_handle::Ptr{Cvoid},
+                                          bson_opts_handle::Ptr{Cvoid},
+                                          bson_error_ref::Ref{BSONError})
+
+    ccall((:mongoc_collection_drop_with_opts, libmongoc), Bool,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+           collection_handle, bson_opts_handle, bson_error_ref)
 end
