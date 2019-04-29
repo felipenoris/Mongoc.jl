@@ -22,7 +22,9 @@ datetime2isodate(dt::DateTime) = Dates.datetime2epochms(dt) - ISODATE_OFFSET
 include("bson.jl")
 include("types.jl")
 include("c_api.jl")
-include("api.jl")
+include("client.jl")
+include("database.jl")
+include("collection.jl")
 include("session.jl")
 
 function __init__()
