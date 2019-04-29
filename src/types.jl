@@ -241,7 +241,7 @@ mutable struct Session
         err_ref = Ref{BSONError}()
         session_handle = mongoc_client_start_session(client.handle, options.handle, err_ref)
         if session_handle == C_NULL
-            throw(err_ref[]) 
+            throw(err_ref[])
         end
         session = new(client, options, session_handle)
         finalizer(destroy!, session)

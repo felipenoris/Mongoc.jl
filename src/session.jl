@@ -113,6 +113,10 @@ function aggregate(collection::CollectionSession, bson_pipeline::BSON;
     aggregate(collection.collection, bson_pipeline, flags=flags, options=options_with_session)
 end
 
+function drop(collection::CollectionSession, opts::Union{Nothing, BSON}=nothing)
+    drop(collection.collection, opts)
+end
+
 #
 # Transaction
 #

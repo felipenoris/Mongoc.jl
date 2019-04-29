@@ -312,6 +312,25 @@ function aggregate(collection::Collection, bson_pipeline::BSON;
     return Cursor(collection, cursor_handle)
 end
 
+"""
+    drop(collection::Collection, opts::Union{Nothing, BSON}=nothing)
+
+Drops `collection` from the database.
+
+For information about `opts` argument, check
+[libmongoc documentation](http://mongoc.org/libmongoc/current/mongoc_collection_drop_with_opts.html).
+"""
+function drop(collection::Collection, opts::Union{Nothing, BSON}=nothing)
+    opts_handle = opts == nothing ? C_NULL : opts.handle
+    err_ref = Ref{BSONError}()
+    ok = mongoc_collection_drop_with_opts(collection.handle, opts_handle, err_ref)
+
+    if !ok
+        throw(err_ref[])
+    end
+    nothing
+end
+
 #
 # High-level API
 #

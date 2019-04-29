@@ -208,8 +208,7 @@ const DB_NAME = "mongoc"
             @test length(collection) == 3
             @test length(collect(collection)) == 3
 
-            empty!(collection)
-            @test isempty(collection)
+            Mongoc.drop(collection)
         end
 
         @testset "delete_one" begin
@@ -227,7 +226,7 @@ const DB_NAME = "mongoc"
             @test result["deletedCount"] == 1
             @test length(collection, selector) == 0
 
-            empty!(collection)
+            Mongoc.drop(collection)
         end
 
         @testset "delete_many" begin
@@ -240,6 +239,7 @@ const DB_NAME = "mongoc"
             result = Mongoc.delete_many(collection, Mongoc.BSON())
             @test result["deletedCount"] == 1
             @test isempty(collection)
+            Mongoc.drop(collection)
         end
 
         @testset "update_one, update_many" begin
@@ -273,7 +273,7 @@ const DB_NAME = "mongoc"
 
             @test Mongoc.find_one(collection, Mongoc.BSON("""{ "delete" : true }""")) == nothing
 
-            empty!(collection)
+            Mongoc.drop(collection)
         end
 
         @testset "aggregation, map_reduce" begin
@@ -355,7 +355,7 @@ const DB_NAME = "mongoc"
                # BSON("{ "_id" : "B212", "value" : 200.0 }")
             end
 
-            empty!(collection)
+            Mongoc.drop(collection)
         end
     end
 
@@ -394,7 +394,12 @@ const DB_NAME = "mongoc"
             db = session[DB_NAME]
             collection = db["session_collection"]
             push!(collection, Mongoc.BSON("""{ "try-insert" : 1 }"""))
-            empty!(collection)
+            Mongoc.drop(collection)
         end
+    end
+
+    @testset "Cleanup" begin
+        coll = client[DB_NAME]["new_collection"]
+        Mongoc.drop(coll)
     end
 end

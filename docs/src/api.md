@@ -44,6 +44,7 @@ Mongoc.get_collection_names
 Mongoc.find
 Mongoc.find_one
 Mongoc.count_documents
+Mongoc.drop
 ```
 
 ## Aggregation
