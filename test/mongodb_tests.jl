@@ -189,6 +189,10 @@ const DB_NAME = "mongoc"
             bulk_2 = Mongoc.BulkOperation(coll) # will be freed by GC
         end
 
+        @testset "Cleanup" begin
+            coll = client[DB_NAME]["new_collection"]
+            Mongoc.drop(coll)
+        end
 
         @testset "insert_many" begin
             collection = client[DB_NAME]["insert_many"]
@@ -359,6 +363,45 @@ const DB_NAME = "mongoc"
         end
     end
 
+    @testset "find and modify" begin
+        @testset "create/destroy opts" begin
+            opts = Mongoc.FindAndModifyOptsBuilder()
+            Mongoc.destroy!(opts)
+        end
+
+        @testset "set opts" begin
+            opts = Mongoc.FindAndModifyOptsBuilder()
+            opts.update = Mongoc.BSON("""{ "\$set" : { "position" : "striker" }}""")
+            opts.sort = Mongoc.BSON("""{ "age" : -1 }""")
+            opts.fields = Mongoc.BSON("""{ "goals" : 1 }""")
+            opts.flags = Mongoc.MONGOC_FIND_AND_MODIFY_UPSERT | Mongoc.MONGOC_FIND_AND_MODIFY_RETURN_NEW
+        end
+
+        @testset "main function" begin
+            collection = client[DB_NAME]["find_and_modify"]
+
+            docs = [
+                Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 500, "status" : "A" }"""),
+                Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 250, "status" : "A" }"""),
+                Mongoc.BSON("""{ "cust_id" : "B212", "amount" : 200, "status" : "A" }"""),
+                Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 300, "status" : "D" }""")
+            ]
+
+            append!(collection, docs)
+
+            Mongoc.find_and_modify(
+                collection,
+                Mongoc.BSON("amount" => 500),
+                update = Mongoc.BSON("""{ "\$set" : { "status" : "N" } }""")
+            )
+
+            modified_doc = Mongoc.find_one(collection, Mongoc.BSON("amount" => 500))
+            @test modified_doc["status"] == "N"
+
+            Mongoc.drop(collection)
+        end
+    end
+
     @testset "Users" begin
         # creates admin user - https://docs.mongodb.com/manual/tutorial/enable-authentication/
         @test Mongoc.has_database(client, DB_NAME) # at this point, DB_NAME should exist
@@ -398,8 +441,7 @@ const DB_NAME = "mongoc"
         end
     end
 
-    @testset "Cleanup" begin
-        coll = client[DB_NAME]["new_collection"]
-        Mongoc.drop(coll)
+    @testset "Drop Database" begin
+        Mongoc.drop(client[DB_NAME])
     end
 end
