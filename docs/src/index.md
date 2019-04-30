@@ -22,6 +22,12 @@ which provides a way to create and manipulate BSON documents.
 
 * Windows (experimental).
 
+!!! note
+
+    This package is known to work on Windows 7 and Windows Server.
+    For Windows 10, however, dependencies may fail to install.
+    See [Issue #44](https://github.com/felipenoris/Mongoc.jl/issues/44).
+
 ## Installation
 
 From a Julia session, run:
