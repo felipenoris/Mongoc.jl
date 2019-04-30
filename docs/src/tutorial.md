@@ -436,3 +436,29 @@ Which yields:
 ```
 BSON("{ "values" : [ "A", "D" ], "ok" : 1.0 }")
 ```
+
+## Find and Modify
+
+Use `Mongoc.find_and_modify` to query and update documents in a single pass.
+
+```julia
+collection = client["db_name"]["find_and_modify"]
+
+docs = [
+    Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 500, "status" : "A" }"""),
+    Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 250, "status" : "A" }"""),
+    Mongoc.BSON("""{ "cust_id" : "B212", "amount" : 200, "status" : "A" }"""),
+    Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 300, "status" : "D" }""")
+]
+
+append!(collection, docs)
+
+Mongoc.find_and_modify(
+    collection,
+    Mongoc.BSON("amount" => 500),
+    update = Mongoc.BSON("""{ "\$set" : { "status" : "N" } }""")
+)
+
+modified_doc = Mongoc.find_one(collection, Mongoc.BSON("amount" => 500))
+@test modified_doc["status"] == "N"
+```
