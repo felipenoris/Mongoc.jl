@@ -182,7 +182,11 @@ distinct_cmd = Mongoc.BSON()
 distinct_cmd[&quot;distinct&quot;] = &quot;my-collection&quot;
 distinct_cmd[&quot;key&quot;] = &quot;status&quot;
 
-result = Mongoc.command_simple(client[&quot;my-database&quot;], distinct_cmd)</code></pre><p>Which yields:</p><pre><code class="language-none">BSON(&quot;{ &quot;values&quot; : [ &quot;A&quot;, &quot;D&quot; ], &quot;ok&quot; : 1.0 }&quot;)</code></pre><h2><a class="nav-anchor" id="Find-and-Modify-1" href="#Find-and-Modify-1">Find and Modify</a></h2><p>Use <code>Mongoc.find_and_modify</code> to query and update documents in a single pass.</p><pre><code class="language-julia">collection = client[&quot;db_name&quot;][&quot;find_and_modify&quot;]
+result = Mongoc.command_simple(client[&quot;my-database&quot;], distinct_cmd)</code></pre><p>Which yields:</p><pre><code class="language-none">BSON(&quot;{ &quot;values&quot; : [ &quot;A&quot;, &quot;D&quot; ], &quot;ok&quot; : 1.0 }&quot;)</code></pre><h2><a class="nav-anchor" id="Find-and-Modify-1" href="#Find-and-Modify-1">Find and Modify</a></h2><p>Use <code>Mongoc.find_and_modify</code> to query and update documents in a single pass.</p><pre><code class="language-julia">#
+# populate a new collection
+#
+
+collection = client[&quot;database_name&quot;][&quot;find_and_modify&quot;]
 
 docs = [
     Mongoc.BSON(&quot;&quot;&quot;{ &quot;cust_id&quot; : &quot;A123&quot;, &quot;amount&quot; : 500, &quot;status&quot; : &quot;A&quot; }&quot;&quot;&quot;),
@@ -193,11 +197,56 @@ docs = [
 
 append!(collection, docs)
 
-Mongoc.find_and_modify(
+#
+# updates the item with amount 5000 with status &quot;N&quot;
+#
+query = Mongoc.BSON(&quot;amount&quot; =&gt; 500)
+
+reply = Mongoc.find_and_modify(
     collection,
-    Mongoc.BSON(&quot;amount&quot; =&gt; 500),
-    update = Mongoc.BSON(&quot;&quot;&quot;{ &quot;\$set&quot; : { &quot;status&quot; : &quot;N&quot; } }&quot;&quot;&quot;)
+    query,
+    update = Mongoc.BSON(&quot;&quot;&quot;{ &quot;\$set&quot; : { &quot;status&quot; : &quot;N&quot; } }&quot;&quot;&quot;),
+    flags = Mongoc.FIND_AND_MODIFY_FLAG_RETURN_NEW # will return the new version of the document
 )
 
-modified_doc = Mongoc.find_one(collection, Mongoc.BSON(&quot;amount&quot; =&gt; 500))
-@test modified_doc[&quot;status&quot;] == &quot;N&quot;</code></pre><footer><hr/><a class="previous" href="../"><span class="direction">Previous</span><span class="title">Home</span></a><a class="next" href="../crud/"><span class="direction">Next</span><span class="title">CRUD Operations</span></a></footer></article></body></html>
+modified_doc = reply[&quot;value&quot;]
+@test modified_doc[&quot;status&quot;] == &quot;N&quot;
+
+#
+# UPSERT example: if the queried item is not found, it is created
+#
+
+query = Mongoc.BSON(&quot;&quot;&quot;{ &quot;cust_id&quot; : &quot;C555&quot;, &quot;amount&quot; : 10, &quot;status&quot; : &quot;X&quot; }&quot;&quot;&quot;)
+
+reply = Mongoc.find_and_modify(
+    collection,
+    query,
+    update = Mongoc.BSON(&quot;&quot;&quot;{ &quot;\$set&quot; : { &quot;status&quot; : &quot;S&quot; } }&quot;&quot;&quot;),
+    flags = Mongoc.FIND_AND_MODIFY_FLAG_UPSERT | Mongoc.FIND_AND_MODIFY_FLAG_RETURN_NEW
+)
+
+new_document = reply[&quot;value&quot;]
+@test new_document[&quot;cust_id&quot;] == &quot;C555&quot;
+@test new_document[&quot;amount&quot;] == 10
+@test new_document[&quot;status&quot;] == &quot;S&quot;
+
+#
+# Update sorted with selected fields
+#
+query = Mongoc.BSON(&quot;&quot;&quot;{ &quot;amount&quot; : { &quot;\$lt&quot; : 300 } }&quot;&quot;&quot;)
+update = Mongoc.BSON(&quot;&quot;&quot;{ &quot;\$set&quot; : { &quot;status&quot; : &quot;Z&quot; } }&quot;&quot;&quot;)
+fields = Mongoc.BSON(&quot;&quot;&quot;{ &quot;amount&quot; : 1, &quot;status&quot; : 1 }&quot;&quot;&quot;)
+sort = Mongoc.BSON(&quot;&quot;&quot;{ &quot;amount&quot; : 1 }&quot;&quot;&quot;)
+
+reply = Mongoc.find_and_modify(
+    collection,
+    query,
+    update=update,
+    sort=sort,
+    fields=fields,
+    flags=Mongoc.FIND_AND_MODIFY_FLAG_RETURN_NEW)
+
+new_document = reply[&quot;value&quot;]
+@test new_document[&quot;amount&quot;] == 10
+@test new_document[&quot;status&quot;] == &quot;Z&quot;
+@test !haskey(new_document, &quot;cust_id&quot;)</code></pre><footer><hr/><a class="previous" href="../"><span class="direction">Previous</span><span class="title">Home</span></a><a class="next" href="../crud/"><span class="direction">Next</span><span class="title">CRUD Operations</span></a></footer></article></body></html>
