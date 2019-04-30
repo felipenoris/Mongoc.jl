@@ -374,7 +374,7 @@ const DB_NAME = "mongoc"
             opts.update = Mongoc.BSON("""{ "\$set" : { "position" : "striker" }}""")
             opts.sort = Mongoc.BSON("""{ "age" : -1 }""")
             opts.fields = Mongoc.BSON("""{ "goals" : 1 }""")
-            opts.flags = Mongoc.MONGOC_FIND_AND_MODIFY_UPSERT | Mongoc.MONGOC_FIND_AND_MODIFY_RETURN_NEW
+            opts.flags = Mongoc.FIND_AND_MODIFY_FLAG_UPSERT | Mongoc.FIND_AND_MODIFY_FLAG_RETURN_NEW
         end
 
         @testset "main function" begin
@@ -389,14 +389,44 @@ const DB_NAME = "mongoc"
 
             append!(collection, docs)
 
-            Mongoc.find_and_modify(
-                collection,
-                Mongoc.BSON("amount" => 500),
-                update = Mongoc.BSON("""{ "\$set" : { "status" : "N" } }""")
-            )
+            @testset "update simple" begin
+                query = Mongoc.BSON("amount" => 500)
 
-            modified_doc = Mongoc.find_one(collection, Mongoc.BSON("amount" => 500))
-            @test modified_doc["status"] == "N"
+                reply = Mongoc.find_and_modify(
+                    collection,
+                    query,
+                    update = Mongoc.BSON("""{ "\$set" : { "status" : "N" } }"""),
+                    flags = Mongoc.FIND_AND_MODIFY_FLAG_RETURN_NEW # will return the new version of the document
+                )
+
+                let
+                    modified_doc = reply["value"]
+                    @test modified_doc["status"] == "N"
+                end
+
+                let
+                    modified_doc = Mongoc.find_one(collection, Mongoc.BSON("amount" => 500))
+                    @test modified_doc["status"] == "N"
+                end
+            end
+
+            @testset "upsert and return new" begin
+                query = Mongoc.BSON("""{ "cust_id" : "C555", "amount" : 10, "status" : "X" }""")
+
+                reply = Mongoc.find_and_modify(
+                    collection,
+                    query,
+                    update = Mongoc.BSON("""{ "\$set" : { "status" : "S" } }"""),
+                    flags = Mongoc.FIND_AND_MODIFY_FLAG_UPSERT | Mongoc.FIND_AND_MODIFY_FLAG_RETURN_NEW
+                )
+
+                let
+                    new_document = reply["value"]
+                    @test new_document["cust_id"] == "C555"
+                    @test new_document["amount"] == 10
+                    @test new_document["status"] == "S"
+                end
+            end
 
             Mongoc.drop(collection)
         end
