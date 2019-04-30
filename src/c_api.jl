@@ -464,6 +464,16 @@ function mongoc_database_remove_user(database_handle::Ptr{Cvoid}, username::Stri
           database_handle, username, bson_error_ref)
 end
 
+function mongoc_database_drop_with_opts(database_handle::Ptr{Cvoid},
+        opts_handle::Ptr{Cvoid}, bson_error_ref::Ref{BSONError})
+
+    ccall((:mongoc_database_drop_with_opts, libmongoc),
+          Bool,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          database_handle, opts_handle, bson_error_ref
+        )
+end
+
 function mongoc_collection_command_simple(collection_handle::Ptr{Cvoid}, bson_command::Ptr{Cvoid},
                                           read_prefs::Ptr{Cvoid}, bson_reply::Ptr{Cvoid},
                                           bson_error_ref::Ref{BSONError})
@@ -598,12 +608,6 @@ function mongoc_bulk_operation_execute(bulk_operation_handle::Ptr{Cvoid}, bson_r
           bulk_operation_handle, bson_reply, bson_error_ref)
 end
 
-#=
-bool
-mongoc_collection_drop_with_opts (mongoc_collection_t *collection,
-                                  bson_t *opts,
-                                  bson_error_t *error);
-=#
 function mongoc_collection_drop_with_opts(collection_handle::Ptr{Cvoid},
                                           bson_opts_handle::Ptr{Cvoid},
                                           bson_error_ref::Ref{BSONError})
@@ -611,4 +615,73 @@ function mongoc_collection_drop_with_opts(collection_handle::Ptr{Cvoid},
     ccall((:mongoc_collection_drop_with_opts, libmongoc), Bool,
           (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
            collection_handle, bson_opts_handle, bson_error_ref)
+end
+
+function mongoc_find_and_modify_opts_new()
+    ccall((:mongoc_find_and_modify_opts_new, libmongoc),
+           Ptr{Cvoid},
+           ())
+end
+
+function mongoc_find_and_modify_opts_destroy(handle::Ptr{Cvoid})
+    ccall((:mongoc_find_and_modify_opts_destroy, libmongoc),
+           Cvoid,
+           (Ptr{Cvoid},),
+           handle)
+end
+
+function mongoc_find_and_modify_opts_set_update(opts_handle::Ptr{Cvoid},
+                bson_handle::Ptr{Cvoid})
+
+    ccall((:mongoc_find_and_modify_opts_set_update, libmongoc),
+           Bool,
+           (Ptr{Cvoid}, Ptr{Cvoid}),
+           opts_handle, bson_handle)
+end
+
+function mongoc_find_and_modify_opts_set_sort(opts_handle::Ptr{Cvoid},
+                bson_handle::Ptr{Cvoid})
+
+    ccall((:mongoc_find_and_modify_opts_set_sort, libmongoc),
+           Bool,
+           (Ptr{Cvoid}, Ptr{Cvoid}),
+           opts_handle, bson_handle)
+end
+
+function mongoc_find_and_modify_opts_set_fields(opts_handle::Ptr{Cvoid},
+                                                bson_handle::Ptr{Cvoid})
+
+    ccall((:mongoc_find_and_modify_opts_set_fields, libmongoc),
+           Bool,
+           (Ptr{Cvoid}, Ptr{Cvoid}),
+           opts_handle, bson_handle)
+end
+
+function mongoc_find_and_modify_opts_set_flags(opts_handle::Ptr{Cvoid},
+                                               flags::FindAndModifyFlags)
+
+    ccall((:mongoc_find_and_modify_opts_set_flags, libmongoc),
+           Bool,
+           (Ptr{Cvoid}, FindAndModifyFlags),
+           opts_handle, flags)
+end
+
+function mongoc_find_and_modify_opts_set_bypass_document_validation(
+        opts_handle::Ptr{Cvoid}, bypass::Bool)
+
+    ccall((:mongoc_find_and_modify_opts_set_bypass_document_validation, libmongoc),
+           Bool,
+           (Ptr{Cvoid}, Bool),
+           opts_handle, bypass)
+end
+
+function mongoc_collection_find_and_modify_with_opts(collection_handle::Ptr{Cvoid},
+        query_bson_handle::Ptr{Cvoid}, opts_handle::Ptr{Cvoid},
+        result_bson_handle::Ptr{Cvoid}, bson_error_ref::Ref{BSONError})
+
+    ccall((:mongoc_collection_find_and_modify_with_opts, libmongoc),
+           Bool,
+           (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+           collection_handle, query_bson_handle,
+           opts_handle, result_bson_handle, bson_error_ref)
 end

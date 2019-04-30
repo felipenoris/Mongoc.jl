@@ -313,12 +313,15 @@ function aggregate(collection::Collection, bson_pipeline::BSON;
 end
 
 """
+    drop(database::Database, opts::Union{Nothing, BSON}=nothing)
     drop(collection::Collection, opts::Union{Nothing, BSON}=nothing)
 
-Drops `collection` from the database.
+Drops `database` or `collection`.
 
-For information about `opts` argument, check
-[libmongoc documentation](http://mongoc.org/libmongoc/current/mongoc_collection_drop_with_opts.html).
+For information about `opts` argument, check the libmongoc documentation for
+[database drop](http://mongoc.org/libmongoc/current/mongoc_database_drop_with_opts.html)
+or
+[collection drop](http://mongoc.org/libmongoc/current/mongoc_collection_drop_with_opts.html).
 """
 function drop(collection::Collection, opts::Union{Nothing, BSON}=nothing)
     opts_handle = opts == nothing ? C_NULL : opts.handle
@@ -329,6 +332,114 @@ function drop(collection::Collection, opts::Union{Nothing, BSON}=nothing)
         throw(err_ref[])
     end
     nothing
+end
+
+# findAndModify
+function Base.setproperty!(builder::FindAndModifyOptsBuilder, opt::Symbol, val::BSON)
+    if opt == :update
+        set_opt_update!(builder, val)
+
+    elseif opt == :sort
+        set_opt_sort!(builder, val)
+
+    elseif opt == :fields
+        set_opt_fields!(builder, val)
+
+    else
+        error("Unknown option for FindAndModifyOptsBuilder: $opt")
+    end
+end
+
+function Base.setproperty!(builder::FindAndModifyOptsBuilder, opt::Symbol, val::FindAndModifyFlags)
+    @assert opt == :flags "Can't set $val to field $opt."
+    set_opt_flags!(builder, val)
+end
+
+function set_opt_update!(builder::FindAndModifyOptsBuilder, val::BSON)
+    ok = mongoc_find_and_modify_opts_set_update(builder.handle, val.handle)
+    if !ok
+        error("Couldn't set option update $val for FindAndModifyOptsBuilder.")
+    end
+    nothing
+end
+
+function set_opt_sort!(builder::FindAndModifyOptsBuilder, val::BSON)
+    ok = mongoc_find_and_modify_opts_set_sort(builder.handle, val.handle)
+    if !ok
+        error("Couldn't set option sort $val for FindAndModifyOptsBuilder.")
+    end
+    nothing
+end
+
+function set_opt_fields!(builder::FindAndModifyOptsBuilder, val::BSON)
+    ok = mongoc_find_and_modify_opts_set_fields(builder.handle, val.handle)
+    if !ok
+        error("Couldn't set option fields $val for FindAndModifyOptsBuilder.")
+    end
+    nothing
+end
+
+function set_opt_flags!(builder::FindAndModifyOptsBuilder, val::FindAndModifyFlags)
+    ok = mongoc_find_and_modify_opts_set_flags(builder.handle, val)
+    if !ok
+        error("Couldn't set option flags $val for FindAndModifyOptsBuilder.")
+    end
+    nothing
+end
+
+function Base.setproperty!(builder::FindAndModifyOptsBuilder, opt::Symbol, val::Bool)
+    @assert opt == :bypass_document_validation "Can't set $val to field $opt."
+    set_opt_bypass_document_validation!(builder, val)
+end
+
+function set_opt_bypass_document_validation!(builder::FindAndModifyOptsBuilder, bypass::Bool)
+    ok = mongoc_find_and_modify_opts_set_bypass_document_validation(builder.handle, bypass)
+    if !ok
+        error("Couldn't set option `bypass document validation` for FindAndModifyOptsBuilder.")
+    end
+    nothing
+end
+
+"""
+    find_and_modify(collection::Collection, query::BSON;
+        update::Union{Nothing, BSON}=nothing,
+        sort::Union{Nothing, BSON}=nothing,
+        fields::Union{Nothing, BSON}=nothing,
+        bypass_document_validation::Bool=false,
+    ) :: BSON
+
+Find documents and updates them in one go.
+
+See [libmongoc documentation](http://mongoc.org/libmongoc/current/mongoc_collection_find_and_modify.html)
+for examples.
+"""
+function find_and_modify(collection::Collection, query::BSON;
+            update::Union{Nothing, BSON}=nothing,
+            sort::Union{Nothing, BSON}=nothing,
+            fields::Union{Nothing, BSON}=nothing,
+            bypass_document_validation::Bool=false,
+        ) :: BSON
+
+    opts = FindAndModifyOptsBuilder(
+            update=update,
+            sort=sort,
+            fields=fields,
+            bypass_document_validation=bypass_document_validation,
+    )
+
+    reply = BSON()
+    err_ref = Ref{BSONError}()
+
+    ok = mongoc_collection_find_and_modify_with_opts(
+            collection.handle,
+            query.handle, opts.handle,
+            reply.handle, err_ref)
+
+    if !ok
+        throw(err_ref[])
+    end
+
+    return reply
 end
 
 #

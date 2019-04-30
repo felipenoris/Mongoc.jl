@@ -112,3 +112,16 @@ function get_collection_names(database::Database;
     end
     return result
 end
+
+# docstring for drop is at collection.jl
+function drop(database::Database;
+        options::Union{Nothing, BSON}=nothing)
+
+    err_ref = Ref{BSONError}()
+    opts_handle = options == nothing ? C_NULL : options.handle
+    ok = mongoc_database_drop_with_opts(database.handle, opts_handle, err_ref)
+    if !ok
+        throw(err_ref[])
+    end
+    nothing
+end

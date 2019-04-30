@@ -42,14 +42,34 @@ Get partial results from mongos if some shards are down (instead of throwing an 
 """
 primitive type QueryFlags sizeof(Cint) * 8 end
 
-Base.convert(::Type{T}, t::QueryFlags) where {T<:Number} = reinterpret(Cint, t)
-Base.convert(::Type{QueryFlags}, n::T) where {T<:Number} = reinterpret(QueryFlags, n)
+"""
+Adds one or more flags to the `FindAndModifyOptsBuilder`.
+
+* `MONGOC_FIND_AND_MODIFY_NONE`: Default. Doesn’t add anything to the builder.
+
+* `MONGOC_FIND_AND_MODIFY_REMOVE`: Will instruct find_and_modify to remove the matching document.
+
+* `MONGOC_FIND_AND_MODIFY_UPSERT`: Update the matching document or, if no document matches, insert the document.
+
+* `MONGOC_FIND_AND_MODIFY_RETURN_NEW`: Return the resulting document.
+"""
+primitive type FindAndModifyFlags sizeof(Cint) * 8 end
+
+const QueryOrFindAndModifyFlags = Union{QueryFlags, FindAndModifyFlags}
+
+Base.convert(::Type{T}, t::QueryOrFindAndModifyFlags) where {T<:Number} = reinterpret(Cint, t)
+Base.convert(::Type{Q}, n::T) where {Q<:QueryOrFindAndModifyFlags, T<:Number} = reinterpret(Q, n)
+Cint(flags::QueryOrFindAndModifyFlags) = convert(Cint, flags)
+Base.:(|)(flag1::T, flag2::T) where {T<:QueryOrFindAndModifyFlags} = T( Cint(flag1) | Cint(flag2) )
+Base.:(&)(flag1::T, flag2::T) where {T<:QueryOrFindAndModifyFlags} = T( Cint(flag1) & Cint(flag2) )
+
 QueryFlags(u::Cint) = convert(QueryFlags, u)
 QueryFlags(i::Number) = QueryFlags(Cint(i))
-Cint(flags::QueryFlags) = convert(Cint, flags)
-Base.:(|)(flag1::QueryFlags, flag2::QueryFlags) = QueryFlags( Cint(flag1) | Cint(flag2) )
-Base.:(&)(flag1::QueryFlags, flag2::QueryFlags) = QueryFlags( Cint(flag1) & Cint(flag2) )
 Base.show(io::IO, flags::QueryFlags) = print(io, "QueryFlags($(Cint(flags)))")
+
+FindAndModifyFlags(u::Cint) = convert(FindAndModifyFlags, u)
+FindAndModifyFlags(i::Number) = FindAndModifyFlags(Cint(i))
+Base.show(io::IO, flags::FindAndModifyFlags) = print(io, "FindAndModifyFlags($(Cint(flags)))")
 
 const QUERY_FLAG_NONE              = QueryFlags(0)
 const QUERY_FLAG_TAILABLE_CURSOR   = QueryFlags(1 << 1)
@@ -59,6 +79,11 @@ const QUERY_FLAG_NO_CURSOR_TIMEOUT = QueryFlags(1 << 4)
 const QUERY_FLAG_AWAIT_DATA        = QueryFlags(1 << 5)
 const QUERY_FLAG_EXHAUST           = QueryFlags(1 << 6)
 const QUERY_FLAG_PARTIAL           = QueryFlags(1 << 7)
+
+const MONGOC_FIND_AND_MODIFY_NONE = FindAndModifyFlags(0)
+const MONGOC_FIND_AND_MODIFY_REMOVE = FindAndModifyFlags(1 << 0)
+const MONGOC_FIND_AND_MODIFY_UPSERT = FindAndModifyFlags(1 << 1)
+const MONGOC_FIND_AND_MODIFY_RETURN_NEW = FindAndModifyFlags(1 << 2)
 
 # `URI` is a wrapper for C struct `mongoc_uri_t`."
 mutable struct URI
@@ -284,6 +309,50 @@ function destroy!(session::Session)
     if session.handle != C_NULL
         mongoc_client_session_destroy(session.handle)
         session.handle = C_NULL
+    end
+    nothing
+end
+
+mutable struct FindAndModifyOptsBuilder
+    handle::Ptr{Cvoid}
+
+    function FindAndModifyOptsBuilder(;
+        update::Union{Nothing, BSON}=nothing,
+        sort::Union{Nothing, BSON}=nothing,
+        fields::Union{Nothing, BSON}=nothing,
+        flags::Union{Nothing, FindAndModifyFlags}=nothing,
+        bypass_document_validation::Bool=false,
+    )
+
+        opts = new(mongoc_find_and_modify_opts_new())
+        finalizer(destroy!, opts)
+
+        if update != nothing
+            opts.update = update
+        end
+
+        if sort != nothing
+            opts.sort = sort
+        end
+
+        if fields != nothing
+            opts.fields = fields
+        end
+
+        if flags != nothing
+            opts.flags = flags
+        end
+
+        opts.bypass_document_validation = bypass_document_validation
+
+        return opts
+    end
+end
+
+function destroy!(opts::FindAndModifyOptsBuilder)
+    if opts.handle != C_NULL
+        mongoc_find_and_modify_opts_destroy(opts.handle)
+        opts.handle = C_NULL
     end
     nothing
 end

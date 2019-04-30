@@ -45,6 +45,8 @@ Mongoc.find
 Mongoc.find_one
 Mongoc.count_documents
 Mongoc.drop
+Mongoc.find_and_modify
+Mongoc.FindAndModifyFlags
 ```
 
 ## Aggregation
