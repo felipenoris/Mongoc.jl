@@ -428,6 +428,28 @@ const DB_NAME = "mongoc"
                 end
             end
 
+            @testset "update sorted with selected fields" begin
+                query = Mongoc.BSON("""{ "amount" : { "\$lt" : 300 } }""")
+                update = Mongoc.BSON("""{ "\$set" : { "status" : "Z" } }""")
+                fields = Mongoc.BSON("""{ "amount" : 1, "status" : 1 }""")
+                sort = Mongoc.BSON("""{ "amount" : 1 }""")
+
+                reply = Mongoc.find_and_modify(
+                    collection,
+                    query,
+                    update=update,
+                    sort=sort,
+                    fields=fields,
+                    flags=Mongoc.FIND_AND_MODIFY_FLAG_RETURN_NEW)
+
+                let
+                    new_document = reply["value"]
+                    @test new_document["amount"] == 10
+                    @test new_document["status"] == "Z"
+                    @test !haskey(new_document, "cust_id")
+                end
+            end
+
             Mongoc.drop(collection)
         end
     end
