@@ -442,7 +442,11 @@ BSON("{ "values" : [ "A", "D" ], "ok" : 1.0 }")
 Use `Mongoc.find_and_modify` to query and update documents in a single pass.
 
 ```julia
-collection = client["db_name"]["find_and_modify"]
+#
+# populate a new collection
+#
+
+collection = client["database_name"]["find_and_modify"]
 
 docs = [
     Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 500, "status" : "A" }"""),
@@ -453,12 +457,36 @@ docs = [
 
 append!(collection, docs)
 
-Mongoc.find_and_modify(
+#
+# updates the item with amount 5000 with status "N"
+#
+query = Mongoc.BSON("amount" => 500)
+
+reply = Mongoc.find_and_modify(
     collection,
-    Mongoc.BSON("amount" => 500),
-    update = Mongoc.BSON("""{ "\$set" : { "status" : "N" } }""")
+    query,
+    update = Mongoc.BSON("""{ "\$set" : { "status" : "N" } }"""),
+    flags = Mongoc.FIND_AND_MODIFY_FLAG_RETURN_NEW # will return the new version of the document
 )
 
-modified_doc = Mongoc.find_one(collection, Mongoc.BSON("amount" => 500))
+modified_doc = reply["value"]
 @test modified_doc["status"] == "N"
+
+#
+# UPSERT example: if the queried item is not found, it is created
+#
+
+query = Mongoc.BSON("""{ "cust_id" : "C555", "amount" : 10, "status" : "X" }""")
+
+reply = Mongoc.find_and_modify(
+    collection,
+    query,
+    update = Mongoc.BSON("""{ "\$set" : { "status" : "S" } }"""),
+    flags = Mongoc.FIND_AND_MODIFY_FLAG_UPSERT | Mongoc.FIND_AND_MODIFY_FLAG_RETURN_NEW
+)
+
+new_document = reply["value"]
+@test new_document["cust_id"] == "C555"
+@test new_document["amount"] == 10
+@test new_document["status"] == "S"
 ```

@@ -44,14 +44,16 @@ primitive type QueryFlags sizeof(Cint) * 8 end
 
 """
 Adds one or more flags to the `FindAndModifyOptsBuilder`.
+These flags can be *ORed* together,
+as in `flags = Mongoc.FIND_AND_MODIFY_FLAG_UPSERT | Mongoc.FIND_AND_MODIFY_FLAG_RETURN_NEW`.
 
-* `MONGOC_FIND_AND_MODIFY_NONE`: Default. Doesn’t add anything to the builder.
+* `FIND_AND_MODIFY_FLAG_NONE`: Default. Doesn’t add anything to the builder.
 
-* `MONGOC_FIND_AND_MODIFY_REMOVE`: Will instruct find_and_modify to remove the matching document.
+* `FIND_AND_MODIFY_FLAG_REMOVE`: Will instruct find_and_modify to remove the matching document.
 
-* `MONGOC_FIND_AND_MODIFY_UPSERT`: Update the matching document or, if no document matches, insert the document.
+* `FIND_AND_MODIFY_FLAG_UPSERT`: Update the matching document or, if no document matches, insert the document.
 
-* `MONGOC_FIND_AND_MODIFY_RETURN_NEW`: Return the resulting document.
+* `FIND_AND_MODIFY_FLAG_RETURN_NEW`: Return the resulting document.
 """
 primitive type FindAndModifyFlags sizeof(Cint) * 8 end
 
@@ -80,10 +82,10 @@ const QUERY_FLAG_AWAIT_DATA        = QueryFlags(1 << 5)
 const QUERY_FLAG_EXHAUST           = QueryFlags(1 << 6)
 const QUERY_FLAG_PARTIAL           = QueryFlags(1 << 7)
 
-const MONGOC_FIND_AND_MODIFY_NONE = FindAndModifyFlags(0)
-const MONGOC_FIND_AND_MODIFY_REMOVE = FindAndModifyFlags(1 << 0)
-const MONGOC_FIND_AND_MODIFY_UPSERT = FindAndModifyFlags(1 << 1)
-const MONGOC_FIND_AND_MODIFY_RETURN_NEW = FindAndModifyFlags(1 << 2)
+const FIND_AND_MODIFY_FLAG_NONE = FindAndModifyFlags(0)
+const FIND_AND_MODIFY_FLAG_REMOVE = FindAndModifyFlags(1 << 0)
+const FIND_AND_MODIFY_FLAG_UPSERT = FindAndModifyFlags(1 << 1)
+const FIND_AND_MODIFY_FLAG_RETURN_NEW = FindAndModifyFlags(1 << 2)
 
 # `URI` is a wrapper for C struct `mongoc_uri_t`."
 mutable struct URI

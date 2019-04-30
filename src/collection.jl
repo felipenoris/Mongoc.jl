@@ -405,18 +405,24 @@ end
         update::Union{Nothing, BSON}=nothing,
         sort::Union{Nothing, BSON}=nothing,
         fields::Union{Nothing, BSON}=nothing,
+        flags::Union{Nothing, FindAndModifyFlags}=nothing,
         bypass_document_validation::Bool=false,
     ) :: BSON
 
 Find documents and updates them in one go.
 
-See [libmongoc documentation](http://mongoc.org/libmongoc/current/mongoc_collection_find_and_modify.html)
-for examples.
+See [`Mongoc.FindAndModifyFlags`](@ref) for a list of accepted values
+for `flags` argument.
+
+# C API
+
+* [mongoc_collection_find_and_modify](http://mongoc.org/libmongoc/current/mongoc_collection_find_and_modify.html).
 """
 function find_and_modify(collection::Collection, query::BSON;
             update::Union{Nothing, BSON}=nothing,
             sort::Union{Nothing, BSON}=nothing,
             fields::Union{Nothing, BSON}=nothing,
+            flags::Union{Nothing, FindAndModifyFlags}=nothing,
             bypass_document_validation::Bool=false,
         ) :: BSON
 
@@ -424,6 +430,7 @@ function find_and_modify(collection::Collection, query::BSON;
             update=update,
             sort=sort,
             fields=fields,
+            flags=flags,
             bypass_document_validation=bypass_document_validation,
     )
 
