@@ -19,6 +19,10 @@ const ISODATE_OFFSET = Dates.UNIXEPOCH + 24 * 60 * 60 * 1000 * 365
 isodate2datetime(millis::Int64) = Dates.epochms2datetime(millis + ISODATE_OFFSET)
 datetime2isodate(dt::DateTime) = Dates.datetime2epochms(dt) - ISODATE_OFFSET
 
+module mi
+import BSON
+end
+
 include("bson.jl")
 include("types.jl")
 include("c_api.jl")
@@ -26,6 +30,7 @@ include("client.jl")
 include("database.jl")
 include("collection.jl")
 include("session.jl")
+include("mi_bson.jl")
 
 function __init__()
     check_deps()
