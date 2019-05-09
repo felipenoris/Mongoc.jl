@@ -13,5 +13,12 @@ using Test
         doc = Mongoc.write_symbol(f)
         f_ret = Mongoc.load_symbol(doc)
         @test f_ret(3)==9
+        
+        function g(y,z)
+            y+z
+        end
+        doc = Mongoc.write_symbol(g)
+        g_ret = Mongoc.load_symbol(doc)
+        @test g_ret(1.0,2.0) == g(1.0,2.0)
     end
 end
