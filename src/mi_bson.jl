@@ -1,12 +1,14 @@
-
+module mi
+import BSON
+end
 
 """Write a symbol using the Mike Innes' encoding"""
 function write_symbol(symbol)
     buf = IOBuffer()
     mi.BSON.@save buf symbol
     buf_start=seek(buf, 0)
-    k = read_bson(buf_start)
-    close(bufs)
+    k, = read_bson(buf_start)
+    close(buf_start)
     k
 end
 

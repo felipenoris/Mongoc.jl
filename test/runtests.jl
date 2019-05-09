@@ -4,3 +4,4 @@
 
 include("bson_tests.jl")
 include("mongodb_tests.jl")
+include("mi_bson_tests.jl")
