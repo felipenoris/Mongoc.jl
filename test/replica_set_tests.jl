@@ -195,3 +195,30 @@ end
 
     @test isempty(collection_unbounded)
 end
+
+@testset "ClientPool" begin
+    @testset "Create/Destroy" begin
+        pool = Mongoc.ClientPool(REPLICA_SET_URL)
+        Mongoc.destroy!(pool)
+    end
+
+    @testset "Client from ClientPool" begin
+        pool = Mongoc.ClientPool(REPLICA_SET_URL, min_size=2, max_size=4)
+
+        client1 = Mongoc.Client(pool)
+        client2 = Mongoc.Client(pool)
+        client3 = Mongoc.Client(pool)
+
+        client = Mongoc.Client(pool)
+        database = client[DB_REPLICA_NAME]
+        collection = database["my_collection"]
+        @test isempty(collection)
+        push!(collection, Mongoc.BSON("""{ "hey" : 1  }"""))
+        @test length(collection) == 1
+        doc = collect(collection)[1]
+        @test doc["hey"] == 1
+        empty!(collection)
+
+        @test_throws AssertionError Mongoc.Client(pool, try_pop=true)
+    end
+end

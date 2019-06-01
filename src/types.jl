@@ -104,18 +104,57 @@ mutable struct URI
     end
 end
 
-# `Client` is a wrapper for C struct `mongoc_client_t`.
-mutable struct Client
+mutable struct ClientPool
     uri::String
     handle::Ptr{Cvoid}
 
-    function Client(uri::URI)
-        client_handle = mongoc_client_new_from_uri(uri.handle)
-        @assert client_handle != C_NULL "Failed to create client handle to URI $uri."
-        client = new(uri.uri, client_handle)
-        finalizer(destroy!, client)
-        return client
+    function ClientPool(uri::URI; min_size::Union{Nothing, Integer}=nothing, max_size::Union{Nothing, Integer}=nothing)
+        client_pool_handle = mongoc_client_pool_new(uri.handle)
+        @assert client_pool_handle != C_NULL "Failed to create client pool from URI $(uri.uri)."
+        client_pool = new(uri.uri, client_pool_handle)
+        finalizer(destroy!, client_pool)
+
+        if min_size != nothing
+            set_min_size(client_pool, min_size)
+        end
+
+        if max_size != nothing
+            set_max_size(client_pool, max_size)
+        end
+
+        return client_pool
     end
+end
+
+# `Client` is a wrapper for C struct `mongoc_client_t`.
+mutable struct Client{T<:Union{Nothing, ClientPool}}
+    uri::String
+    handle::Ptr{Cvoid}
+    pool::T
+end
+
+function Client(uri::URI)
+    client_handle = mongoc_client_new_from_uri(uri.handle)
+    @assert client_handle != C_NULL "Failed to create client handle from URI $(uri.uri)."
+    client = Client(uri.uri, client_handle, nothing)
+    finalizer(destroy!, client)
+    return client
+end
+
+function Client(pool::ClientPool; try_pop::Bool=false)
+
+    local client_handle::Ptr{Cvoid}
+
+    if try_pop
+        client_handle = mongoc_client_pool_try_pop(pool.handle)
+    else
+        client_handle = mongoc_client_pool_pop(pool.handle)
+    end
+
+    @assert client_handle != C_NULL "Failed to create client handle from Pool."
+    client = Client(pool.uri, client_handle, pool)
+    finalizer(destroy!, client)
+    return client
 end
 
 abstract type AbstractDatabase end
@@ -201,10 +240,26 @@ function destroy!(uri::URI)
     nothing
 end
 
-function destroy!(client::Client)
+function destroy!(client::Client{Nothing})
     if client.handle != C_NULL
         mongoc_client_destroy(client.handle)
         client.handle = C_NULL
+    end
+    nothing
+end
+
+function destroy!(client::Client{ClientPool})
+    if client.handle != C_NULL
+        mongoc_client_pool_push(client.pool.handle, client.handle)
+        client.handle = C_NULL
+    end
+    nothing
+end
+
+function destroy!(client_pool::ClientPool)
+    if client_pool.handle != C_NULL
+        mongoc_client_pool_destroy(client_pool.handle)
+        client_pool.handle = C_NULL
     end
     nothing
 end

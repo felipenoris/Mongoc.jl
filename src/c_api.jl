@@ -1,8 +1,4 @@
 
-#=
-https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/
-=#
-
 #
 # libbson
 #
@@ -113,7 +109,6 @@ function bson_append_code(bson_document::Ptr{Cvoid}, key::String, key_length::In
           bson_document, key, key_length, value)
 end
 
-#bool bson_append_null (bson_t *bson, const char *key, int key_length);
 function bson_append_null(bson_document::Ptr{Cvoid}, key::String, key_length::Int)
     ccall((:bson_append_null, libbson), Bool,
           (Ptr{Cvoid}, Cstring, Cint),
@@ -398,6 +393,34 @@ end
 
 function mongoc_client_session_in_transaction(session_handle::Ptr{Cvoid})
     ccall((:mongoc_client_session_in_transaction, libmongoc), Bool, (Ptr{Cvoid},), session_handle)
+end
+
+function mongoc_client_pool_new(uri_handle::Ptr{Cvoid})
+    ccall((:mongoc_client_pool_new, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid},), uri_handle)
+end
+
+function mongoc_client_pool_destroy(client_pool_handle::Ptr{Cvoid})
+    ccall((:mongoc_client_pool_destroy, libmongoc), Cvoid, (Ptr{Cvoid},), client_pool_handle)
+end
+
+function mongoc_client_pool_pop(client_pool_handle::Ptr{Cvoid})
+    ccall((:mongoc_client_pool_pop, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid},), client_pool_handle)
+end
+
+function mongoc_client_pool_try_pop(client_pool_handle::Ptr{Cvoid})
+    ccall((:mongoc_client_pool_try_pop, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid},), client_pool_handle)
+end
+
+function mongoc_client_pool_push(client_pool_handle::Ptr{Cvoid}, client_handle::Ptr{Cvoid})
+    ccall((:mongoc_client_pool_push, libmongoc), Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}), client_pool_handle, client_handle)
+end
+
+function mongoc_client_pool_min_size(client_pool_handle::Ptr{Cvoid}, min_pool_size::UInt32)
+    ccall((:mongoc_client_pool_min_size, libmongoc), Cvoid, (Ptr{Cvoid}, UInt32), client_pool_handle, min_pool_size)
+end
+
+function mongoc_client_pool_max_size(client_pool_handle::Ptr{Cvoid}, max_pool_size::UInt32)
+    ccall((:mongoc_client_pool_max_size, libmongoc), Cvoid, (Ptr{Cvoid}, UInt32), client_pool_handle, max_pool_size)
 end
 
 function mongoc_session_opts_new()
