@@ -17,15 +17,23 @@ mongo --port 27021 replica_set_initiate.js
 
 =#
 
+let
+    fp_replicaset_script = joinpath(@__DIR__, "replica_set_initiate.js")
+    @assert isfile(fp_replicaset_script)
+    run(`mongo --port 27021 $fp_replicaset_script`)
+    sleep(20)
+end
+
 import Mongoc
 
 using Test
 using Dates
 
 const DB_REPLICA_NAME = "mongoc_replica"
+const REPLICA_SET_URL = "mongodb://127.0.0.1:27021,127.0.0.1:27022,127.0.0.1:27023/?replicaSet=rs0"
 
 @testset "Connect to ReplicaSet" begin
-    client = Mongoc.Client("mongodb://127.0.0.1:27021,127.0.0.1:27022,127.0.0.1:27023/?replicaSet=rs0")
+    client = Mongoc.Client(REPLICA_SET_URL)
     database = client[DB_REPLICA_NAME]
     collection = database["my_collection"]
     @test isempty(collection)
@@ -37,7 +45,7 @@ const DB_REPLICA_NAME = "mongoc_replica"
 end
 
 @testset "Transaction API" begin
-    client = Mongoc.Client("mongodb://127.0.0.1:27021,127.0.0.1:27022,127.0.0.1:27023/?replicaSet=rs0")
+    client = Mongoc.Client(REPLICA_SET_URL)
     database = client[DB_REPLICA_NAME]
     collection = database["transaction"]
     @test isempty(collection)
@@ -71,7 +79,7 @@ end
 end
 
 @testset "Transaction High-Level API" begin
-    client = Mongoc.Client("mongodb://127.0.0.1:27021,127.0.0.1:27022,127.0.0.1:27023/?replicaSet=rs0")
+    client = Mongoc.Client(REPLICA_SET_URL)
 
     collection_unbounded = client[DB_REPLICA_NAME]["transaction"]
     @assert isempty(collection_unbounded) # test precondition

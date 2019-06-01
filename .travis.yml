@@ -31,6 +31,14 @@ env:
 notifications:
   email: false
 
+before_script:
+- mkdir db1
+- mkdir db2
+- mkdir db3
+- mongod --dbpath ./db1 --port 27021 --replSet "rs0" --bind_ip 127.0.0.1 &
+- mongod --dbpath ./db2 --port 27022 --replSet "rs0" --bind_ip 127.0.0.1 &
+- mongod --dbpath ./db3 --port 27023 --replSet "rs0" --bind_ip 127.0.0.1 &
+
 after_success:
   - julia -e '(ENV["TRAVIS_JULIA_VERSION"] != "1.1" || ENV["TRAVIS_OS_NAME"] != "linux") && exit(); using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
 
