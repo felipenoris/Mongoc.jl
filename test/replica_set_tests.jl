@@ -203,7 +203,7 @@ end
     end
 
     @testset "Client from ClientPool" begin
-        pool = Mongoc.ClientPool(REPLICA_SET_URL, min_size=2, max_size=4)
+        pool = Mongoc.ClientPool(REPLICA_SET_URL, max_size=4)
 
         client1 = Mongoc.Client(pool)
         client2 = Mongoc.Client(pool)

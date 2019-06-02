@@ -415,10 +415,6 @@ function mongoc_client_pool_push(client_pool_handle::Ptr{Cvoid}, client_handle::
     ccall((:mongoc_client_pool_push, libmongoc), Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}), client_pool_handle, client_handle)
 end
 
-function mongoc_client_pool_min_size(client_pool_handle::Ptr{Cvoid}, min_pool_size::UInt32)
-    ccall((:mongoc_client_pool_min_size, libmongoc), Cvoid, (Ptr{Cvoid}, UInt32), client_pool_handle, min_pool_size)
-end
-
 function mongoc_client_pool_max_size(client_pool_handle::Ptr{Cvoid}, max_pool_size::UInt32)
     ccall((:mongoc_client_pool_max_size, libmongoc), Cvoid, (Ptr{Cvoid}, UInt32), client_pool_handle, max_pool_size)
 end
