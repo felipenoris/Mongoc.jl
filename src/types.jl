@@ -108,15 +108,11 @@ mutable struct ClientPool
     uri::String
     handle::Ptr{Cvoid}
 
-    function ClientPool(uri::URI; min_size::Union{Nothing, Integer}=nothing, max_size::Union{Nothing, Integer}=nothing)
+    function ClientPool(uri::URI; max_size::Union{Nothing, Integer}=nothing)
         client_pool_handle = mongoc_client_pool_new(uri.handle)
         @assert client_pool_handle != C_NULL "Failed to create client pool from URI $(uri.uri)."
         client_pool = new(uri.uri, client_pool_handle)
         finalizer(destroy!, client_pool)
-
-        if min_size != nothing
-            set_min_size(client_pool, min_size)
-        end
 
         if max_size != nothing
             set_max_size(client_pool, max_size)

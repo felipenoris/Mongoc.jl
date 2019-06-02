@@ -31,7 +31,6 @@ Mongoc.has_database
 
 ```@docs
 Mongoc.ClientPool
-Mongoc.set_min_size
 Mongoc.set_max_size
 ```
 

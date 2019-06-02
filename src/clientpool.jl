@@ -1,6 +1,6 @@
 
 """
-    ClientPool(uri; [min_size], [max_size])
+    ClientPool(uri; [max_size])
 
 Creates a pool of connections to a MongoDB instance.
 
@@ -9,7 +9,7 @@ Creates a pool of connections to a MongoDB instance.
 ```julia
 const REPLICA_SET_URL = "mongodb://127.0.0.1:27021,127.0.0.1:27022,127.0.0.1:27023/?replicaSet=rs0"
 
-pool = Mongoc.ClientPool(REPLICA_SET_URL, min_size=1, max_size=2)
+pool = Mongoc.ClientPool(REPLICA_SET_URL, max_size=2)
 
 # create Clients from a pool
 client1 = Mongoc.Client(pool)
@@ -28,27 +28,8 @@ of blocking the current thread:
 client3 = Mongoc.Client(pool, try_pop=true)
 ```
 """
-function ClientPool(uri::String; min_size::Union{Nothing, Integer}=nothing, max_size::Union{Nothing, Integer}=nothing)
-    return ClientPool(URI(uri), min_size=min_size, max_size=max_size)
-end
-
-"""
-    set_min_size(pool, min_size)
-
-Set the minimum number of clients on the client pool.
-
-# Example
-
-```julia
-const REPLICA_SET_URL = "mongodb://127.0.0.1:27021,127.0.0.1:27022,127.0.0.1:27023/?replicaSet=rs0"
-pool = Mongoc.ClientPool(REPLICA_SET_URL)
-
-Mongoc.set_min_size(pool, 2)
-```
-"""
-function set_min_size(client_pool::ClientPool, min_size::Integer)
-    mongoc_client_pool_min_size(client_pool.handle, UInt32(min_size))
-    nothing
+function ClientPool(uri::String; max_size::Union{Nothing, Integer}=nothing)
+    return ClientPool(URI(uri), max_size=max_size)
 end
 
 """
