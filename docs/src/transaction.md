@@ -9,7 +9,30 @@ As described in the [MongoDB Manual](https://docs.mongodb.com/manual/core/transa
 "*multi-document transactions are available for replica sets only. Transactions for sharded clusters are scheduled for MongoDB 4.2*".
 
 Follow [these steps](https://docs.mongodb.com/manual/tutorial/deploy-replica-set/)
-to start a replica set.
+to start a replica set. The following script will create a replica set with 3 nodes:
+
+```shell
+mkdir db1
+mkdir db2
+mkdir db3
+mongod --dbpath ./db1 --port 27021 --replSet "rs0" --bind_ip 127.0.0.1
+mongod --dbpath ./db2 --port 27022 --replSet "rs0" --bind_ip 127.0.0.1
+mongod --dbpath ./db3 --port 27023 --replSet "rs0" --bind_ip 127.0.0.1
+mongo --port 27021 replica_set_initiate.js
+```
+
+The contents of `replica_set_initiate.js` are:
+
+```javascript
+rs.initiate( {
+   _id : "rs0",
+   members: [
+      { _id: 0, host: "127.0.0.1:27021" },
+      { _id: 1, host: "127.0.0.1:27022" },
+      { _id: 2, host: "127.0.0.1:27023" }
+   ]
+})
+```
 
 ## Executing Transactions
 

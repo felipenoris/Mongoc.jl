@@ -9,6 +9,7 @@ makedocs(
               "CRUD Operations" => "crud.md",
               "Authentication" => "authentication.md",
               "Transactions" => "transaction.md",
+              "Connection Pool" => "connection_pool.md",
               "API Reference" => "api.md" ]
 )
 

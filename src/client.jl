@@ -7,8 +7,11 @@ Base.getindex(client::Client, database::String) = Database(client, database)
     Client(host, port)
     Client(uri)
     Client()
+    Client(pool; [try_pop=false])
 
 Creates a `Client`, which represents a connection to a MongoDB database.
+
+See also [`Mongoc.ClientPool`](@ref).
 
 # Examples:
 
