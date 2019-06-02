@@ -206,6 +206,15 @@ function destroy!(bson::BSON)
     nothing
 end
 
+"""
+Wrapper for bson_value_t.
+
+See [`Mongoc.get_as_bson_value`](@ref).
+"""
+mutable struct BSONValue
+    handle::Ptr{Cvoid}
+end
+
 function Base.deepcopy(bson::BSON) :: BSON
     return BSON(bson_copy(bson.handle))
 end
@@ -521,13 +530,34 @@ function get_value(iter_ref::Ref{BSONIter})
     end
 end
 
-function Base.getindex(document::Mongoc.BSON, key::String)
+function Base.getindex(document::BSON, key::String)
     iter_ref = Ref{BSONIter}()
     ok = bson_iter_init_find(iter_ref, document.handle, key)
     if !ok
         error("Key $key not found.")
     end
     return get_value(iter_ref)
+end
+
+"""
+    get_as_bson_value(doc, key) :: BSONValue
+
+Returns a value stored in a bson document `doc`
+as a `BSONValue`.
+
+See also [Mongoc.BSONValue](@ref).
+"""
+function get_as_bson_value(document::BSON, key::String) :: BSONValue
+   iter_ref = Ref{BSONIter}()
+    ok = bson_iter_init_find(iter_ref, document.handle, key)
+    if !ok
+        error("Key $key not found.")
+    end
+    return get_as_bson_value(iter_ref)
+end
+
+function get_as_bson_value(iter_ref::Ref{BSONIter})
+    return BSONValue(bson_iter_value(iter_ref))
 end
 
 #

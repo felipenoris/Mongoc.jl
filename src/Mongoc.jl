@@ -27,6 +27,7 @@ include("clientpool.jl")
 include("database.jl")
 include("collection.jl")
 include("session.jl")
+include("gridfs.jl")
 
 function __init__()
     check_deps()
