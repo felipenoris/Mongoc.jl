@@ -13,6 +13,8 @@ Mongoc.read_bson
 Mongoc.write_bson
 Mongoc.read_next_bson
 Mongoc.BSONError
+Mongoc.BSONValue
+Mongoc.get_as_bson_value
 ```
 
 ## Client
@@ -67,4 +69,13 @@ Mongoc.QueryFlags
 
 ```@docs
 Mongoc.transaction
+```
+
+## GridFS
+
+```@docs
+Mongoc.MongoStreamFile
+Mongoc.upload
+Mongoc.download
+Mongoc.delete
 ```

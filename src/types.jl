@@ -169,6 +169,28 @@ mutable struct Database <: AbstractDatabase
     end
 end
 
+mutable struct GridFSBucket
+    database::Database
+    handle::Ptr{Cvoid}
+
+    function GridFSBucket(database::Database; options::Union{Nothing, BSON}=nothing)
+        options_handle = options == nothing ? C_NULL : options.handle
+        err_ref = Ref{BSONError}()
+
+        gridfs_handle = mongoc_gridfs_bucket_new(database.handle,
+                                                 options_handle,
+                                                 C_NULL, err_ref)
+
+        if gridfs_handle == C_NULL
+            throw(err_ref[])
+        end
+
+        gridfs = new(database, gridfs_handle)
+        finalizer(destroy!, gridfs)
+        return gridfs
+    end
+end
+
 # `Collection` is a wrapper for C struct `mongoc_collection_t`.
 mutable struct Collection <: AbstractCollection
     database::Database
@@ -184,7 +206,7 @@ mutable struct Collection <: AbstractCollection
     end
 end
 
-const CursorSource = Union{Client, AbstractDatabase, AbstractCollection}
+const CursorSource = Union{Client, AbstractDatabase, AbstractCollection, GridFSBucket}
 
 # `Cursor` is a wrapper for C struct `mongoc_cursor_t`.
 mutable struct Cursor{T<:CursorSource}
@@ -266,6 +288,13 @@ function destroy!(database::Database)
         database.handle = C_NULL
     end
     nothing
+end
+
+function destroy!(gridfs::GridFSBucket)
+    if gridfs.handle != C_NULL
+        mongoc_gridfs_bucket_destroy(gridfs.handle)
+        gridfs.handle = C_NULL
+    end
 end
 
 function destroy!(collection::Collection)
@@ -408,4 +437,33 @@ function destroy!(opts::FindAndModifyOptsBuilder)
         opts.handle = C_NULL
     end
     nothing
+end
+
+#
+# Streams
+#
+
+"""
+# Interface
+
+* must have a mutable `handle::Ptr{Cvoid}` field.
+"""
+abstract type AbstractMongoStream <: IO end
+
+mutable struct MongoStreamFile <: AbstractMongoStream
+    handle::Ptr{Cvoid}
+
+    function MongoStreamFile(handle::Ptr{Cvoid})
+        @assert handle != C_NULL
+        stream = new(handle)
+        finalizer(destroy!, stream)
+        return stream
+    end
+end
+
+function destroy!(stream::AbstractMongoStream)
+    if stream.handle != C_NULL
+        mongoc_stream_destroy(stream.handle)
+        stream.handle = C_NULL
+    end
 end

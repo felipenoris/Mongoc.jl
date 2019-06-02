@@ -496,4 +496,56 @@ const DB_NAME = "mongoc"
     @testset "Drop Database" begin
         Mongoc.drop(client[DB_NAME])
     end
+
+    @testset "GridFS" begin
+        @testset "Create/Destroy" begin
+            db = client[DB_NAME]
+            bucket = Mongoc.GridFSBucket(db)
+            Mongoc.destroy!(bucket)
+        end
+
+        @testset "Stream from filepath" begin
+            fp = joinpath(@__DIR__, "replica_set_initiate.js")
+            @assert isfile(fp)
+            io = Mongoc.MongoStreamFile(fp)
+            Mongoc.close(io)
+            Mongoc.destroy!(io)
+        end
+
+        @testset "Upload/Download/Find file" begin
+            db = client[DB_NAME]
+            bucket = Mongoc.GridFSBucket(db)
+            local_fp = joinpath(@__DIR__, "replica_set_initiate.js")
+            @assert isfile(local_fp)
+            remote_filename = "remote_replica_set_initiate.js"
+
+            Mongoc.upload(bucket, remote_filename, local_fp)
+
+            download_filepath = joinpath(@__DIR__, "tmp_replica_set_initiate.js")
+
+            try
+                Mongoc.download(bucket, remote_filename, download_filepath)
+
+                let
+                    original_str = read(local_fp, String)
+                    tmp_str = read(download_filepath, String)
+                    @test original_str == tmp_str
+                end
+            finally
+                isfile(download_filepath) && rm(download_filepath)
+            end
+
+            cursor = Mongoc.find(bucket)
+            found = false
+            for doc in cursor
+                @test !found
+                found = true
+
+                @test doc["filename"] == remote_filename
+                Mongoc.delete(bucket, doc)
+            end
+
+            @test isempty(Mongoc.find(bucket))
+        end
+    end
 end

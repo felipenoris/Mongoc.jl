@@ -10,6 +10,7 @@ makedocs(
               "Authentication" => "authentication.md",
               "Transactions" => "transaction.md",
               "Connection Pool" => "connection_pool.md",
+              "GridFS" => "gridfs.md",
               "API Reference" => "api.md" ]
 )
 
