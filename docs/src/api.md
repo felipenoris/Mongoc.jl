@@ -27,6 +27,14 @@ Mongoc.get_database_names
 Mongoc.has_database
 ```
 
+## ClientPool
+
+```@docs
+Mongoc.ClientPool
+Mongoc.set_min_size
+Mongoc.set_max_size
+```
+
 ## Database
 
 ```@docs
