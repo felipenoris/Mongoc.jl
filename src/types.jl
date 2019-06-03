@@ -169,11 +169,11 @@ mutable struct Database <: AbstractDatabase
     end
 end
 
-mutable struct GridFSBucket
+mutable struct Bucket
     database::Database
     handle::Ptr{Cvoid}
 
-    function GridFSBucket(database::Database; options::Union{Nothing, BSON}=nothing)
+    function Bucket(database::Database; options::Union{Nothing, BSON}=nothing)
         options_handle = options == nothing ? C_NULL : options.handle
         err_ref = Ref{BSONError}()
 
@@ -206,7 +206,7 @@ mutable struct Collection <: AbstractCollection
     end
 end
 
-const CursorSource = Union{Client, AbstractDatabase, AbstractCollection, GridFSBucket}
+const CursorSource = Union{Client, AbstractDatabase, AbstractCollection, Bucket}
 
 # `Cursor` is a wrapper for C struct `mongoc_cursor_t`.
 mutable struct Cursor{T<:CursorSource}
@@ -290,7 +290,7 @@ function destroy!(database::Database)
     nothing
 end
 
-function destroy!(gridfs::GridFSBucket)
+function destroy!(gridfs::Bucket)
     if gridfs.handle != C_NULL
         mongoc_gridfs_bucket_destroy(gridfs.handle)
         gridfs.handle = C_NULL
@@ -446,24 +446,65 @@ end
 """
 # Interface
 
-* must have a mutable `handle::Ptr{Cvoid}` field.
+## Mutable fields
+
+* `handle::Ptr{Cvoid}`
+
+* `isopen::Bool`
+
+* `timeout_msec::Int`
+
+* `chunk_size::UInt`
 """
 abstract type AbstractMongoStream <: IO end
-
-mutable struct MongoStreamFile <: AbstractMongoStream
-    handle::Ptr{Cvoid}
-
-    function MongoStreamFile(handle::Ptr{Cvoid})
-        @assert handle != C_NULL
-        stream = new(handle)
-        finalizer(destroy!, stream)
-        return stream
-    end
-end
 
 function destroy!(stream::AbstractMongoStream)
     if stream.handle != C_NULL
         mongoc_stream_destroy(stream.handle)
         stream.handle = C_NULL
+    end
+end
+
+# 30sec
+const DEFAULT_TIMEOUT_MSEC = 30000
+
+# 56kb of chunk size when reading from streams
+const DEFAULT_CHUNK_SIZE = 56 * 1024
+
+mutable struct MongoStreamFile{T} <: AbstractMongoStream
+    owner::T
+    handle::Ptr{Cvoid}
+    isopen::Bool
+    timeout_msec::Int
+    chunk_size::UInt
+
+    function MongoStreamFile(owner::T, handle::Ptr{Cvoid};
+            timeout_msec::Integer=DEFAULT_TIMEOUT_MSEC,
+            chunk_size::Integer=DEFAULT_CHUNK_SIZE
+        ) where {T}
+
+        @assert handle != C_NULL
+        stream = new{T}(owner, handle, true, Int(timeout_msec), UInt(chunk_size))
+        finalizer(destroy!, stream)
+        return stream
+    end
+end
+
+mutable struct MongoIOStream{T} <: AbstractMongoStream
+    owner::T
+    handle::Ptr{Cvoid}
+    isopen::Bool
+    timeout_msec::Int
+    chunk_size::UInt
+
+    function MongoIOStream(owner::T, handle::Ptr{Cvoid};
+            timeout_msec::Integer=DEFAULT_TIMEOUT_MSEC,
+            chunk_size::Integer=DEFAULT_CHUNK_SIZE
+        ) where {T}
+
+        @assert handle != C_NULL
+        stream = new{T}(owner, handle, true, Int(timeout_msec), UInt(chunk_size))
+        finalizer(destroy!, stream)
+        return stream
     end
 end

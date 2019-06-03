@@ -78,4 +78,7 @@ Mongoc.MongoStreamFile
 Mongoc.upload
 Mongoc.download
 Mongoc.delete
+Mongoc.open_download_stream
+Mongoc.open_upload_stream
+Mongoc.abort_upload
 ```
