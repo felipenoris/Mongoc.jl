@@ -500,7 +500,7 @@ const DB_NAME = "mongoc"
     @testset "GridFS" begin
         @testset "Create/Destroy" begin
             db = client[DB_NAME]
-            bucket = Mongoc.GridFSBucket(db)
+            bucket = Mongoc.Bucket(db)
             Mongoc.destroy!(bucket)
         end
 
@@ -508,44 +508,159 @@ const DB_NAME = "mongoc"
             fp = joinpath(@__DIR__, "replica_set_initiate.js")
             @assert isfile(fp)
             io = Mongoc.MongoStreamFile(fp)
+            @test isopen(io)
             Mongoc.close(io)
+            @test !isopen(io)
             Mongoc.destroy!(io)
         end
 
-        @testset "Upload/Download/Find file" begin
+        @testset "Upload/Download/Find/Delete file" begin
             db = client[DB_NAME]
-            bucket = Mongoc.GridFSBucket(db)
+            bucket = Mongoc.Bucket(db)
             local_fp = joinpath(@__DIR__, "replica_set_initiate.js")
             @assert isfile(local_fp)
+            original_str = read(local_fp, String)
+
             remote_filename = "remote_replica_set_initiate.js"
 
-            Mongoc.upload(bucket, remote_filename, local_fp)
+            @testset "Upload" begin
+                Mongoc.upload(bucket, remote_filename, local_fp)
+            end
+
+            @test !isempty(bucket)
 
             download_filepath = joinpath(@__DIR__, "tmp_replica_set_initiate.js")
 
-            try
-                Mongoc.download(bucket, remote_filename, download_filepath)
 
-                let
-                    original_str = read(local_fp, String)
-                    tmp_str = read(download_filepath, String)
+            @testset "Download to file" begin
+                try
+                    Mongoc.download(bucket, remote_filename, download_filepath)
+
+                    let
+                        tmp_str = read(download_filepath, String)
+                        @test original_str == tmp_str
+                    end
+                finally
+                    isfile(download_filepath) && rm(download_filepath)
+                end
+            end
+
+            @testset "transfer_to_buffer!" begin
+                @testset "empty buffer" begin
+                    buff = UInt8[]
+                    pos = 0
+                    data = UInt8[1,2,0,0]
+                    nr = 2
+
+                    @test Mongoc.nb_free(buff, pos) == 0
+                    @test Mongoc.nb_to_fill(buff, pos, nr) == 0
+                    @test Mongoc.nb_to_append(buff, pos, nr) == 2
+                    Mongoc.transfer_to_buffer!(buff, pos, data, nr)
+                    @test buff == UInt8[1,2]
+                end
+
+                @testset "increase buffer" begin
+                    buff = UInt8[1,2,0,0]
+                    pos = 2
+                    data = UInt8[3,4,5,6]
+                    nr = 3
+                    @test Mongoc.nb_free(buff, pos) == 2
+                    @test Mongoc.nb_to_fill(buff, pos, nr) == 2
+                    @test Mongoc.nb_to_append(buff, pos, nr) == 1
+                    Mongoc.transfer_to_buffer!(buff, pos, data, nr)
+                    @test buff == UInt8[1,2,3,4,5]
+                end
+
+                @testset "big buffer" begin
+                    buff = UInt8[1,0,0,0]
+                    pos = 1
+                    data = UInt8[2,3,4,5]
+                    nr = 1
+                    Mongoc.transfer_to_buffer!(buff, pos, data, nr)
+                    @test buff == UInt8[1,2,0,0]
+                end
+            end
+
+            @testset "Download to stream" begin
+                Mongoc.open_download_stream(bucket, remote_filename) do io
+                    @test isopen(io)
+                    tmp_str = read(io, String)
                     @test original_str == tmp_str
                 end
-            finally
-                isfile(download_filepath) && rm(download_filepath)
             end
 
-            cursor = Mongoc.find(bucket)
-            found = false
-            for doc in cursor
-                @test !found
-                found = true
+            @testset "Find and Delete" begin
+                cursor = Mongoc.find(bucket)
+                found = false
+                for doc in cursor
+                    @test !found
+                    found = true
 
-                @test doc["filename"] == remote_filename
-                Mongoc.delete(bucket, doc)
+                    @test doc["filename"] == remote_filename
+                    Mongoc.delete(bucket, doc)
+                end
+
+                @test isempty(bucket)
             end
 
-            @test isempty(Mongoc.find(bucket))
+            @testset "Upload and Delete with id" begin
+
+                Mongoc.upload(bucket, remote_filename, local_fp, file_id="my_id")
+
+                found = false
+                for doc in Mongoc.find(bucket, Mongoc.BSON("_id" => "my_id"))
+                    found = true
+                end
+                @test found
+
+                @test !isempty(bucket)
+                empty!(bucket)
+                @test isempty(bucket)
+            end
+
+            @testset "open upload stream - text" begin
+                remote_filename = "uploaded_file.txt"
+
+                io = Mongoc.open_upload_stream(bucket, remote_filename)
+                msg = "hey you out there"
+                write(io, msg)
+                close(io)
+
+                Mongoc.open_download_stream(bucket, remote_filename) do io
+                    @test isopen(io)
+                    tmp_str = read(io, String)
+                    @test msg == tmp_str
+                end
+
+                empty!(bucket)
+            end
+
+            @testset "open upload stream - bytes" begin
+                data = rand(UInt8, 3_000_000)
+                remote_filename = "uploaded.data"
+                io = Mongoc.open_upload_stream(bucket, remote_filename)
+                write(io, data)
+                close(io)
+
+                Mongoc.open_download_stream(bucket, remote_filename) do io
+                    @test isopen(io)
+                    downloaded_data = read(io)
+                    @test downloaded_data == data
+                end
+
+                empty!(bucket)
+            end
+
+            @testset "upload abort" begin
+                remote_filename = "uploaded_file.txt"
+
+                io = Mongoc.open_upload_stream(bucket, remote_filename)
+                msg = "hey you out there"
+                write(io, msg)
+                Mongoc.abort_upload(io)
+                close(io)
+                @test isempty(bucket)
+            end
         end
     end
 end

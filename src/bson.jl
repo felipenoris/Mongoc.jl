@@ -557,6 +557,8 @@ function get_as_bson_value(document::BSON, key::String) :: BSONValue
 end
 
 function get_as_bson_value(iter_ref::Ref{BSONIter})
+    # this BSONValue may be valid only during
+    # the lifetime of the BSON document
     return BSONValue(bson_iter_value(iter_ref))
 end
 

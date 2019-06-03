@@ -725,6 +725,10 @@ function mongoc_stream_destroy(stream_handle::Ptr{Cvoid})
     ccall((:mongoc_stream_destroy, libmongoc), Cvoid, (Ptr{Cvoid},), stream_handle)
 end
 
+function mongoc_stream_flush(stream_handle::Ptr{Cvoid})
+    ccall((:mongoc_stream_flush, libmongoc), Cint, (Ptr{Cvoid},), stream_handle)
+end
+
 function mongoc_stream_close(stream_handle::Ptr{Cvoid})
     ccall((:mongoc_stream_close, libmongoc), Cint, (Ptr{Cvoid},), stream_handle)
 end
@@ -735,19 +739,42 @@ function mongoc_stream_file_new_for_path(path::AbstractString, flags::Integer, m
           path, flags, mode)
 end
 
-function mongoc_gridfs_bucket_upload_from_stream(
+function mongoc_stream_read(
+        stream_handle::Ptr{Cvoid},
+        buffer_handle::Ptr{UInt8},
+        count::Integer,
+        min_bytes::Integer,
+        timeout_msec::Integer)
+
+    ccall((:mongoc_stream_read, libmongoc), Csize_t,
+          (Ptr{Cvoid}, Ptr{UInt8}, Csize_t, Csize_t, Cint),
+          stream_handle, buffer_handle, count, min_bytes, timeout_msec)
+end
+
+function mongoc_stream_write(
+        stream_handle::Ptr{Cvoid},
+        buffer_handle::Ptr{UInt8},
+        count::Integer,
+        timeout_msec::Integer)
+
+    ccall((:mongoc_stream_write, libmongoc), Csize_t,
+          (Ptr{Cvoid}, Ptr{UInt8}, Csize_t, Cint),
+           stream_handle, buffer_handle, count, timeout_msec)
+end
+
+function mongoc_gridfs_bucket_upload_from_stream_with_id(
         bucket_handle::Ptr{Cvoid},
+        bson_value_file_id_handle::Ptr{Cvoid},
         filename::AbstractString,
         source_stream_handle::Ptr{Cvoid},
         bson_opts_handle::Ptr{Cvoid},
-        output_file_id::Ref{Cvoid},
         bson_error_ref::Ref{BSONError}
     )
 
-    ccall((:mongoc_gridfs_bucket_upload_from_stream, libmongoc), Bool,
-          (Ptr{Cvoid}, Cstring, Ptr{Cvoid}, Ptr{Cvoid}, Ref{Cvoid}, Ref{BSONError}),
-          bucket_handle, filename, source_stream_handle,
-          bson_opts_handle, output_file_id, bson_error_ref)
+    ccall((:mongoc_gridfs_bucket_upload_from_stream_with_id, libmongoc), Bool,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          bucket_handle, bson_value_file_id_handle, filename, source_stream_handle,
+          bson_opts_handle, bson_error_ref)
 end
 
 function mongoc_gridfs_bucket_download_to_stream(
@@ -760,6 +787,35 @@ function mongoc_gridfs_bucket_download_to_stream(
     ccall((:mongoc_gridfs_bucket_download_to_stream, libmongoc), Bool,
           (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
            bucket_handle, bson_value_file_id_handle, destination_stream_handle, bson_error_ref)
+end
+
+function mongoc_gridfs_bucket_open_download_stream(
+        bucket_handle::Ptr{Cvoid},
+        bson_value_file_id_handle::Ptr{Cvoid},
+        bson_error_ref::Ref{BSONError}
+    )
+
+    ccall((:mongoc_gridfs_bucket_open_download_stream, libmongoc), Ptr{Cvoid},
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+           bucket_handle, bson_value_file_id_handle, bson_error_ref)
+end
+
+function mongoc_gridfs_bucket_open_upload_stream_with_id(
+        bucket_handle::Ptr{Cvoid},
+        bson_value_file_id_handle::Ptr{Cvoid},
+        filename::AbstractString,
+        bson_opts_handle::Ptr{Cvoid},
+        bson_error_ref::Ref{BSONError})
+
+    ccall((:mongoc_gridfs_bucket_open_upload_stream_with_id, libmongoc), Ptr{Cvoid},
+           (Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Ptr{Cvoid}, Ref{BSONError}),
+            bucket_handle, bson_value_file_id_handle, filename,
+            bson_opts_handle, bson_error_ref)
+end
+
+function mongoc_gridfs_bucket_abort_upload(stream_handle::Ptr{Cvoid})
+    ccall((:mongoc_gridfs_bucket_abort_upload, libmongoc), Bool,
+          (Ptr{Cvoid},), stream_handle)
 end
 
 function mongoc_gridfs_bucket_find(
@@ -780,4 +836,14 @@ function mongoc_gridfs_bucket_delete_by_id(
     ccall((:mongoc_gridfs_bucket_delete_by_id, libmongoc), Bool,
           (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
            bucket_handle, bson_value_handle, bson_error_ref)
+end
+
+function mongoc_gridfs_bucket_stream_error(
+        stream_handle::Ptr{Cvoid},
+        bson_error_ref::Ref{BSONError}
+    )
+
+    ccall((:mongoc_gridfs_bucket_stream_error, libmongoc), Bool,
+          (Ptr{Cvoid}, Ref{BSONError}),
+           stream_handle, bson_error_ref)
 end
