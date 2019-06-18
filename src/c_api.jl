@@ -316,6 +316,10 @@ function mongoc_init()
     ccall((:mongoc_init, libmongoc), Cvoid, ())
 end
 
+function mongoc_cleanup()
+    ccall((:mongoc_cleanup, libmongoc), Cvoid, ())
+end
+
 function mongoc_uri_new_with_error(uri_string::String, bson_error_ref::Ref{BSONError})
     ccall((:mongoc_uri_new_with_error, libmongoc), Ptr{Cvoid},
           (Cstring, Ref{BSONError}),
