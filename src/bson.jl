@@ -312,7 +312,8 @@ Base.show(io::IO, oid::BSONObjectId) = print(io, "BSONObjectId(\"", string(oid),
 Base.show(io::IO, bson::BSON) = print(io, "BSON(\"", as_json(bson), "\")")
 Base.show(io::IO, code::BSONCode) = print(io::IO, "BSONCode(\"$(code.code)\")")
 
-function Base.showerror(io::IO, err::BSONError)
+function Base.show(io::IO, err::BSONError)
+    print(io, "BSONError: domain=$(Int(err.domain)), code=$(Int(err.code)), message=")
     for c in err.message
         c_char = Char(c)
         if c_char == '\0'
@@ -322,6 +323,8 @@ function Base.showerror(io::IO, err::BSONError)
         end
     end
 end
+
+Base.showerror(io::IO, err::BSONError) = show(io, err)
 
 function get_time(oid::BSONObjectId)
     return Dates.unix2datetime(bson_oid_get_time_t(oid))
