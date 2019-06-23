@@ -29,7 +29,34 @@ function command_simple(database::Database, command::BSON) :: BSON
     err_ref = Ref{BSONError}()
     ok = mongoc_database_command_simple(database.handle, command.handle, C_NULL, reply.handle,
         err_ref)
+    if !ok
+        throw(err_ref[])
+    end
+    return reply
+end
 
+function write_command(database::Database, command::BSON;
+        options::Union{Nothing, BSON}=nothing) :: BSON
+
+    options_handle = options == nothing ? C_NULL : options.handle
+    reply = BSON()
+    err_ref = Ref{BSONError}()
+    ok = mongoc_database_write_command_with_opts(database.handle, command.handle,
+            options_handle, reply.handle, err_ref)
+    if !ok
+        throw(err_ref[])
+    end
+    return reply
+end
+
+function read_command(database::Database, command::BSON;
+        options::Union{Nothing, BSON}=nothing) :: BSON
+
+    options_handle = options == nothing ? C_NULL : options.handle
+    reply = BSON()
+    err_ref = Ref{BSONError}()
+    ok = mongoc_database_read_command_with_opts(database.handle, command.handle,
+            C_NULL, options_handle, reply.handle, err_ref)
     if !ok
         throw(err_ref[])
     end
