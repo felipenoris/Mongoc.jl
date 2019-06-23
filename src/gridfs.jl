@@ -92,9 +92,11 @@ function upload(bucket::Bucket, remote_filename::AbstractString, local_source_fi
 end
 
 """
-    download(bucket::Bucket, file_id::BSONValue, target::AbstractMongoStream)
+    download(bucket::Bucket, file_id, target::AbstractMongoStream)
 
 Download a GridFS file identified by `file_id` to `target` stream.
+
+`file_id` may be either a `BSONValue` or a `BSON` document with an `_id` field.
 """
 function download(bucket::Bucket, file_id::BSONValue, target::AbstractMongoStream)
     err_ref = Ref{BSONError}()
@@ -131,32 +133,31 @@ function find_file_info(bucket::Bucket, filename::AbstractString) :: BSON
     return result
 end
 
-"""
-    download(bucket::Bucket, filename::AbstractString, target::AbstractMongoStream)
-
-Download a GridFS file named `filename` to `target` stream.
-"""
-function download(bucket::Bucket, filename::AbstractString, target::AbstractMongoStream)
-    file_info = find_file_info(bucket, filename)
-    download(bucket, file_info, target)
-end
-
-"""
-    download(bucket::Bucket, remote_filename::AbstractString, local_filepath::AbstractString;
-        flags::Integer=(Base.Filesystem.JL_O_CREAT | Base.Filesystem.JL_O_RDWR), mode::Integer=0o600
-
-Downloads a GridFS file named `remote_filename` to `local_filepath`.
-"""
-function download(bucket::Bucket, remote_filename::AbstractString, local_filepath::AbstractString;
+function download(bucket::Bucket, remote_file_id_or_info::Union{BSONValue, BSON}, local_filepath::AbstractString;
         flags::Integer=(Base.Filesystem.JL_O_CREAT | Base.Filesystem.JL_O_RDWR), mode::Integer=0o600)
 
     download_file_stream = Mongoc.MongoStreamFile(local_filepath, flags=(Base.Filesystem.JL_O_CREAT | Base.Filesystem.JL_O_RDWR), mode=0o600)
 
     try
-        Mongoc.download(bucket, remote_filename, download_file_stream)
+        Mongoc.download(bucket, remote_file_id_or_info, download_file_stream)
     finally
         Mongoc.close(download_file_stream)
     end
+end
+
+"""
+    download(bucket::Bucket, remote_file, local_filepath::AbstractString;
+        flags::Integer=(Base.Filesystem.JL_O_CREAT | Base.Filesystem.JL_O_RDWR), mode::Integer=0o600
+
+Downloads a GridFS file `remote_file` to `local_filepath`.
+
+`remote_file` can be either a unique filename, or a `file_id::BSONValue`, or `file_info::BSON`.
+"""
+function download(bucket::Bucket, remote_filename::AbstractString, local_filepath::AbstractString;
+        flags::Integer=(Base.Filesystem.JL_O_CREAT | Base.Filesystem.JL_O_RDWR), mode::Integer=0o600)
+
+    file_info = find_file_info(bucket, remote_filename)
+    download(bucket, file_info, local_filepath, flags=flags, mode=mode)
 end
 
 """
