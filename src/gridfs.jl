@@ -250,11 +250,23 @@ Opens a stream for reading a remote file identified by `filename`.
 
 # Example
 
+Open a stream, do some work, then close it.
+
+```julia
+io = Mongoc.open_download_stream(bucket, file)
+try
+    tmp_str = read(io, String)
+finally
+    close(io)
+end
+```
+
+Use *do-syntax* to ensure that the `io` stream will
+be closed in case something goes wrong.
+
 ```julia
 Mongoc.open_download_stream(bucket, remote_filename) do io
-    @test isopen(io)
     tmp_str = read(io, String)
-    @test original_str == tmp_str
 end
 ```
 """
