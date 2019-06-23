@@ -454,6 +454,39 @@ const DB_NAME = "mongoc"
         end
     end
 
+    @testset "command" begin
+        database = client[DB_NAME]
+        collection_name = "index_collection"
+        collection = database[collection_name]
+
+        let
+            items = [
+                    Mongoc.BSON("_id" => 1, "group" => "g1"),
+                    Mongoc.BSON("_id" => 2, "group" => "g1"),
+                    Mongoc.BSON("_id" => 3, "group" => "g2")
+                ]
+
+            append!(collection, items)
+            @test length(collection) == 3
+        end
+
+        @testset "database write_command" begin
+            create_indexes_cmd = Mongoc.BSON(
+                    "createIndexes" => collection_name,
+                    "indexes" => [ Mongoc.BSON("key" => Mongoc.BSON("group" => 1), "name" => "group_index") ]
+                )
+            reply = Mongoc.write_command(database, create_indexes_cmd)
+            @test reply["ok"] == 1
+        end
+
+        @testset "database read_command" begin
+            reply = Mongoc.read_command(client["admin"], Mongoc.BSON("""{ "serverStatus" : 1 }"""))
+            @test reply["ok"] == 1
+        end
+
+        Mongoc.drop(collection)
+    end
+
     @testset "Users" begin
         # creates admin user - https://docs.mongodb.com/manual/tutorial/enable-authentication/
         @test Mongoc.has_database(client, DB_NAME) # at this point, DB_NAME should exist

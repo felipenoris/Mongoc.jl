@@ -474,6 +474,24 @@ function mongoc_database_command_simple(database_handle::Ptr{Cvoid}, bson_comman
           database_handle, bson_command, read_prefs, bson_reply, bson_error_ref)
 end
 
+function mongoc_database_write_command_with_opts(database_handle::Ptr{Cvoid}, bson_command::Ptr{Cvoid},
+                                                 bson_opts_handle::Ptr{Cvoid},
+                                                 bson_reply_ref::Ref{Cvoid}, bson_error_ref::Ref{BSONError})
+
+    ccall((:mongoc_database_write_command_with_opts, libmongoc), Bool,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{Cvoid}, Ref{BSONError}),
+           database_handle, bson_command, bson_opts_handle, bson_reply_ref, bson_error_ref)
+end
+
+function mongoc_database_read_command_with_opts(database_handle::Ptr{Cvoid}, bson_command::Ptr{Cvoid},
+                                                 read_prefs_handle::Ptr{Cvoid}, bson_opts_handle::Ptr{Cvoid},
+                                                 bson_reply_ref::Ref{Cvoid}, bson_error_ref::Ref{BSONError})
+
+    ccall((:mongoc_database_read_command_with_opts, libmongoc), Bool,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{Cvoid}, Ref{BSONError}),
+           database_handle, bson_command, read_prefs_handle, bson_opts_handle, bson_reply_ref, bson_error_ref)
+end
+
 function mongoc_database_add_user(database_handle::Ptr{Cvoid}, username::String, password::String,
                                   bson_roles::Ptr{Cvoid}, bson_custom_data::Ptr{Cvoid},
                                   bson_error_ref::Ref{BSONError})
