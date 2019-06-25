@@ -45,6 +45,8 @@ Mongoc.remove_user
 Mongoc.has_user
 Mongoc.find_collections
 Mongoc.get_collection_names
+Mongoc.read_command
+Mongoc.write_command
 ```
 
 ## Collection
