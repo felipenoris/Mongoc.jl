@@ -35,6 +35,14 @@ function command_simple(database::Database, command::BSON) :: BSON
     return reply
 end
 
+"""
+    write_command(database::Database, command::BSON;
+        options::Union{Nothing, BSON}=nothing) :: BSON
+
+Issue a command with write semantics.
+
+See http://mongoc.org/libmongoc/current/mongoc_database_read_write_command_with_opts.html.
+"""
 function write_command(database::Database, command::BSON;
         options::Union{Nothing, BSON}=nothing) :: BSON
 
@@ -49,6 +57,14 @@ function write_command(database::Database, command::BSON;
     return reply
 end
 
+"""
+    read_command(database::Database, command::BSON;
+        options::Union{Nothing, BSON}=nothing) :: BSON
+
+Issue a command with read semantics.
+
+See http://mongoc.org/libmongoc/current/mongoc_database_read_command_with_opts.html.
+"""
 function read_command(database::Database, command::BSON;
         options::Union{Nothing, BSON}=nothing) :: BSON
 
