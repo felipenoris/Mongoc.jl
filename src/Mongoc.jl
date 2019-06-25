@@ -1,7 +1,7 @@
 
 module Mongoc
 
-using Dates
+using Dates, Serialization
 
 # load libmongoc
 const libmongocpath = joinpath(dirname(@__FILE__), "..", "deps", "deps.jl")
