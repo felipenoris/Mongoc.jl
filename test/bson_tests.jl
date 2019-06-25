@@ -3,6 +3,7 @@ import Mongoc
 
 using Test
 using Dates
+using Distributed
 
 @testset "BSON" begin
 
@@ -359,5 +360,39 @@ using Dates
         str = sprint(show, err)
         @test str == "BSONError: domain=5, code=257, message=Total size of all transaction operations must be less than 16793600. Actual size is 16794174"
         @test sprint(showerror, err) == str
+    end
+
+    @testset "serialize" begin
+
+        @testset "BufferedBSON" begin
+            bson = Mongoc.BSON("a" => 1)
+            x = Mongoc.BufferedBSON(bson)
+            bson_copy = Mongoc.BSON(x)
+            @test bson_copy["a"] == 1
+        end
+
+        addprocs(1)
+        @everywhere using Mongoc
+
+        @testset "serialize BufferedBSON" begin
+            f = @spawn Mongoc.BufferedBSON(Mongoc.BSON("a" => 1))
+            bson = Mongoc.BSON(fetch(f))
+            @test bson["a"] == 1
+        end
+
+        @testset "read/write single BSON" begin
+            doc = Mongoc.BSON("a" => 1)
+            io = IOBuffer()
+            write(io, doc)
+            seekstart(io)
+            doc2 = read(io, Mongoc.BSON)
+            @test doc2["a"] == 1
+        end
+
+        @testset "Serialize BSON" begin
+            f = @spawn Mongoc.BSON("a" => 1)
+            bson = fetch(f)
+            @test bson["a"] == 1
+        end
     end
 end

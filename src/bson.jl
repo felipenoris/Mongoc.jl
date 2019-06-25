@@ -750,6 +750,30 @@ function write_bson(io::IO, bson::BSON;
     nothing
 end
 
+struct BufferedBSON
+    bson_data::Vector{UInt8}
+end
+
+function BufferedBSON(bson::BSON)
+    io = IOBuffer()
+    write_bson(io, bson)
+    return BufferedBSON(take!(io))
+end
+
+BSON(buff::BufferedBSON) :: BSON = read_bson(buff.bson_data)[1]
+
+function Serialization.serialize(s::AbstractSerializer, bson::BSON)
+    Serialization.serialize_type(s, BSON)
+    Serialization.serialize(s.io, BufferedBSON(bson))
+end
+
+function Serialization.deserialize(s::AbstractSerializer, ::Type{BSON})
+    BSON(Serialization.deserialize(s.io))
+end
+
+Base.write(io::IO, bson::BSON) = serialize(io, bson)
+Base.read(io::IO, ::Type{BSON}) = deserialize(io)::BSON
+
 """
     write_bson(io::IO, bson_list::Vector{BSON};
         initial_buffer_capacity::Integer=DEFAULT_BSON_WRITER_BUFFER_CAPACITY)
