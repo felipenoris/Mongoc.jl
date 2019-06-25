@@ -33,6 +33,7 @@ include("gridfs.jl")
 function __init__()
     check_deps()
     mongoc_init()
+    atexit(mongoc_cleanup)
 end
 
 end # module Mongoc
