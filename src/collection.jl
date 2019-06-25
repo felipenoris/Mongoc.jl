@@ -14,6 +14,21 @@ function command_simple(collection::Collection, command::BSON) :: BSON
     return reply
 end
 
+function read_command(collection::Collection, command::BSON;
+        options::Union{Nothing, BSON}=nothing) :: BSON
+
+    reply = BSON()
+    err_ref = Ref{BSONError}()
+    options_handle = options == nothing ? C_NULL : options.handle
+    ok = mongoc_collection_read_command_with_opts(collection.handle,
+            command.handle, C_NULL, options_handle, reply.handle, err_ref)
+
+    if !ok
+        throw(err_ref[])
+    end
+    return reply
+end
+
 # Aux function to add _id field to document if it does not exist.
 # If `_id_` is not present, creates a copy of `document`.
 # This function returns `document, inserted_oid`.

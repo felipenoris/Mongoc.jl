@@ -133,7 +133,11 @@ const DB_NAME = "mongoc"
             end
             @test i == 1
 
-            Mongoc.command_simple(coll, Mongoc.BSON("""{ "collStats" : "new_collection" }"""))
+            @testset "collection command_simple" begin
+                result = Mongoc.command_simple(coll, Mongoc.BSON("""{ "collStats" : "new_collection" }"""))
+                @test result["ok"] == 1
+            end
+
             empty!(coll)
         end
 
@@ -339,7 +343,7 @@ const DB_NAME = "mongoc"
                 map_reduce_command["out"] = output_collection_name
                 map_reduce_command["query"] = query
 
-                result = Mongoc.command_simple(database, map_reduce_command)
+                result = Mongoc.read_command(database, map_reduce_command)
                 @test result["result"] == "order_totals"
                 @test result["ok"] == 1.0
 

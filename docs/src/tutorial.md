@@ -371,7 +371,7 @@ BSON("{ "_id" : "B212", "total" : 200 }")
 BSON("{ "_id" : "A123", "total" : 750 }")
 ```
 
-A **Map-Reduce** operation can be executed with `Mongoc.command_simple`.
+A **Map-Reduce** operation can be executed with `Mongoc.command_simple` or `Mongoc.read_command`.
 
 ```julia
 input_collection_name = "aggregation-collection"
@@ -389,7 +389,7 @@ map_reduce_command["reduce"] = reducer
 map_reduce_command["out"] = output_collection_name
 map_reduce_command["query"] = query
 
-result = Mongoc.command_simple(database, map_reduce_command)
+result = Mongoc.read_command(database, map_reduce_command)
 println(result)
 
 for doc in Mongoc.find(database["order_totals"])
@@ -511,3 +511,32 @@ new_document = reply["value"]
 @test new_document["status"] == "Z"
 @test !haskey(new_document, "cust_id")
 ```
+
+## Create Index
+
+Use `Mongoc.write_command` to issue a `createIndexes` command to the database.
+
+```
+database = client[DB_NAME]
+collection_name = "index_collection"
+collection = database[collection_name]
+
+let
+    items = [
+            Mongoc.BSON("_id" => 1, "group" => "g1"),
+            Mongoc.BSON("_id" => 2, "group" => "g1"),
+            Mongoc.BSON("_id" => 3, "group" => "g2")
+        ]
+
+    append!(collection, items)
+end
+
+create_indexes_cmd = Mongoc.BSON(
+        "createIndexes" => collection_name,
+        "indexes" => [ Mongoc.BSON("key" => Mongoc.BSON("group" => 1), "name" => "group_index") ]
+    )
+reply = Mongoc.write_command(database, create_indexes_cmd)
+@assert reply["ok"] == 1
+```
+
+See also: http://mongoc.org/libmongoc/current/create-indexes.html.
