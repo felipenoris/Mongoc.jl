@@ -174,14 +174,45 @@ Dict{Any,Any} with 1 entry:
 
 You can read and write BSON documents in binary format to IO streams.
 
-The following shows how to:
+### High-level API
+
+BSON documents can be serialized using Julia's `Serialization` stdlib.
+This means that BSON documents can also be shared among Julia workers
+using Julia's `Distributed` stdlib.
+
+```julia
+
+using Test, Mongoc
+
+@testset "read/write single BSON" begin
+    doc = Mongoc.BSON("a" => 1)
+    io = IOBuffer()
+    write(io, doc)
+    seekstart(io)
+    doc2 = read(io, Mongoc.BSON)
+    @test doc2["a"] == 1
+end
+
+addprocs(1)
+@everywhere using Mongoc
+
+@testset "Serialize BSON" begin
+    f = @spawn Mongoc.BSON("a" => 1)
+    bson = fetch(f)
+    @test bson["a"] == 1
+end
+```
+
+### Low-level API
+
+The following example shows how to:
 
 1. Create a vector of BSON documents.
 2. Save the vector to a file.
 3. Read back the vector of BSON documents from a file.
 
 ```julia
-using Test
+using Test, Mongoc
 
 filepath = "data.bson"
 list = Vector{Mongoc.BSON}()
