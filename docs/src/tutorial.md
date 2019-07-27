@@ -397,7 +397,7 @@ end
 
 The result of the script above is:
 
-```
+```julia
 BSON("{ "_id" : "B212", "total" : 200 }")
 BSON("{ "_id" : "A123", "total" : 750 }")
 ```
@@ -430,7 +430,7 @@ end
 
 The result of the script above is:
 
-```
+```julia
 BSON("{ "result" : "order_totals", "timeMillis" : 135, "counts" : { "input" : 3, "emit" : 3, "reduce" : 1, "output" : 2 }, "ok" : 1.0 }")
 BSON("{ "_id" : "A123", "value" : 750.0 }")
 BSON("{ "_id" : "B212", "value" : 200.0 }")
@@ -464,7 +464,7 @@ result = Mongoc.command_simple(client["my-database"], distinct_cmd)
 
 Which yields:
 
-```
+```julia
 BSON("{ "values" : [ "A", "D" ], "ok" : 1.0 }")
 ```
 
@@ -547,7 +547,7 @@ new_document = reply["value"]
 
 Use `Mongoc.write_command` to issue a `createIndexes` command to the database.
 
-```
+```julia
 database = client[DB_NAME]
 collection_name = "index_collection"
 collection = database[collection_name]

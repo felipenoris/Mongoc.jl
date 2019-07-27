@@ -68,7 +68,7 @@ end
 Use `Mongoc.find` on a bucket to search for files,
 and `Mongoc.delete` to delete.
 
-```
+```julia
 for doc in Mongoc.find(bucket)
     println("Deleting $(doc["filename"])")
     Mongoc.delete(bucket, doc)
