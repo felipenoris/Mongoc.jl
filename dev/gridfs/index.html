@@ -20,7 +20,7 @@ close(io)
 Mongoc.open_download_stream(bucket, remote_filename) do io
     tmp_str = read(io, String)
     println( msg == tmp_str )
-end</code></pre><h2><a class="nav-anchor" id="Find-and-Delete-files-in-Bucket-1" href="#Find-and-Delete-files-in-Bucket-1">Find and Delete files in Bucket</a></h2><p>Use <code>Mongoc.find</code> on a bucket to search for files, and <code>Mongoc.delete</code> to delete.</p><pre><code class="language-none">for doc in Mongoc.find(bucket)
+end</code></pre><h2><a class="nav-anchor" id="Find-and-Delete-files-in-Bucket-1" href="#Find-and-Delete-files-in-Bucket-1">Find and Delete files in Bucket</a></h2><p>Use <code>Mongoc.find</code> on a bucket to search for files, and <code>Mongoc.delete</code> to delete.</p><pre><code class="language-julia">for doc in Mongoc.find(bucket)
     println(&quot;Deleting $(doc[&quot;filename&quot;])&quot;)
     Mongoc.delete(bucket, doc)
 end</code></pre><footer><hr/><a class="previous" href="../connection_pool/"><span class="direction">Previous</span><span class="title">Connection Pool</span></a><a class="next" href="../api/"><span class="direction">Next</span><span class="title">API Reference</span></a></footer></article></body></html>

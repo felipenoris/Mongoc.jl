@@ -40,7 +40,26 @@ julia&gt; document[&quot;b&quot;]
 [c] = Any[1, 2, 3]</code></pre><p>To convert a BSON to a JSON string, use:</p><pre><code class="language-julia">julia&gt; Mongoc.as_json(document)
 &quot;{ \&quot;name\&quot; : \&quot;Felipe\&quot;, \&quot;age\&quot; : 35, \&quot;preferences\&quot; : [ \&quot;Music\&quot;, \&quot;Computer\&quot;, \&quot;Photography\&quot; ], \&quot;null_value\&quot; : null, \&quot;details\&quot; : { \&quot;location\&quot; : \&quot;Rio de Janeiro\&quot;, \&quot;birth date\&quot; : { \&quot;\$date\&quot; : \&quot;1983-04-16T00:00:00Z\&quot; } } }&quot;</code></pre><p>To convert a BSON document to a Dictionary, use <code>Mongoc.as_dict</code>.</p><pre><code class="language-julia">julia&gt; Mongoc.as_dict(document)
 Dict{Any,Any} with 1 entry:
-  &quot;hey&quot; =&gt; &quot;you&quot;</code></pre><h2><a class="nav-anchor" id="Read/Write-BSON-documents-from/to-IO-Stream-1" href="#Read/Write-BSON-documents-from/to-IO-Stream-1">Read/Write BSON documents from/to IO Stream</a></h2><p>You can read and write BSON documents in binary format to IO streams.</p><p>The following shows how to:</p><ol><li>Create a vector of BSON documents.</li><li>Save the vector to a file.</li><li>Read back the vector of BSON documents from a file.</li></ol><pre><code class="language-julia">using Test
+  &quot;hey&quot; =&gt; &quot;you&quot;</code></pre><h2><a class="nav-anchor" id="Read/Write-BSON-documents-from/to-IO-Stream-1" href="#Read/Write-BSON-documents-from/to-IO-Stream-1">Read/Write BSON documents from/to IO Stream</a></h2><p>You can read and write BSON documents in binary format to IO streams.</p><h3><a class="nav-anchor" id="High-level-API-1" href="#High-level-API-1">High-level API</a></h3><p>BSON documents can be serialized using Julia&#39;s <code>Serialization</code> stdlib. This means that BSON documents can also be shared among Julia workers using Julia&#39;s <code>Distributed</code> stdlib.</p><pre><code class="language-julia">
+using Test, Mongoc
+
+@testset &quot;read/write single BSON&quot; begin
+    doc = Mongoc.BSON(&quot;a&quot; =&gt; 1)
+    io = IOBuffer()
+    write(io, doc)
+    seekstart(io)
+    doc2 = read(io, Mongoc.BSON)
+    @test doc2[&quot;a&quot;] == 1
+end
+
+addprocs(1)
+@everywhere using Mongoc
+
+@testset &quot;Serialize BSON&quot; begin
+    f = @spawn Mongoc.BSON(&quot;a&quot; =&gt; 1)
+    bson = fetch(f)
+    @test bson[&quot;a&quot;] == 1
+end</code></pre><h3><a class="nav-anchor" id="Low-level-API-1" href="#Low-level-API-1">Low-level API</a></h3><p>The following example shows how to:</p><ol><li>Create a vector of BSON documents.</li><li>Save the vector to a file.</li><li>Read back the vector of BSON documents from a file.</li></ol><pre><code class="language-julia">using Test, Mongoc
 
 filepath = &quot;data.bson&quot;
 list = Vector{Mongoc.BSON}()
@@ -142,7 +161,7 @@ bson_pipeline = Mongoc.BSON(&quot;&quot;&quot;
 
 for doc in Mongoc.aggregate(collection, bson_pipeline)
   println(doc)
-end</code></pre><p>The result of the script above is:</p><pre><code class="language-none">BSON(&quot;{ &quot;_id&quot; : &quot;B212&quot;, &quot;total&quot; : 200 }&quot;)
+end</code></pre><p>The result of the script above is:</p><pre><code class="language-julia">BSON(&quot;{ &quot;_id&quot; : &quot;B212&quot;, &quot;total&quot; : 200 }&quot;)
 BSON(&quot;{ &quot;_id&quot; : &quot;A123&quot;, &quot;total&quot; : 750 }&quot;)</code></pre><p>A <strong>Map-Reduce</strong> operation can be executed with <code>Mongoc.command_simple</code> or <code>Mongoc.read_command</code>.</p><pre><code class="language-julia">input_collection_name = &quot;aggregation-collection&quot;
 output_collection_name = &quot;order_totals&quot;
 query = Mongoc.BSON(&quot;&quot;&quot;{ &quot;status&quot; : &quot;A&quot; }&quot;&quot;&quot;)
@@ -163,7 +182,7 @@ println(result)
 
 for doc in Mongoc.find(database[&quot;order_totals&quot;])
    println(doc)
-end</code></pre><p>The result of the script above is:</p><pre><code class="language-none">BSON(&quot;{ &quot;result&quot; : &quot;order_totals&quot;, &quot;timeMillis&quot; : 135, &quot;counts&quot; : { &quot;input&quot; : 3, &quot;emit&quot; : 3, &quot;reduce&quot; : 1, &quot;output&quot; : 2 }, &quot;ok&quot; : 1.0 }&quot;)
+end</code></pre><p>The result of the script above is:</p><pre><code class="language-julia">BSON(&quot;{ &quot;result&quot; : &quot;order_totals&quot;, &quot;timeMillis&quot; : 135, &quot;counts&quot; : { &quot;input&quot; : 3, &quot;emit&quot; : 3, &quot;reduce&quot; : 1, &quot;output&quot; : 2 }, &quot;ok&quot; : 1.0 }&quot;)
 BSON(&quot;{ &quot;_id&quot; : &quot;A123&quot;, &quot;value&quot; : 750.0 }&quot;)
 BSON(&quot;{ &quot;_id&quot; : &quot;B212&quot;, &quot;value&quot; : 200.0 }&quot;)</code></pre><h2><a class="nav-anchor" id="&quot;distinct&quot;-command-1" href="#&quot;distinct&quot;-command-1">&quot;distinct&quot; command</a></h2><p>This example demonstrates the <code>distinct</code> command, based on <a href="http://mongoc.org/libmongoc/current/distinct-mapreduce.html">libmongoc docs</a>.</p><pre><code class="language-julia">import Mongoc
 client = Mongoc.Client()
@@ -182,7 +201,7 @@ distinct_cmd = Mongoc.BSON()
 distinct_cmd[&quot;distinct&quot;] = &quot;my-collection&quot;
 distinct_cmd[&quot;key&quot;] = &quot;status&quot;
 
-result = Mongoc.command_simple(client[&quot;my-database&quot;], distinct_cmd)</code></pre><p>Which yields:</p><pre><code class="language-none">BSON(&quot;{ &quot;values&quot; : [ &quot;A&quot;, &quot;D&quot; ], &quot;ok&quot; : 1.0 }&quot;)</code></pre><h2><a class="nav-anchor" id="Find-and-Modify-1" href="#Find-and-Modify-1">Find and Modify</a></h2><p>Use <code>Mongoc.find_and_modify</code> to query and update documents in a single pass.</p><pre><code class="language-julia">#
+result = Mongoc.command_simple(client[&quot;my-database&quot;], distinct_cmd)</code></pre><p>Which yields:</p><pre><code class="language-julia">BSON(&quot;{ &quot;values&quot; : [ &quot;A&quot;, &quot;D&quot; ], &quot;ok&quot; : 1.0 }&quot;)</code></pre><h2><a class="nav-anchor" id="Find-and-Modify-1" href="#Find-and-Modify-1">Find and Modify</a></h2><p>Use <code>Mongoc.find_and_modify</code> to query and update documents in a single pass.</p><pre><code class="language-julia">#
 # populate a new collection
 #
 
@@ -249,7 +268,7 @@ reply = Mongoc.find_and_modify(
 new_document = reply[&quot;value&quot;]
 @test new_document[&quot;amount&quot;] == 10
 @test new_document[&quot;status&quot;] == &quot;Z&quot;
-@test !haskey(new_document, &quot;cust_id&quot;)</code></pre><h2><a class="nav-anchor" id="Create-Index-1" href="#Create-Index-1">Create Index</a></h2><p>Use <code>Mongoc.write_command</code> to issue a <code>createIndexes</code> command to the database.</p><pre><code class="language-none">database = client[DB_NAME]
+@test !haskey(new_document, &quot;cust_id&quot;)</code></pre><h2><a class="nav-anchor" id="Create-Index-1" href="#Create-Index-1">Create Index</a></h2><p>Use <code>Mongoc.write_command</code> to issue a <code>createIndexes</code> command to the database.</p><pre><code class="language-julia">database = client[DB_NAME]
 collection_name = &quot;index_collection&quot;
 collection = database[collection_name]
 
