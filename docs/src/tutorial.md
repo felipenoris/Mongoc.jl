@@ -21,7 +21,7 @@ To start a new server instance on the default location use the following command
 ```shell
 $ mkdir db
 
-$ mongod --dbpath ./db --smallfiles
+$ mongod --dbpath ./db
 ```
 
 ## Connecting to MongoDB

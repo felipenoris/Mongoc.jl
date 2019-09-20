@@ -7,7 +7,7 @@
 #
 # ```
 # $ mkdir db
-# $ mongod --dbpath ./db --smallfiles
+# $ mongod --dbpath ./db
 # ```
 #
 
