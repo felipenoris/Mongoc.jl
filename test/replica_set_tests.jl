@@ -9,12 +9,11 @@ mkdir db1
 mkdir db2
 mkdir db3
 
-mongod --dbpath ./db1 --port 27021 --replSet "rs0" --bind_ip 127.0.0.1
-mongod --dbpath ./db2 --port 27022 --replSet "rs0" --bind_ip 127.0.0.1
-mongod --dbpath ./db3 --port 27023 --replSet "rs0" --bind_ip 127.0.0.1
+mongod --dbpath ./db1 --port 27021 --replSet "rst" --bind_ip 127.0.0.1
+mongod --dbpath ./db2 --port 27022 --replSet "rst" --bind_ip 127.0.0.1
+mongod --dbpath ./db3 --port 27023 --replSet "rst" --bind_ip 127.0.0.1
 
 mongo --port 27021 replica_set_initiate.js
-
 =#
 
 let
@@ -30,7 +29,7 @@ using Test
 using Dates
 
 const DB_REPLICA_NAME = "mongoc_replica"
-const REPLICA_SET_URL = "mongodb://127.0.0.1:27021,127.0.0.1:27022,127.0.0.1:27023/?replicaSet=rs0"
+const REPLICA_SET_URL = "mongodb://127.0.0.1:27021,127.0.0.1:27022,127.0.0.1:27023/?replicaSet=rst"
 
 @testset "Connect to ReplicaSet" begin
     client = Mongoc.Client(REPLICA_SET_URL)
