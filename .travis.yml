@@ -2,15 +2,6 @@ language: julia
 
 os:
   - linux
-  - osx
-
-before_install: # from https://github.com/mongodb/mongo-c-driver/blob/master/.travis.yml
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-  # https://github.com/Homebrew/homebrew-core/issues/26358
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink python; fi
-  # "brew install" can succeed but return 1 if it has "caveats".
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install mongodb || true; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew services start mongodb; fi
 
 services:
   - mongodb
@@ -46,7 +37,7 @@ after_success:
 jobs:
   include:
     - stage: "Documentation"
-      julia: 1.1
+      julia: 1.2
       os: linux
       script:
         - julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate(); Pkg.build("Mongoc")'

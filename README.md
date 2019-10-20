@@ -9,7 +9,7 @@
 [![stable][docs-stable-img]][docs-stable-url]
 
 [license-img]: http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
-[travis-img]: https://img.shields.io/travis/felipenoris/Mongoc.jl/master.svg?logo=travis&label=Linux+/+macOS&style=flat-square
+[travis-img]: https://img.shields.io/travis/felipenoris/Mongoc.jl/master.svg?logo=travis&label=Linux&style=flat-square
 [travis-url]: https://travis-ci.org/felipenoris/Mongoc.jl
 [appveyor-img]: https://img.shields.io/appveyor/ci/felipenoris/mongoc-jl/master.svg?logo=appveyor&label=Windows&style=flat-square
 [appveyor-url]: https://ci.appveyor.com/project/felipenoris/mongoc-jl/branch/master
