@@ -32,14 +32,16 @@ before_script:
 - mongod --dbpath ./db3 --port 27023 --replSet "rst" --bind_ip 127.0.0.1 &
 
 after_success:
-  - julia -e '(ENV["TRAVIS_JULIA_VERSION"] != "1.1" || ENV["TRAVIS_OS_NAME"] != "linux") && exit(); using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+  - julia -e '(ENV["TRAVIS_JULIA_VERSION"] != "1.3" || ENV["TRAVIS_OS_NAME"] != "linux") && exit(); using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
 
 jobs:
+  allow_failures:
+    - julia: nightly
   include:
     - stage: "Documentation"
-      julia: 1.2
+      julia: 1.3
       os: linux
       script:
-        - julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate(); Pkg.build("Mongoc")'
+        - julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.build(); Pkg.instantiate()'
         - julia --project=docs/ docs/make.jl
       after_success: skip
