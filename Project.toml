@@ -3,7 +3,7 @@ uuid = "4fe8b98c-fc19-5c23-8ec2-168ff83495f2"
 license = "MIT"
 authors = ["Felipe Noronha <felipenoris@gmail.com>"]
 repo = "https://github.com/felipenoris/Mongoc.jl.git"
-version = "0.4.0"
+version = "0.4.1-dev"
 
 [deps]
 BinaryProvider = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
@@ -12,7 +12,7 @@ Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 
 [compat]
-julia = "^1"
+julia = "1"
 
 [extras]
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
