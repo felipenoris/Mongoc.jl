@@ -1,14 +1,8 @@
 
 module Mongoc
+using MongoC_jll
 
 using Dates, Serialization
-
-# load libmongoc
-const libmongocpath = joinpath(dirname(@__FILE__), "..", "deps", "deps.jl")
-if !isfile(libmongocpath)
-    error("Mongoc.jl is not installed properly, run Pkg.build(\"Mongoc\") and restart Julia.")
-end
-include(libmongocpath)
 
 #
 # utility functions for date conversion
@@ -31,7 +25,6 @@ include("streams.jl")
 include("gridfs.jl")
 
 function __init__()
-    check_deps()
     mongoc_init()
     atexit(mongoc_cleanup)
 end
