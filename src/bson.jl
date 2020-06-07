@@ -230,6 +230,8 @@ mutable struct BSONReader
     end
 end
 
+BSONReader(handle::Ptr{Cvoid}) = BSONReader(handle, Vector{UInt8}())
+
 function destroy!(reader::BSONReader)
     if reader.handle != C_NULL
         bson_reader_destroy(reader.handle)
@@ -834,6 +836,16 @@ Parses a vector of bytes to a vector of BSON documents.
 Useful when reading BSON as binary from a stream.
 """
 function read_bson(data::Vector{UInt8}) :: Vector{BSON}
+    reader = BSONReader(data)
+
+    try
+        return read_bson(reader)
+    finally
+        destroy!(reader)
+    end
+end
+
+function BSONReader(data::Vector{UInt8})
     if isempty(data)
         return result
     end
@@ -844,8 +856,8 @@ function read_bson(data::Vector{UInt8}) :: Vector{BSON}
     if reader_handle == C_NULL
         error("Failed to create a BSONReader.")
     end
-    reader = BSONReader(reader_handle, data_shrinked)
-    return read_bson(reader)
+
+    return BSONReader(reader_handle, data_shrinked)
 end
 
 """
@@ -857,14 +869,23 @@ This will open a `Mongoc.BSONReader` pointing to the file
 and will parse file contents to BSON documents.
 """
 function read_bson(filepath::AbstractString) :: Vector{BSON}
+    reader = BSONReader(filepath)
+
+    try
+        return read_bson(reader)
+    finally
+        destroy!(reader)
+    end
+end
+
+function BSONReader(filepath::AbstractString)
     @assert isfile(filepath) "$filepath not found."
     err_ref = Ref{BSONError}()
     reader_handle = bson_reader_new_from_file(filepath, err_ref)
     if reader_handle == C_NULL
         throw(err_ref[])
     end
-    reader = BSONReader(reader_handle, Vector{UInt8}())
-    return read_bson(reader)
+    return BSONReader(reader_handle)
 end
 
 """
@@ -874,13 +895,13 @@ Reads all BSON documents from a `reader`.
 """
 function read_bson(reader::BSONReader) :: Vector{BSON}
     result = Vector{BSON}()
-    bson = read_next_bson(reader)
-    while bson != nothing
+    for bson in reader
         push!(result, bson)
-        bson = read_next_bson(reader)
     end
     return result
 end
+
+Base.collect(reader::BSONReader) = read_bson(reader)
 
 """
     read_next_bson(reader::BSONReader) :: Union{Nothing, BSON}
@@ -901,4 +922,13 @@ function read_next_bson(reader::BSONReader) :: Union{Nothing, BSON}
 
     bson_copy_handle = bson_copy(bson_handle) # creates a copy with its own lifetime
     return BSON(bson_copy_handle)
+end
+
+function Base.iterate(reader::BSONReader, state=nothing)
+    next_bson = read_next_bson(reader)
+    if next_bson == nothing
+        return nothing
+    else
+        return (next_bson, nothing)
+    end
 end

@@ -272,6 +272,22 @@ using Distributed
                 @test sec_bson["id"] == 2
                 @test sec_bson["name"] == "2nd"
             end
+
+            seekstart(io)
+            reader = Mongoc.BSONReader(read(io))
+            vec_bson_from_reader = collect(reader)
+
+            let
+                fst_bson = vec_bson_from_reader[1]
+                @test fst_bson["id"] == 1
+                @test fst_bson["name"] == "1st"
+            end
+
+            let
+                sec_bson = vec_bson_from_reader[2]
+                @test sec_bson["id"] == 2
+                @test sec_bson["name"] == "2nd"
+            end
         end
 
         @testset "read BSON from data" begin
@@ -305,20 +321,19 @@ using Distributed
 
                 @test isfile(filepath)
 
-                list_from_file = Mongoc.read_bson(filepath)
-                @test length(list_from_file) == 2
-
-                let
-                    fst_bson = list_from_file[1]
-                    @test fst_bson["id"] == 1
-                    @test fst_bson["name"] == "1st"
+                reader = Mongoc.BSONReader(filepath)
+                for (i, bson) in enumerate(reader)
+                    if i == 1
+                        @test bson["id"] == 1
+                        @test bson["name"] == "1st"
+                    elseif i == 2
+                        @test bson["id"] == 2
+                        @test bson["name"] == "2nd"
+                    else
+                        error("Got document $i.")
+                    end
                 end
-
-                let
-                    sec_bson = list_from_file[2]
-                    @test sec_bson["id"] == 2
-                    @test sec_bson["name"] == "2nd"
-                end
+                Mongoc.destroy!(reader)
 
             finally
                 if isfile(filepath)
