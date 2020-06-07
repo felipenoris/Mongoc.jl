@@ -32,17 +32,11 @@ which provides a way to create and manipulate BSON documents.
 
 * MongoDB 3.0 or newer.
 
-* Julia v1.0 or newer.
+* Julia v1.3 or newer.
 
 * Linux, macOS
 
-* Windows (experimental).
-
-## Windows Support
-
-This package is known to work on Windows 7 and Windows Server.
-For Windows 10, however, dependencies may fail to install.
-See [#44](https://github.com/felipenoris/Mongoc.jl/issues/44).
+* Windows.
 
 ## Installation
 
