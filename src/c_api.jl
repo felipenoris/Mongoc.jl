@@ -308,6 +308,25 @@ function bson_copy_to_excluding_noinit(src_bson_handle::Ptr{Cvoid}, dst_bson_han
           src_bson_handle, dst_bson_handle, exclude, C_NULL)
 end
 
+function bson_json_reader_new_from_file(filepath::AbstractString, bson_error_ref::Ref{BSONError})
+    ccall((:bson_json_reader_new_from_file, libbson), Ptr{Cvoid},
+          (Cstring, Ref{BSONError}),
+          filepath, bson_error_ref
+        )
+end
+
+function bson_json_reader_destroy(reader_handle::Ptr{Cvoid})
+    ccall((:bson_json_reader_destroy, libbson), Cvoid,
+          (Ptr{Cvoid},),
+          reader_handle)
+end
+
+function bson_json_reader_read(reader_handle::Ptr{Cvoid}, bson_handle::Ptr{Cvoid}, bson_error_ref::Ref{BSONError})
+    ccall((:bson_json_reader_read, libbson), Cint,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          reader_handle, bson_handle, bson_error_ref)
+end
+
 #
 # libmongoc
 #

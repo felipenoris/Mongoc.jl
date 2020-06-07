@@ -348,6 +348,46 @@ using Distributed
         end
     end
 
+    @testset "BSONJSONReader" begin
+
+        @testset "Iterate Reader" begin
+            fp = joinpath(@__DIR__, "docs.json")
+            @assert isfile(fp)
+            reader = Mongoc.BSONJSONReader(fp)
+
+            for (i, bson) in enumerate(reader)
+                if i == 1
+                    @test bson["num"] == 1
+                    @test bson["str"] == "two"
+                elseif i == 2
+                    @test bson["num"] == 2
+                    @test bson["str"] == "three"
+                else
+                    error("Got bson $i.")
+                end
+            end
+
+            Mongoc.destroy!(reader)
+        end
+
+        @testset "read_bson_from_json" begin
+            fp = joinpath(@__DIR__, "docs.json")
+            @assert isfile(fp)
+
+            for (i, bson) in enumerate(Mongoc.read_bson_from_json(fp))
+                if i == 1
+                    @test bson["num"] == 1
+                    @test bson["str"] == "two"
+                elseif i == 2
+                    @test bson["num"] == 2
+                    @test bson["str"] == "three"
+                else
+                    error("Got bson $i.")
+                end
+            end
+        end
+    end
+
     @testset "BSONError" begin
         err = Mongoc.BSONError(0x00000005, 0x00000101, (0x54, 0x6f, 0x74, 0x61, 0x6c, 0x20, 0x73, 0x69, 0x7a, 0x65, 0x20, 0x6f,
             0x66, 0x20, 0x61, 0x6c, 0x6c, 0x20, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x6f, 0x70, 0x65, 0x72, 0x61, 0x74,
