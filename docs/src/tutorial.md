@@ -251,6 +251,36 @@ let
 end
 ```
 
+## Read BSON Documents from a JSON File
+
+Given a JSON file `docs.json` with the following content:
+
+```json
+{ "num" : 1, "str" : "two" }
+{ "num" : 2, "str" : "three" }
+```
+
+This file can be read using a `Mongoc.BSONJSONReader`.
+A high-level function `Mongoc.read_bson_from_json` is also available.
+
+Notice how strange the json format is: it is a sequence of JSON documents without separator.
+Adding a separator (`, `) between JSON documents will duplicate the BSON fields.
+Also, if you enclose the whole file with a vector of JSONs, a single BSON will be returned
+with a vector of elements.
+
+### Examples
+
+```julia
+vec_of_bsons = Mongoc.read_bson_from_json("docs.json")
+```
+
+```julia
+reader = Mongoc.BSONJSONReader("docs.json")
+for bson in reader
+    println(bson)
+end
+```
+
 ## Inserting Documents
 
 To insert a single document into a collection, just `Base.push!` a BSON document to it.

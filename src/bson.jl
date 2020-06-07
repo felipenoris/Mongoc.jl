@@ -219,7 +219,9 @@ function Base.deepcopy(bson::BSON) :: BSON
     return BSON(bson_copy(bson.handle))
 end
 
-mutable struct BSONReader
+abstract type AbstractBSONReader end
+
+mutable struct BSONReader <: AbstractBSONReader
     handle::Ptr{Cvoid}
     data::Vector{UInt8}
 
@@ -889,21 +891,6 @@ function BSONReader(filepath::AbstractString)
 end
 
 """
-    read_bson(reader::BSONReader) :: Vector{BSON}
-
-Reads all BSON documents from a `reader`.
-"""
-function read_bson(reader::BSONReader) :: Vector{BSON}
-    result = Vector{BSON}()
-    for bson in reader
-        push!(result, bson)
-    end
-    return result
-end
-
-Base.collect(reader::BSONReader) = read_bson(reader)
-
-"""
     read_next_bson(reader::BSONReader) :: Union{Nothing, BSON}
 
 Reads the next BSON document available in the stream pointed by `reader`.
@@ -924,11 +911,92 @@ function read_next_bson(reader::BSONReader) :: Union{Nothing, BSON}
     return BSON(bson_copy_handle)
 end
 
-function Base.iterate(reader::BSONReader, state=nothing)
+mutable struct BSONJSONReader <: AbstractBSONReader
+    handle::Ptr{Cvoid}
+
+    function BSONJSONReader(handle::Ptr{Cvoid})
+        new_reader = new(handle)
+        finalizer(destroy!, new_reader)
+        return new_reader
+    end
+end
+
+function destroy!(reader::BSONJSONReader)
+    if reader.handle != C_NULL
+        bson_json_reader_destroy(reader.handle)
+        reader.handle = C_NULL
+    end
+    nothing
+end
+
+function BSONJSONReader(filepath::AbstractString)
+    @assert isfile(filepath) "$filepath not found."
+    err_ref = Ref{BSONError}()
+    reader_handle = bson_json_reader_new_from_file(filepath, err_ref)
+    if reader_handle == C_NULL
+        throw(err_ref[])
+    end
+    return BSONJSONReader(reader_handle)
+end
+
+function read_next_bson(reader::BSONJSONReader, buffer::BSON=BSON()) :: Union{Nothing, BSON}
+    err_ref = Ref{BSONError}()
+    ok = bson_json_reader_read(reader.handle, buffer.handle, err_ref)
+
+    if ok == 1 # successful and data was read
+        bson_copy_handle = bson_copy(buffer.handle)
+        return BSON(bson_copy_handle)
+    elseif ok == 0 # successful and no data was read
+        return nothing
+    elseif ok == -1 # there was an error
+        throw(err_ref[])
+    else # unexpected
+        error("Unexpected result from bson_json_reader_read: $ok.")
+    end
+end
+
+function Base.iterate(reader::AbstractBSONReader, state=nothing)
     next_bson = read_next_bson(reader)
     if next_bson == nothing
         return nothing
     else
         return (next_bson, nothing)
+    end
+end
+
+Base.collect(reader::AbstractBSONReader) = read_bson(reader)
+
+"""
+    read_bson(reader::BSONReader) :: Vector{BSON}
+
+Reads all BSON documents from a `reader`.
+"""
+function read_bson(reader::AbstractBSONReader) :: Vector{BSON}
+    result = Vector{BSON}()
+    for bson in reader
+        push!(result, bson)
+    end
+    return result
+end
+
+"""
+    read_bson_from_json(filepath::AbstractString) :: Vector{BSON}
+
+Reads a JSON file into a list of BSON documents.
+The file should contain a sequence of valid JSON documents.
+
+# Example of a valid JSON file
+
+```json
+{ "num" : 1, "str" : "two" }
+{ "num" : 2, "str" : "three" }
+```
+"""
+function read_bson_from_json(filepath::AbstractString) :: Vector{BSON}
+    reader = BSONJSONReader(filepath)
+    try
+        return read_bson(reader)
+    finally
+        destroy!(reader)
     end
 end

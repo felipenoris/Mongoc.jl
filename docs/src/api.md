@@ -15,6 +15,7 @@ Mongoc.read_next_bson
 Mongoc.BSONError
 Mongoc.BSONValue
 Mongoc.get_as_bson_value
+Mongoc.read_bson_from_json
 ```
 
 ## Client
