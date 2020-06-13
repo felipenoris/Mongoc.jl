@@ -102,6 +102,25 @@ using Distributed
         @test bson["ah"] == "Key1"
     end
 
+    @testset "BSON key/values itr support" begin
+        bson = Mongoc.BSON()
+        bson["hey"] = 10
+        bson["you"] = "aaa"
+        bson["out"] = nothing
+
+        for (k, v) in bson
+            @test (k == "hey" && v == 10) || (k == "you" && v == "aaa") || (k == "out" && v == nothing)
+        end
+
+        for k in keys(bson)
+            @test k == "hey" || k == "you" || k == "out"
+        end
+
+        for v in values(bson)
+            @test v == 10 || v == "aaa" || v == nothing
+        end
+    end
+
     @testset "BSON Iterator" begin
         doc = Mongoc.BSON("""{ "a" : 1, "b" : 2.2, "str" : "my string", "bool_t" : true, "bool_f" : false, "array" : [1, 2, false, "inner_string"], "document" : { "a" : 1, "b" : "b_string"}, "null" : null  }""")
 

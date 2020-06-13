@@ -149,6 +149,10 @@ function bson_has_field(bson_document::Ptr{Cvoid}, key::AbstractString)
     ccall((:bson_has_field, libbson), Bool, (Ptr{Cvoid}, Cstring), bson_document, key)
 end
 
+function bson_count_keys(bson_document::Ptr{Cvoid})
+    ccall((:bson_count_keys, libbson), UInt32, (Ptr{Cvoid},), bson_document)
+end
+
 function bson_iter_init(iter_ref::Ref{BSONIter}, bson_document::Ptr{Cvoid})
     ccall((:bson_iter_init, libbson), Bool, (Ref{BSONIter}, Ptr{Cvoid}), iter_ref, bson_document)
 end
