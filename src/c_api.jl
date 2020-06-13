@@ -7,13 +7,13 @@ function bson_oid_init(oid_ref::Ref{BSONObjectId}, context::Ptr{Cvoid})
     ccall((:bson_oid_init, libbson), Cvoid, (Ref{BSONObjectId}, Ptr{Cvoid}), oid_ref, context)
 end
 
-function bson_oid_init_from_string(oid_ref::Ref{BSONObjectId}, oid_string::String)
+function bson_oid_init_from_string(oid_ref::Ref{BSONObjectId}, oid_string::AbstractString)
     ccall((:bson_oid_init_from_string, libbson), Cvoid,
           (Ref{BSONObjectId}, Cstring),
           oid_ref, oid_string)
 end
 
-function bson_oid_to_string(oid::BSONObjectId)
+function bson_oid_to_string(oid::BSONObjectId) :: String
     buffer_len = 25
     buffer = zeros(UInt8, buffer_len)
 
@@ -40,62 +40,62 @@ function bson_oid_is_valid(str::String)
     ccall((:bson_oid_is_valid, libbson), Bool, (Cstring, Csize_t), str, str_length)
 end
 
-function bson_append_oid(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::BSONObjectId)
+function bson_append_oid(bson_document::Ptr{Cvoid}, key::AbstractString, key_length::Int, value::BSONObjectId)
     ccall((:bson_append_oid, libbson), Bool,
           (Ptr{Cvoid}, Cstring, Cint, Ref{BSONObjectId}),
           bson_document, key, key_length, value)
 end
 
-function bson_append_int32(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Int32)
+function bson_append_int32(bson_document::Ptr{Cvoid}, key::AbstractString, key_length::Int, value::Int32)
     ccall((:bson_append_int32, libbson), Bool,
           (Ptr{Cvoid}, Cstring, Cint, Cint),
           bson_document, key, key_length, value)
 end
 
-function bson_append_int64(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Int64)
+function bson_append_int64(bson_document::Ptr{Cvoid}, key::AbstractString, key_length::Int, value::Int64)
     ccall((:bson_append_int64, libbson), Bool,
           (Ptr{Cvoid}, Cstring, Cint, Clonglong),
           bson_document, key, key_length, value)
 end
 
 function bson_append_utf8(bson_document::Ptr{Cvoid},
-                          key::String, key_length::Int, value::AbstractString, len::Int)
+                          key::AbstractString, key_length::Int, value::AbstractString, len::Int)
     ccall((:bson_append_utf8, libbson), Bool,
           (Ptr{Cvoid}, Cstring, Cint, Cstring, Cint),
           bson_document, key, key_length, value, len)
 end
 
-function bson_append_bool(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Bool)
+function bson_append_bool(bson_document::Ptr{Cvoid}, key::AbstractString, key_length::Int, value::Bool)
     ccall((:bson_append_bool, libbson), Bool,
           (Ptr{Cvoid}, Cstring, Cint, Bool),
           bson_document, key, key_length, value)
 end
 
-function bson_append_double(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Float64)
+function bson_append_double(bson_document::Ptr{Cvoid}, key::AbstractString, key_length::Int, value::Float64)
     ccall((:bson_append_double, libbson), Bool,
           (Ptr{Cvoid}, Cstring, Cint, Cdouble),
           bson_document, key, key_length, value)
 end
 
-function bson_append_date_time(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Int64)
+function bson_append_date_time(bson_document::Ptr{Cvoid}, key::AbstractString, key_length::Int, value::Int64)
     ccall((:bson_append_date_time, libbson), Bool,
           (Ptr{Cvoid}, Cstring, Cint, Clonglong),
           bson_document, key, key_length, value)
 end
 
-function bson_append_document(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Ptr{Cvoid})
+function bson_append_document(bson_document::Ptr{Cvoid}, key::AbstractString, key_length::Int, value::Ptr{Cvoid})
     ccall((:bson_append_document, libbson), Bool,
           (Ptr{Cvoid}, Cstring, Cint, Ptr{Cvoid}),
           bson_document, key, key_length, value)
 end
 
-function bson_append_array(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::Ptr{Cvoid})
+function bson_append_array(bson_document::Ptr{Cvoid}, key::AbstractString, key_length::Int, value::Ptr{Cvoid})
     ccall((:bson_append_array, libbson), Bool,
           (Ptr{Cvoid}, Cstring, Cint, Ptr{Cvoid}),
           bson_document, key, key_length, value)
 end
 
-function bson_append_binary(bson_document::Ptr{Cvoid}, key::String, key_length::Int,
+function bson_append_binary(bson_document::Ptr{Cvoid}, key::AbstractString, key_length::Int,
                             subtype::BSONSubType, value::Vector{UInt8}, val_length::UInt32)
 
     ccall((:bson_append_binary, libbson), Bool,
@@ -103,13 +103,13 @@ function bson_append_binary(bson_document::Ptr{Cvoid}, key::String, key_length::
           bson_document, key, key_length, subtype, value, val_length)
 end
 
-function bson_append_code(bson_document::Ptr{Cvoid}, key::String, key_length::Int, value::String)
+function bson_append_code(bson_document::Ptr{Cvoid}, key::AbstractString, key_length::Int, value::String)
     ccall((:bson_append_code, libbson), Bool,
           (Ptr{Cvoid}, Cstring, Cint, Cstring),
           bson_document, key, key_length, value)
 end
 
-function bson_append_null(bson_document::Ptr{Cvoid}, key::String, key_length::Int)
+function bson_append_null(bson_document::Ptr{Cvoid}, key::AbstractString, key_length::Int)
     ccall((:bson_append_null, libbson), Bool,
           (Ptr{Cvoid}, Cstring, Cint),
           bson_document, key, key_length)
@@ -145,7 +145,7 @@ function bson_copy(bson_document::Ptr{Cvoid})
     ccall((:bson_copy, libbson), Ptr{Cvoid}, (Ptr{Cvoid},), bson_document)
 end
 
-function bson_has_field(bson_document::Ptr{Cvoid}, key::String)
+function bson_has_field(bson_document::Ptr{Cvoid}, key::AbstractString)
     ccall((:bson_has_field, libbson), Bool, (Ptr{Cvoid}, Cstring), bson_document, key)
 end
 
@@ -157,11 +157,11 @@ function bson_iter_next(iter_ref::Ref{BSONIter})
     ccall((:bson_iter_next, libbson), Bool, (Ref{BSONIter},), iter_ref)
 end
 
-function bson_iter_find(iter_ref::Ref{BSONIter}, key::String)
+function bson_iter_find(iter_ref::Ref{BSONIter}, key::AbstractString)
     ccall((:bson_iter_find, libbson), Bool, (Ref{BSONIter}, Cstring), iter_ref, key)
 end
 
-function bson_iter_init_find(iter_ref::Ref{BSONIter}, bson_document::Ptr{Cvoid}, key::String)
+function bson_iter_init_find(iter_ref::Ref{BSONIter}, bson_document::Ptr{Cvoid}, key::AbstractString)
     ccall((:bson_iter_init_find, libbson), Bool,
           (Ref{BSONIter}, Ptr{Cvoid}, Cstring),
           iter_ref, bson_document, key)

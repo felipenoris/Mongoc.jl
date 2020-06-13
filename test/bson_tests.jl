@@ -79,6 +79,29 @@ using Distributed
         end
     end
 
+    @testset "AbstractString support" begin
+        keys_with_prefix = ["aKey1", "aKey2", "aKey3"]
+        substring_keys = [ SubString(k, 2, length(k)) for k in keys_with_prefix ]
+        vals = [ 1, "hey", nothing ]
+
+        bson = Mongoc.BSON()
+        for (i, k) in enumerate(substring_keys)
+            bson[k] = vals[i]
+        end
+
+        for k in substring_keys
+            @test haskey(bson, k)
+        end
+
+        for i in 1:3
+            @test haskey(bson, "Key$i")
+        end
+
+        bson["ah"] = substring_keys[1]
+        @test isa(bson["ah"], String)
+        @test bson["ah"] == "Key1"
+    end
+
     @testset "BSON Iterator" begin
         doc = Mongoc.BSON("""{ "a" : 1, "b" : 2.2, "str" : "my string", "bool_t" : true, "bool_f" : false, "array" : [1, 2, false, "inner_string"], "document" : { "a" : 1, "b" : "b_string"}, "null" : null  }""")
 
