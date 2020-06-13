@@ -186,7 +186,7 @@ bson["num"] = 10.0
 
 `BSON` is a wrapper for C struct `bson_t`.
 """
-mutable struct BSON
+mutable struct BSON <: AbstractDict{String, Any}
     handle::Ptr{Cvoid}
 
     function BSON(handle::Ptr{Cvoid}; enable_finalizer::Bool=true)
@@ -414,6 +414,8 @@ function as_json(bson::BSON; canonical::Bool=false) :: String
 
     return result
 end
+
+Base.length(document::BSON) = bson_count_keys(document.handle)
 
 #
 # Read values from BSON
