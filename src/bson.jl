@@ -419,8 +419,8 @@ end
 # Read values from BSON
 #
 
-has_field(bson::BSON, key::String) = bson_has_field(bson.handle, key)
-Base.haskey(bson::BSON, key::String) = has_field(bson, key)
+has_field(bson::BSON, key::AbstractString) = bson_has_field(bson.handle, key)
+Base.haskey(bson::BSON, key::AbstractString) = has_field(bson, key)
 
 function bson_iter_init(document::BSON) :: Ref{BSONIter}
     iter_ref = Ref{BSONIter}()
@@ -537,7 +537,7 @@ function get_value(iter_ref::Ref{BSONIter})
     end
 end
 
-function Base.getindex(document::BSON, key::String)
+function Base.getindex(document::BSON, key::AbstractString)
     iter_ref = Ref{BSONIter}()
     ok = bson_iter_init_find(iter_ref, document.handle, key)
     if !ok
@@ -554,7 +554,7 @@ as a `BSONValue`.
 
 See also [Mongoc.BSONValue](@ref).
 """
-function get_as_bson_value(document::BSON, key::String) :: BSONValue
+function get_as_bson_value(document::BSON, key::AbstractString) :: BSONValue
    iter_ref = Ref{BSONIter}()
     ok = bson_iter_init_find(iter_ref, document.handle, key)
     if !ok
@@ -573,7 +573,7 @@ end
 # Write values to BSON
 #
 
-function Base.setindex!(document::BSON, value::BSONObjectId, key::String)
+function Base.setindex!(document::BSON, value::BSONObjectId, key::AbstractString)
     ok = bson_append_oid(document.handle, key, -1, value)
     if !ok
         error("Couldn't append oid to BSON document.")
@@ -581,7 +581,7 @@ function Base.setindex!(document::BSON, value::BSONObjectId, key::String)
     nothing
 end
 
-function Base.setindex!(document::BSON, value::Int64, key::String)
+function Base.setindex!(document::BSON, value::Int64, key::AbstractString)
     ok = bson_append_int64(document.handle, key, -1, value)
     if !ok
         error("Couldn't append Int64 to BSON document.")
@@ -589,7 +589,7 @@ function Base.setindex!(document::BSON, value::Int64, key::String)
     nothing
 end
 
-function Base.setindex!(document::BSON, value::Int32, key::String)
+function Base.setindex!(document::BSON, value::Int32, key::AbstractString)
     ok = bson_append_int32(document.handle, key, -1, value)
     if !ok
         error("Couldn't append Int32 to BSON document.")
@@ -597,7 +597,7 @@ function Base.setindex!(document::BSON, value::Int32, key::String)
     nothing
 end
 
-function Base.setindex!(document::BSON, value::AbstractString, key::String)
+function Base.setindex!(document::BSON, value::AbstractString, key::AbstractString)
     ok = bson_append_utf8(document.handle, key, -1, value, -1)
     if !ok
         error("Couldn't append String to BSON document.")
@@ -605,7 +605,7 @@ function Base.setindex!(document::BSON, value::AbstractString, key::String)
     nothing
 end
 
-function Base.setindex!(document::BSON, value::Bool, key::String)
+function Base.setindex!(document::BSON, value::Bool, key::AbstractString)
     ok = bson_append_bool(document.handle, key, -1, value)
     if !ok
         error("Couldn't append Bool to BSON document.")
@@ -613,7 +613,7 @@ function Base.setindex!(document::BSON, value::Bool, key::String)
     nothing
 end
 
-function Base.setindex!(document::BSON, value::Float64, key::String)
+function Base.setindex!(document::BSON, value::Float64, key::AbstractString)
     ok = bson_append_double(document.handle, key, -1, value)
     if !ok
         error("Couldn't append Float64 to BSON document.")
@@ -621,7 +621,7 @@ function Base.setindex!(document::BSON, value::Float64, key::String)
     nothing
 end
 
-function Base.setindex!(document::BSON, value::DateTime, key::String)
+function Base.setindex!(document::BSON, value::DateTime, key::AbstractString)
     ok = bson_append_date_time(document.handle, key, -1, datetime2isodate(value))
     if !ok
         error("Couldn't append DateTime to BSON document.")
@@ -629,7 +629,7 @@ function Base.setindex!(document::BSON, value::DateTime, key::String)
     nothing
 end
 
-function Base.setindex!(document::BSON, value::BSON, key::String)
+function Base.setindex!(document::BSON, value::BSON, key::AbstractString)
     ok = bson_append_document(document.handle, key, -1, value.handle)
     if !ok
         error("Couldn't append Sub-Document BSON to BSON document.")
@@ -637,9 +637,9 @@ function Base.setindex!(document::BSON, value::BSON, key::String)
     nothing
 end
 
-Base.setindex!(document::BSON, value::Dict, key::String) = setindex!(document, BSON(value), key)
+Base.setindex!(document::BSON, value::Dict, key::AbstractString) = setindex!(document, BSON(value), key)
 
-function Base.setindex!(document::BSON, value::Vector{T}, key::String) where T
+function Base.setindex!(document::BSON, value::Vector{T}, key::AbstractString) where T
     sub_document = BSON(value)
     ok = bson_append_array(document.handle, key, -1, sub_document.handle)
     if !ok
@@ -648,7 +648,7 @@ function Base.setindex!(document::BSON, value::Vector{T}, key::String) where T
     nothing
 end
 
-function Base.setindex!(document::BSON, value::BSONCode, key::String)
+function Base.setindex!(document::BSON, value::BSONCode, key::AbstractString)
     ok = bson_append_code(document.handle, key, -1, value.code)
     if !ok
         error("Couldn't append String to BSON document.")
@@ -656,11 +656,11 @@ function Base.setindex!(document::BSON, value::BSONCode, key::String)
     nothing
 end
 
-function Base.setindex!(document::BSON, value::Date, key::String)
+function Base.setindex!(document::BSON, value::Date, key::AbstractString)
     error("BSON format does not support `Date` type. Use `DateTime` instead.")
 end
 
-function Base.setindex!(document::BSON, value::Vector{UInt8}, key::String)
+function Base.setindex!(document::BSON, value::Vector{UInt8}, key::AbstractString)
   ok = bson_append_binary(document.handle, key, -1, BSON_SUBTYPE_BINARY, value, UInt32(length(value)))
   if !ok
       error("Couldn't append array to BSON document.")
@@ -668,7 +668,7 @@ function Base.setindex!(document::BSON, value::Vector{UInt8}, key::String)
   nothing
 end
 
-function Base.setindex!(document::BSON, ::Nothing, key::String)
+function Base.setindex!(document::BSON, ::Nothing, key::AbstractString)
     ok = bson_append_null(document.handle, key, -1)
     if !ok
         error("Couldn't append missing value to BSON document.")
