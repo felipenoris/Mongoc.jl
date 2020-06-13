@@ -433,28 +433,58 @@ function bson_iter_init(document::BSON) :: Ref{BSONIter}
     return iter_ref
 end
 
-struct BSONIterator
+abstract type BSONIteratorMode end
+
+struct IterateKeyValuePairs <: BSONIteratorMode
+end
+
+struct IterateKeys <: BSONIteratorMode
+end
+
+struct IterateValues <: BSONIteratorMode
+end
+
+struct BSONIterator{M<:BSONIteratorMode}
     bson_iter_ref::Ref{BSONIter}
     document::BSON
 
-    function BSONIterator(document::BSON)
+    function BSONIterator(document::BSON, ::Type{M}) where {M<:BSONIteratorMode}
         iter_ref = bson_iter_init(document)
-        return new(iter_ref, document)
+        return new{M}(iter_ref, document)
     end
 end
 
-function Base.iterate(document::BSON)
-    itr = BSONIterator(document)
-    iterate(document, itr)
+Base.iterate(document::BSON) = iterate(document, BSONIterator(document, IterateKeyValuePairs))
+Base.keys(document::BSON) = BSONIterator(document, IterateKeys)
+Base.values(document::BSON) = BSONIterator(document, IterateValues)
+
+function Base.iterate(::BSON, itr::BSONIterator{IterateKeyValuePairs})
+
+    if bson_iter_next(itr.bson_iter_ref)
+        key = unsafe_string(bson_iter_key(itr.bson_iter_ref))
+        value = get_value(itr.bson_iter_ref)
+
+        return key => value, itr
+    end
+
+    return nothing
 end
 
-function Base.iterate(document::BSON, state::BSONIterator)
+function Base.iterate(itr::BSONIterator{IterateKeys}, ::Nothing=nothing)
 
-    if bson_iter_next(state.bson_iter_ref)
-        key = unsafe_string(bson_iter_key(state.bson_iter_ref))
-        value = get_value(state.bson_iter_ref)
+    if bson_iter_next(itr.bson_iter_ref)
+        key = unsafe_string(bson_iter_key(itr.bson_iter_ref))
+        return key, nothing
+    end
 
-        return key => value, state
+    return nothing
+end
+
+function Base.iterate(itr::BSONIterator{IterateValues}, ::Nothing=nothing)
+
+    if bson_iter_next(itr.bson_iter_ref)
+        value = get_value(itr.bson_iter_ref)
+        return value, nothing
     end
 
     return nothing
