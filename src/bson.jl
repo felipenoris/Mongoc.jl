@@ -511,8 +511,36 @@ function as_dict(iter_ref::Ref{BSONIter}) :: Dict
     return result
 end
 
+function get_array(document::BSON, key::AbstractString, ::Type{T}) where T
+    iter_ref = Ref{BSONIter}()
+    ok = bson_iter_init_find(iter_ref, document.handle, key)
+    if !ok
+        error("Key $key not found.")
+    end
+    bson_type = bson_iter_type(iter_ref)::BSONType
+    if bson_type != BSON_TYPE_ARRAY
+        error("Not a BSON array!")
+    end
+    return get_array(iter_ref, T)
+end
+
+function get_array(iter_ref::Ref{BSONIter}, ::Type{T}) where T
+    bson_type = bson_iter_type(iter_ref)::BSONType
+    @assert bson_type == BSON_TYPE_ARRAY
+    child_iter_ref = Ref{BSONIter}()
+    ok = bson_iter_recurse(iter_ref, child_iter_ref)
+    if !ok
+        error("Couldn't iterate array inside BSON.")
+    end
+    result_array = Vector{T}()
+    while bson_iter_next(child_iter_ref)
+        push!(result_array, get_value(child_iter_ref))
+    end
+    return result_array
+end
+
 function get_value(iter_ref::Ref{BSONIter})
-    local bson_type::BSONType = bson_iter_type(iter_ref)
+    bson_type = bson_iter_type(iter_ref)::BSONType
 
     if bson_type == BSON_TYPE_UTF8
         return unsafe_string(bson_iter_utf8(iter_ref))
@@ -530,25 +558,17 @@ function get_value(iter_ref::Ref{BSONIter})
     elseif bson_type == BSON_TYPE_DATE_TIME
         millis = Int64(bson_iter_date_time(iter_ref))
         return isodate2datetime(millis)
-
-    elseif bson_type == BSON_TYPE_ARRAY || bson_type == BSON_TYPE_DOCUMENT
-
+    elseif bson_type == BSON_TYPE_ARRAY
+        return get_array(iter_ref, Any)
+    elseif bson_type == BSON_TYPE_DOCUMENT
+      
         child_iter_ref = Ref{BSONIter}()
         ok = bson_iter_recurse(iter_ref, child_iter_ref)
         if !ok
-            error("Couldn't iterate array inside BSON.")
+            error("Couldn't iterate document inside BSON.")
         end
-
-        if bson_type == BSON_TYPE_ARRAY
-            result_vector = Vector()
-            while bson_iter_next(child_iter_ref)
-                push!(result_vector, get_value(child_iter_ref))
-            end
-            return result_vector
-        else
-            @assert bson_type == BSON_TYPE_DOCUMENT
-            return as_dict(child_iter_ref)
-        end
+        return as_dict(child_iter_ref)
+      
     elseif bson_type == BSON_TYPE_BINARY
 
         length_ref = Ref{UInt32}()
