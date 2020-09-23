@@ -511,6 +511,13 @@ function as_dict(iter_ref::Ref{BSONIter}) :: Dict
     return result
 end
 
+"""
+    get_array(doc::BSON, key::AbstractString, ::Type{T})
+
+Get an array from the document with a specified type `T`. This allows obtaining
+a type-stable return value. Note that if an array element cannot be converted
+to the specified type, an error will be thrown.
+"""
 function get_array(document::BSON, key::AbstractString, ::Type{T}) where T
     iter_ref = Ref{BSONIter}()
     ok = bson_iter_init_find(iter_ref, document.handle, key)
@@ -561,14 +568,14 @@ function get_value(iter_ref::Ref{BSONIter})
     elseif bson_type == BSON_TYPE_ARRAY
         return get_array(iter_ref, Any)
     elseif bson_type == BSON_TYPE_DOCUMENT
-      
+
         child_iter_ref = Ref{BSONIter}()
         ok = bson_iter_recurse(iter_ref, child_iter_ref)
         if !ok
             error("Couldn't iterate document inside BSON.")
         end
         return as_dict(child_iter_ref)
-      
+
     elseif bson_type == BSON_TYPE_BINARY
 
         length_ref = Ref{UInt32}()

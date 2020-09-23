@@ -9,6 +9,7 @@ Mongoc.BSONObjectId
 Mongoc.BSONCode
 Mongoc.as_json
 Mongoc.as_dict
+Mongoc.get_array
 Mongoc.read_bson
 Mongoc.write_bson
 Mongoc.read_next_bson
