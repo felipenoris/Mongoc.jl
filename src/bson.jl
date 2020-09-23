@@ -524,7 +524,7 @@ function get_array(document::BSON, key::AbstractString, ::Type{T}) where T
     if !ok
         error("Key $key not found.")
     end
-    bson_type = bson_iter_type(iter_ref)::BSONType
+    bson_type = bson_iter_type(iter_ref)
     if bson_type != BSON_TYPE_ARRAY
         error("Not a BSON array!")
     end
@@ -532,7 +532,7 @@ function get_array(document::BSON, key::AbstractString, ::Type{T}) where T
 end
 
 function get_array(iter_ref::Ref{BSONIter}, ::Type{T}) where T
-    bson_type = bson_iter_type(iter_ref)::BSONType
+    bson_type = bson_iter_type(iter_ref)
     @assert bson_type == BSON_TYPE_ARRAY
     child_iter_ref = Ref{BSONIter}()
     ok = bson_iter_recurse(iter_ref, child_iter_ref)
@@ -547,7 +547,7 @@ function get_array(iter_ref::Ref{BSONIter}, ::Type{T}) where T
 end
 
 function get_value(iter_ref::Ref{BSONIter})
-    bson_type = bson_iter_type(iter_ref)::BSONType
+    bson_type = bson_iter_type(iter_ref)
 
     if bson_type == BSON_TYPE_UTF8
         return unsafe_string(bson_iter_utf8(iter_ref))
