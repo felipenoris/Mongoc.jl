@@ -122,7 +122,7 @@ using Distributed
     end
 
     @testset "BSON Iterator" begin
-        doc = Mongoc.BSON("""{ "a" : 1, "b" : 2.2, "str" : "my string", "bool_t" : true, "bool_f" : false, "array" : [1, 2, false, "inner_string"], "document" : { "a" : 1, "b" : "b_string"}, "null" : null  }""")
+        doc = Mongoc.BSON("""{ "a" : 1, "b" : 2.2, "str" : "my string", "bool_t" : true, "bool_f" : false, "array" : [1, 2, false, "inner_string"], "float_array" : [0.1, 0.2, 0.3, 0.4], "document" : { "a" : 1, "b" : "b_string"}, "null" : null  }""")
 
         new_id = Mongoc.BSONObjectId()
         doc["_id"] = new_id
@@ -133,6 +133,7 @@ using Distributed
         @test haskey(doc, "str")
         @test haskey(doc, "_id")
         @test haskey(doc, "array")
+        @test haskey(doc, "float_array")
         @test haskey(doc, "document")
         @test haskey(doc, "null")
 
@@ -158,6 +159,13 @@ using Distributed
         @test doc_dict["array"] == [1, 2, false, "inner_string"]
         @test doc_dict["document"] == Dict("a"=>1, "b"=>"b_string")
         @test doc_dict["null"] == nothing
+
+        # Type-stable API
+        @test @inferred(Mongoc.get_array(doc, "float_array", Float64)) == [0.1, 0.2, 0.3, 0.4]
+        @test @inferred(Mongoc.get_array(doc, "float_array", Float32)) == Float32[0.1, 0.2, 0.3, 0.4]
+        
+        @test_throws MethodError Mongoc.get_array(doc, "float_array", String)
+        @test_throws ErrorException Mongoc.get_array(doc, "document", Any)
     end
 
     @testset "BSON write" begin
