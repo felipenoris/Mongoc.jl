@@ -1,6 +1,7 @@
 
 import Mongoc
 
+import Base.UUID
 using Test
 using Dates
 using Distributed
@@ -100,6 +101,13 @@ using Distributed
         bson["ah"] = substring_keys[1]
         @test isa(bson["ah"], String)
         @test bson["ah"] == "Key1"
+    end
+
+    @testset "UUID support" begin
+        uuid = UUID("a1f18b06-2210-499b-8313-28e69090511f")
+        bson = Mongoc.BSON("uuid" => uuid)
+        @test isa(bson["uuid"], UUID)
+        @test bson["uuid"] == uuid
     end
 
     @testset "BSON key/values itr support" begin
