@@ -217,6 +217,10 @@ end
 
 function bson_iter_binary(iter_ref::Ref{BSONIter}, length_ref::Ref{UInt32}, buffer_ref::Ref{Ptr{UInt8}})
     bsonsubtype_ref = Ref(BSON_SUBTYPE_BINARY)
+    bson_iter_binary(iter_ref, bsonsubtype_ref, length_ref, buffer_ref)
+end
+
+function bson_iter_binary(iter_ref::Ref{BSONIter}, bsonsubtype_ref::Ref{BSONSubType}, length_ref::Ref{UInt32}, buffer_ref::Ref{Ptr{UInt8}})
     ccall((:bson_iter_binary, libbson), Cvoid,
           (Ref{BSONIter}, Ref{BSONSubType}, Ref{UInt32}, Ref{Ptr{UInt8}}),
           iter_ref, bsonsubtype_ref, length_ref, buffer_ref)

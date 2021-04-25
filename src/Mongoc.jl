@@ -2,6 +2,7 @@
 module Mongoc
 using MongoC_jll
 
+import Base.UUID
 using Dates, Serialization
 
 #

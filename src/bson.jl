@@ -578,12 +578,18 @@ function get_value(iter_ref::Ref{BSONIter})
 
     elseif bson_type == BSON_TYPE_BINARY
 
+        subtype_ref = Ref{BSONSubType}()
         length_ref = Ref{UInt32}()
         buffer_ref = Ref{Ptr{UInt8}}()
-        bson_iter_binary(iter_ref, length_ref, buffer_ref)
+        bson_iter_binary(iter_ref, subtype_ref, length_ref, buffer_ref)
 
         result_data = Vector{UInt8}(undef, length_ref[])
         unsafe_copyto!(pointer(result_data), buffer_ref[], length_ref[])
+
+        is_uuid = subtype_ref[] == BSON_SUBTYPE_UUID || subtype_ref[] == BSON_SUBTYPE_UUID_DEPRECATED
+        if is_uuid && length(result_data) == 16
+            return UUID(reinterpret(UInt128, result_data)[1])
+        end
 
         return result_data
 
@@ -725,6 +731,15 @@ function Base.setindex!(document::BSON, value::Vector{UInt8}, key::AbstractStrin
       error("Couldn't append array to BSON document.")
   end
   nothing
+end
+
+function Base.setindex!(document::BSON, value::UUID, key::AbstractString)
+    value = [reinterpret(UInt8, [value.value])...]
+    ok = bson_append_binary(document.handle, key, -1, BSON_SUBTYPE_UUID, value, UInt32(length(value)))
+    if !ok
+        error("Couldn't append uuid to BSON document.")
+    end
+    nothing
 end
 
 function Base.setindex!(document::BSON, ::Nothing, key::AbstractString)
