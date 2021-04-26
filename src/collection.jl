@@ -464,6 +464,146 @@ function find_and_modify(collection::Collection, query::BSON;
     return reply
 end
 
+const find_one_and_delete_fields = Dict(
+    "collation" => "collation",
+    "maxTimeMS" => "maxTimeMS",
+    "projection" => "fields",
+    "sort" => "sort",
+    "writeConcern" => "writeConcern",
+)
+
+"""
+    find_one_and_delete(collection::Collection, bson_filter::BSON;
+        options::Union{Nothing, BSON}=nothing
+    ) :: Union{Nothing, BSON}
+
+Delete a document and return it.
+
+See [db.collection.findOneAndDelete](https://docs.mongodb.com/manual/reference/method/db.collection.findOneAndDelete/) 
+for a list of accepted options.
+"""
+function find_one_and_delete(collection::Collection, bson_filter::BSON;
+        options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}
+
+    command_bson = BSON(
+        "findAndModify" => collection.name,
+        "query" => bson_filter,
+        "remove" => true,
+    )
+
+    options_bson = BSON()
+
+    if !isnothing(options)
+        for (opt_key, comm_key) in find_one_and_delete_fields
+            if haskey(options, opt_key)
+                command_bson[comm_key] = options[opt_key]
+            end
+        end
+
+        if haskey(options, "sessionId")
+            options_bson["sessionId"] = options["sessionId"]
+        end
+    end
+
+    reply = write_command(
+        collection.database,
+        command_bson,
+        options=options_bson,
+    )
+
+    return reply["value"]
+end
+
+const find_one_and_modify_fields = Dict(
+    "arrayFilters" => "arrayFilters",
+    "bypassDocumentValidation" .=> "bypassDocumentValidation",
+    "collation" => "collation",
+    "maxTimeMS" => "maxTimeMS",
+    "projection" => "fields",
+    "returnNewDocument" => "new",
+    "sort" => "sort",
+    "upsert" => "upsert",
+    "writeConcern" => "writeConcern",
+)
+
+function _find_one_and_modify(collection::Collection, bson_filter::BSON, bson_modify::BSON;
+        options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}
+
+    command_bson = BSON(
+        "findAndModify" => collection.name,
+        "query" => bson_filter,
+        "update" => bson_modify,
+    )
+
+    options_bson = BSON()
+
+    if !isnothing(options)
+        for (opt_key, comm_key) in find_one_and_modify_fields
+            if haskey(options, opt_key)
+                command_bson[comm_key] = options[opt_key]
+            end
+        end
+
+        if haskey(options, "sessionId")
+            options_bson["sessionId"] = options["sessionId"]
+        end
+    end
+
+    reply = write_command(
+        collection.database,
+        command_bson,
+        options=options_bson,
+    )
+
+    return reply["value"]
+end
+
+"""
+    find_one_and_replace(collection::Collection, bson_filter::BSON, bson_replacement::BSON;
+        options::Union{Nothing, BSON}=nothing
+    ) :: Union{Nothing, BSON}
+
+Replace a document and return the original.
+
+See [db.collection.findOneAndReplace](https://docs.mongodb.com/manual/reference/method/db.collection.findOneAndReplace/) 
+for a list of accepted options.
+"""
+function find_one_and_replace(collection::Collection, bson_filter::BSON, bson_replacement::BSON;
+        options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}
+
+    # Ensure the document has no operators
+    for key in keys(bson_replacement)
+        if startswith(key, '$')
+            throw(ArgumentError("replacement must not contain update operators"))
+        end
+    end
+
+    return _find_one_and_modify(collection, bson_filter, bson_replacement, options=options)
+end
+
+"""
+    find_one_and_update(collection::Collection, bson_filter::BSON, bson_update::BSON;
+        options::Union{Nothing, BSON}=nothing
+    ) :: Union{Nothing, BSON}
+
+Update a document and return the original.
+
+See [db.collection.findOneAndUpdate](https://docs.mongodb.com/manual/reference/method/db.collection.findOneAndUpdate/) 
+for a list of accepted options.
+"""
+function find_one_and_update(collection::Collection, bson_filter::BSON, bson_update::BSON;
+        options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}
+
+    # Ensure the document only contains operators
+    for key in keys(bson_update)
+        if !startswith(key, '$')
+            throw(ArgumentError("update must only contain update operators"))
+        end
+    end
+
+    return _find_one_and_modify(collection, bson_filter, bson_update, options=options)
+end
+
 #
 # High-level API
 #

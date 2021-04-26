@@ -113,6 +113,24 @@ function aggregate(collection::CollectionSession, bson_pipeline::BSON;
     aggregate(collection.collection, bson_pipeline, flags=flags, options=options_with_session)
 end
 
+function find_one_and_delete(collection::CollectionSession, bson_filter::BSON;
+                             options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}
+    options_with_session = _join(options, get_session(collection))
+    find_one_and_delete(collection.collection, bson_filter, options=options_with_session)
+end
+
+function find_one_and_replace(collection::CollectionSession, bson_filter::BSON, bson_replacement::BSON;
+                              options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}
+    options_with_session = _join(options, get_session(collection))
+    find_one_and_replace(collection.collection, bson_filter, bson_replacement, options=options_with_session)
+end
+
+function find_one_and_update(collection::CollectionSession, bson_filter::BSON, bson_update::BSON;
+                             options::Union{Nothing, BSON}=nothing) :: Union{Nothing, BSON}
+    options_with_session = _join(options, get_session(collection))
+    find_one_and_update(collection.collection, bson_filter, bson_update, options=options_with_session)
+end
+
 function drop(collection::CollectionSession, opts::Union{Nothing, BSON}=nothing)
     drop(collection.collection, opts)
 end
