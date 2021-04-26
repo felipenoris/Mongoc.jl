@@ -172,6 +172,54 @@ end
         end
 
         @test Mongoc.in_transaction(session)
+
+        let # find_one_and_delete
+            item_to_delete = Mongoc.BSON()
+            item_to_delete["inserted"] = true
+            item_to_delete["to_delete"] = true
+            push!(collection, item_to_delete)
+
+            @test length(collection) == 2
+            @test isempty(collection_unbounded)
+
+            doc = Mongoc.find_one_and_delete(collection, Mongoc.BSON("""{ "to_delete" : true }"""))
+
+            @test !isnothing(doc)
+
+            @test length(collection) == 1
+            @test isempty(collection_unbounded)
+        end
+
+        @test Mongoc.in_transaction(session)
+
+        let # find_one_and_replace
+            selector = Mongoc.BSON()
+            replacement = Mongoc.BSON("""{ "find_one_and_replace": true }""")
+
+            doc = Mongoc.find_one_and_replace(collection, selector, replacement)
+            @test !isnothing(doc)
+        end
+
+        @test Mongoc.in_transaction(session)
+
+        let # find_one_and_update
+            selector = Mongoc.BSON()
+            update = Mongoc.BSON("""{ "\$set": { "find_one_and_update": true } }""")
+
+            doc = Mongoc.find_one_and_update(collection, selector, update)
+            @test !isnothing(doc)
+        end
+
+        @test Mongoc.in_transaction(session)
+
+        let # check updates
+            doc = Mongoc.find_one(collection, Mongoc.BSON())
+            @test doc["find_one_and_replace"]
+            @test doc["find_one_and_update"]
+            @test isempty(collection_unbounded)
+        end
+
+        @test Mongoc.in_transaction(session)
     end
 
     @test !isempty(collection_unbounded)

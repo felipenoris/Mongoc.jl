@@ -458,6 +458,241 @@ const DB_NAME = "mongoc"
         end
     end
 
+    @testset "find one and delete" begin
+        collection = client[DB_NAME]["find_one_and_delete"]
+
+        docs = [
+            Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 500, "status" : "A" }"""),
+            Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 250, "status" : "A" }"""),
+            Mongoc.BSON("""{ "cust_id" : "B212", "amount" : 200, "status" : "A" }"""),
+            Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 300, "status" : "D" }""")
+        ]
+
+        append!(collection, docs)
+
+        @testset "delete by filter" begin
+            query = Mongoc.BSON("""{ "cust_id" : "B212" }""")
+
+            doc = Mongoc.find_one_and_delete(collection, query)
+
+            @test !isnothing(doc)
+            @test doc["cust_id"] == "B212"
+            @test doc["amount"] == 200
+        end
+
+        @testset "nothing result when not found" begin
+            query = Mongoc.BSON("""{ "cust_id" : "B212" }""")
+
+            doc = Mongoc.find_one_and_delete(collection, query)
+
+            @test isnothing(doc)
+        end
+
+        @testset "delete with sort" begin
+            query = Mongoc.BSON("""{ "cust_id" : "A123" }""")
+            options = Mongoc.BSON("""{ "sort" : {"amount" : 1 } }""")
+
+            doc = Mongoc.find_one_and_delete(collection, query, options=options)
+
+            @test !isnothing(doc)
+            @test doc["cust_id"] == "A123"
+            @test doc["amount"] == 250
+        end
+
+        @testset "delete with projection" begin
+            query = Mongoc.BSON("""{ "cust_id" : "A123" }""")
+            options = Mongoc.BSON("""{ "projection": { "amount" : 0 } }""")
+
+            doc = Mongoc.find_one_and_delete(collection, query, options=options)
+
+            @test !isnothing(doc)
+            @test doc["cust_id"] == "A123"
+            @test !haskey(doc, "amount")
+        end
+
+        Mongoc.drop(collection)
+    end
+
+    @testset "find one and replace" begin
+        collection = client[DB_NAME]["find_one_and_replace"]
+
+        docs = [
+            Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 500, "status" : "A" }"""),
+            Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 250, "status" : "A" }"""),
+            Mongoc.BSON("""{ "cust_id" : "B212", "amount" : 200, "status" : "A" }"""),
+            Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 300, "status" : "D" }""")
+        ]
+
+        append!(collection, docs)
+
+        @testset "replace by filter" begin
+            query = Mongoc.BSON("""{ "cust_id" : "B212" }""")
+            replacement = Mongoc.BSON("""{ "cust_id" : "B212", "amount" : 200, "status" : "B" }""")
+
+            doc = Mongoc.find_one_and_replace(collection, query, replacement)
+
+            @test doc["cust_id"] == "B212"
+            @test doc["amount"] == 200
+            # Returns original document
+            @test doc["status"] == "A"
+        end
+
+        @testset "replace with sort" begin
+            query = Mongoc.BSON("""{ "cust_id" : "A123" }""")
+            replacement = Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 275, "status" : "B" }""")
+            options = Mongoc.BSON("""{ "sort" : {"amount": 1 } }""")
+
+            doc = Mongoc.find_one_and_replace(collection, query, replacement, options=options)
+
+            @test doc["cust_id"] == "A123"
+            @test doc["amount"] == 250
+            # Returns original document
+            @test doc["status"] == "A"
+        end
+
+        @testset "return new document" begin
+            query = Mongoc.BSON("""{ "cust_id" : "B212" }""")
+            replacement = Mongoc.BSON("""{ "cust_id" : "B212", "amount" : 200, "status" : "C" }""")
+            options = Mongoc.BSON("""{ "returnNewDocument" : true }""")
+
+            doc = Mongoc.find_one_and_replace(collection, query, replacement, options=options)
+
+            @test doc["cust_id"] == "B212"
+            @test doc["amount"] == 200
+            # Returns new document
+            @test doc["status"] == "C"
+        end
+
+        @testset "returns nothing if it does not exist" begin
+            query = Mongoc.BSON("""{ "cust_id" : "C313" }""")
+            replacement = Mongoc.BSON("""{ "cust_id" : "C313", "amount" : 400, "status" : "A" }""")
+
+            doc = Mongoc.find_one_and_replace(collection, query, replacement)
+            @test isnothing(doc)
+        end
+
+        @testset "returns nothing if it does not exist and returning new document" begin
+            query = Mongoc.BSON("""{ "cust_id" : "C313" }""")
+            replacement = Mongoc.BSON("""{ "cust_id" : "C313", "amount" : 400, "status" : "A" }""")
+            options = Mongoc.BSON("""{ "returnNewDocument" : true }""")
+
+            doc = Mongoc.find_one_and_replace(collection, query, replacement, options=options)
+            @test isnothing(doc)
+        end
+
+        @testset "upsert" begin
+            query = Mongoc.BSON("""{ "cust_id" : "C313" }""")
+            replacement = Mongoc.BSON("""{ "cust_id" : "C313", "amount" : 400, "status" : "A" }""")
+            options = Mongoc.BSON("""{ "upsert" : true }""")
+
+            doc = Mongoc.find_one_and_replace(collection, query, replacement, options=options)
+            @test isnothing(doc)
+
+            replacement = Mongoc.BSON("""{ "cust_id" : "C313", "amount" : 400, "status" : "B" }""")
+            doc = Mongoc.find_one_and_replace(collection, query, replacement, options=options)
+            @test !isnothing(doc)
+        end
+
+        @testset "throws if operator in replacement" begin
+            query = Mongoc.BSON("""{"cust_id" : "B212"}""")
+            replacement = Mongoc.BSON("""{ "\$set" : {"cust_id" : "B212", "amount" : 200, "status" : "C" } }""")
+
+            @test_throws ArgumentError Mongoc.find_one_and_replace(collection, query, replacement)
+        end
+
+        Mongoc.drop(collection)
+    end
+
+    @testset "find one and update" begin
+        collection = client[DB_NAME]["find_one_and_update"]
+
+        docs = [
+            Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 500, "status" : "A" }"""),
+            Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 250, "status" : "A" }"""),
+            Mongoc.BSON("""{ "cust_id" : "B212", "amount" : 200, "status" : "A" }"""),
+            Mongoc.BSON("""{ "cust_id" : "A123", "amount" : 300, "status" : "D" }""")
+        ]
+
+        append!(collection, docs)
+
+        @testset "update by filter" begin
+            query = Mongoc.BSON("""{ "cust_id" : "B212" }""")
+            update = Mongoc.BSON("""{"\$set" : { "status" : "B" } }""")
+
+            doc = Mongoc.find_one_and_update(collection, query, update)
+
+            @test doc["cust_id"] == "B212"
+            @test doc["amount"] == 200
+            # Returns original document
+            @test doc["status"] == "A"
+        end
+
+        @testset "update with sort" begin
+            query = Mongoc.BSON("""{ "cust_id" : "A123" }""")
+            update = Mongoc.BSON("""{ "\$set" : { "status" : "B", "amount" : 275 } }""")
+            options = Mongoc.BSON("""{ "sort": {"amount": 1 } }""")
+
+            doc = Mongoc.find_one_and_update(collection, query, update, options=options)
+
+            @test doc["cust_id"] == "A123"
+            @test doc["amount"] == 250
+            # Returns original document
+            @test doc["status"] == "A"
+        end
+
+        @testset "return new document" begin
+            query = Mongoc.BSON("""{ "cust_id" : "B212" }""")
+            update = Mongoc.BSON("""{ "\$set" : { "status" : "C" } }""")
+            options = Mongoc.BSON("""{ "returnNewDocument" : true}""")
+
+            doc = Mongoc.find_one_and_update(collection, query, update, options=options)
+
+            @test doc["cust_id"] == "B212"
+            @test doc["amount"] == 200
+            # Returns new document
+            @test doc["status"] == "C"
+        end
+
+        @testset "returns nothing if it does not exist" begin
+            query = Mongoc.BSON("""{ "cust_id" : "C313" }""")
+            update = Mongoc.BSON("""{ "\$set" : { "cust_id" : "C313", "amount" : 400, "status" : "A" } }""")
+
+            doc = Mongoc.find_one_and_update(collection, query, update)
+            @test isnothing(doc)
+        end
+
+        @testset "returns nothing if it does not exist and returning new document" begin
+            query = Mongoc.BSON("""{ "cust_id" : "C313" }""")
+            update = Mongoc.BSON("""{ "\$set" : { "cust_id" : "C313", "amount" : 400, "status" : "A" } }""")
+            options = Mongoc.BSON("""{ "returnNewDocument" : true }""")
+
+            doc = Mongoc.find_one_and_update(collection, query, update, options=options)
+            @test isnothing(doc)
+        end
+
+        @testset "upsert" begin
+            query = Mongoc.BSON("""{ "cust_id" : "C313" }""")
+            update = Mongoc.BSON("""{ "\$setOnInsert" : { "cust_id" : "C313", "amount" : 400 }, "\$set" : { "status" : "A" } }""")
+            options = Mongoc.BSON("""{ "upsert" : true }""")
+
+            doc = Mongoc.find_one_and_update(collection, query, update, options=options)
+            @test isnothing(doc)
+
+            update = Mongoc.BSON("""{ "\$setOnInsert" : { "cust_id" : "C313", "amount" : 400 }, "\$set" : { "status" : "B" } }""")
+            doc = Mongoc.find_one_and_update(collection, query, update, options=options)
+            @test !isnothing(doc)
+        end
+
+        @testset "throws if no operator in update" begin
+            query = Mongoc.BSON("""{ "cust_id" : "B212" }""")
+            update = Mongoc.BSON("""{ "cust_id" : "B212", "amount" : 200, "status" : "C" }""")
+
+            @test_throws ArgumentError Mongoc.find_one_and_update(collection, query, update)
+        end
+
+        Mongoc.drop(collection)
+    end
+
     @testset "command" begin
         database = client[DB_NAME]
         collection_name = "index_collection"
