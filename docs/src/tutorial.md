@@ -105,6 +105,8 @@ julia> document["preferences"] = [ "Music", "Computer", "Photography" ]
 julia> document["null_value"] = nothing # maps to BSON null value
 
 julia> using Dates; document["details"] = Dict("birth date" => DateTime(1983, 4, 16), "location" => "Rio de Janeiro")
+
+julia> using UUIDs; document["id"] = uuid4()
 ```
 
 As another example:
