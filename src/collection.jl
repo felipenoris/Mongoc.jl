@@ -464,7 +464,7 @@ function find_and_modify(collection::Collection, query::BSON;
     return reply
 end
 
-const find_one_and_delete_fields = Dict(
+const FIND_ONE_AND_DELETE_FIELDS = Dict(
     "collation" => "collation",
     "maxTimeMS" => "maxTimeMS",
     "projection" => "fields",
@@ -494,7 +494,7 @@ function find_one_and_delete(collection::Collection, bson_filter::BSON;
     options_bson = BSON()
 
     if !isnothing(options)
-        for (opt_key, comm_key) in find_one_and_delete_fields
+        for (opt_key, comm_key) in FIND_ONE_AND_DELETE_FIELDS
             if haskey(options, opt_key)
                 command_bson[comm_key] = options[opt_key]
             end
@@ -514,7 +514,7 @@ function find_one_and_delete(collection::Collection, bson_filter::BSON;
     return reply["value"]
 end
 
-const find_one_and_modify_fields = Dict(
+const FIND_ONE_AND_MODIFY_FIELDS = Dict(
     "arrayFilters" => "arrayFilters",
     "bypassDocumentValidation" .=> "bypassDocumentValidation",
     "collation" => "collation",
@@ -538,7 +538,7 @@ function _find_one_and_modify(collection::Collection, bson_filter::BSON, bson_mo
     options_bson = BSON()
 
     if !isnothing(options)
-        for (opt_key, comm_key) in find_one_and_modify_fields
+        for (opt_key, comm_key) in FIND_ONE_AND_MODIFY_FIELDS
             if haskey(options, opt_key)
                 command_bson[comm_key] = options[opt_key]
             end
