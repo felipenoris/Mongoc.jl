@@ -557,6 +557,8 @@ function get_value(iter_ref::Ref{BSONIter})
         return bson_iter_int32(iter_ref)
     elseif bson_type == BSON_TYPE_DOUBLE
         return bson_iter_double(iter_ref)
+    elseif bson_type == BSON_TYPE_DECIMAL128
+        return bson_iter_decimal128(iter_ref)
     elseif bson_type == BSON_TYPE_OID
         # converts Ptr{BSONObjectId} to BSONObjectId
         return unsafe_load(bson_iter_oid(iter_ref))
@@ -682,6 +684,14 @@ function Base.setindex!(document::BSON, value::Float64, key::AbstractString)
     ok = bson_append_double(document.handle, key, -1, value)
     if !ok
         error("Couldn't append Float64 to BSON document.")
+    end
+    nothing
+end
+
+function Base.setindex!(document::BSON, value::Dec128, key::AbstractString)
+    ok = bson_append_decimal128(document.handle, key, -1, value)
+    if !ok
+        error("Couldn't append Dec128 to BSON document.")
     end
     nothing
 end

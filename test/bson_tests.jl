@@ -4,6 +4,7 @@ import Mongoc
 import Base.UUID
 using Test
 using Dates
+using DecFP
 using Distributed
 
 @testset "BSON" begin
@@ -186,6 +187,7 @@ using Distributed
         bson["bool_true"] = true
         bson["bool_false"] = false
         bson["double"] = 2.3
+        bson["decimal128"] = d128"1.2"
         bson["datetime"] = DateTime(2018, 2, 1, 10, 20, 35, 10)
         bson["vector"] = collect(1:10)
         bson["source"] = Mongoc.BSONCode("function() = 1")
@@ -209,6 +211,7 @@ using Distributed
         @test bson["bool_true"]
         @test !bson["bool_false"]
         @test bson["double"] == 2.3
+        @test bson["decimal128"] == d128"1.2"
         @test bson["datetime"] == DateTime(2018, 2, 1, 10, 20, 35, 10)
         @test bson["sub_document"]["hey"] == "you"
         @test bson["sub_document"]["num"] == 10

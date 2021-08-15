@@ -77,6 +77,12 @@ function bson_append_double(bson_document::Ptr{Cvoid}, key::AbstractString, key_
           bson_document, key, key_length, value)
 end
 
+function bson_append_decimal128(bson_document::Ptr{Cvoid}, key::AbstractString, key_length::Int, value::Dec128)
+    ccall((:bson_append_decimal128, libbson), Bool,
+          (Ptr{Cvoid}, Cstring, Cint, Ref{Dec128}),
+          bson_document, key, key_length, Ref(value))
+end
+
 function bson_append_date_time(bson_document::Ptr{Cvoid}, key::AbstractString, key_length::Int, value::Int64)
     ccall((:bson_append_date_time, libbson), Bool,
           (Ptr{Cvoid}, Cstring, Cint, Clonglong),
@@ -197,6 +203,13 @@ end
 
 function bson_iter_double(iter_ref::Ref{BSONIter})
     ccall((:bson_iter_double, libbson), Float64, (Ref{BSONIter},), iter_ref)
+end
+
+function bson_iter_decimal128(iter_ref::Ref{BSONIter})
+    x = Ref{Dec128}()
+    success = ccall((:bson_iter_decimal128, libbson), Bool, (Ref{BSONIter}, Ref{Dec128}), iter_ref, x)
+    success || error("Unexpected data type when iterating decimal128")
+    x[]
 end
 
 function bson_iter_oid(iter_ref::Ref{BSONIter})
