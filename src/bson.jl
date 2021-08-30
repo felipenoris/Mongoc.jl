@@ -932,8 +932,9 @@ function read_bson(data::Vector{UInt8}) :: Vector{BSON}
 end
 
 function BSONReader(data::Vector{UInt8})
+
     if isempty(data)
-        return result
+        error("input data is empty")
     end
 
     data_shrinked = data[1:_get_number_of_bytes_written_to_buffer(data)]
