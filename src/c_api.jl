@@ -220,6 +220,18 @@ function bson_iter_date_time(iter_ref::Ref{BSONIter})
     ccall((:bson_iter_date_time, libbson), Clonglong, (Ref{BSONIter},), iter_ref)
 end
 
+function bson_iter_timestamp(iter_ref::Ref{BSONIter})
+    timestamp = Ref{UInt32}()
+    increment = Ref{UInt32}()
+    ccall(
+        (:bson_iter_timestamp, libbson),
+        Cvoid,
+        (Ref{BSONIter}, Ref{UInt32}, Ref{UInt32}),
+        iter_ref, timestamp, increment
+    )
+    (; timestamp = timestamp[], increment = increment[])
+end
+
 function bson_iter_recurse(iter_ref::Ref{BSONIter}, child_iter_ref::Ref{BSONIter})
     ccall((:bson_iter_recurse, libbson), Bool, (Ref{BSONIter}, Ref{BSONIter}), iter_ref, child_iter_ref)
 end
