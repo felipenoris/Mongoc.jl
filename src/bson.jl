@@ -567,6 +567,8 @@ function get_value(iter_ref::Ref{BSONIter})
     elseif bson_type == BSON_TYPE_DATE_TIME
         millis = Int64(bson_iter_date_time(iter_ref))
         return isodate2datetime(millis)
+    elseif bson_type == BSON_TYPE_TIMESTAMP
+        return bson_iter_timestamp(iter_ref)
     elseif bson_type == BSON_TYPE_ARRAY
         return get_array(iter_ref, Any)
     elseif bson_type == BSON_TYPE_DOCUMENT
