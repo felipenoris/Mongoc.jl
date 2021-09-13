@@ -110,7 +110,7 @@ function update_many(collection::Collection, selector::BSON, update::BSON;
         options_handle, reply.handle, err_ref)
 
     if !ok
-        throw_err(err_ref[])
+        throw(err_ref[])
     end
     return reply
 end
