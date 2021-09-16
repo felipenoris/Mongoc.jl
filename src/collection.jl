@@ -115,6 +115,21 @@ function update_many(collection::Collection, selector::BSON, update::BSON;
     return reply
 end
 
+function replace_one(collection::Collection, selector::BSON, replacement::BSON;
+        options::Union{Nothing, BSON}=nothing)
+
+    reply = BSON()
+    err_ref = Ref{BSONError}()
+    options_handle = options == nothing ? C_NULL : options.handle
+    ok = mongoc_collection_replace_one(collection.handle, selector.handle, replacement.handle,
+                                       options_handle, reply.handle, err_ref)
+    if !ok
+        throw(err_ref[])
+    end
+    return reply
+end
+
+
 function BulkOperationResult(reply::BSON, server_id::UInt32)
     BulkOperationResult(reply, server_id, Vector{Union{Nothing, BSONObjectId}}())
 end

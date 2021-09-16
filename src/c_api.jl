@@ -651,6 +651,15 @@ function mongoc_collection_update_many(collection_handle::Ptr{Cvoid}, bson_selec
           collection_handle, bson_selector, bson_update, bson_opts, bson_reply, bson_error_ref)
 end
 
+function mongoc_collection_replace_one(collection_handle::Ptr{Cvoid}, bson_selector::Ptr{Cvoid},
+                                       bson_replacement::Ptr{Cvoid}, bson_opts::Ptr{Cvoid},
+                                       bson_reply::Ptr{Cvoid}, bson_error_ref::Ref{BSONError})
+
+    ccall((:mongoc_collection_replace_one, libmongoc), Bool,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          collection_handle, bson_selector, bson_replacement, bson_opts, bson_reply, bson_error_ref)
+end
+
 function mongoc_collection_aggregate(collection_handle::Ptr{Cvoid}, flags::QueryFlags,
                                      bson_pipeline::Ptr{Cvoid}, bson_opts::Ptr{Cvoid},
                                      read_prefs::Ptr{Cvoid})
