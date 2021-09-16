@@ -284,6 +284,27 @@ const DB_NAME = "mongoc"
             Mongoc.drop(collection)
         end
 
+        @testset "replace_one" begin
+            collection = client[DB_NAME]["replace_one"]
+            append!(collection, [ Mongoc.BSON("""{ "first" : 1, "delete" : true }"""), Mongoc.BSON("""{ "second" : 2, "delete" : true }"""), Mongoc.BSON("""{ "third" : 3, "delete" : false }""") ])
+            @test length(collection) == 3
+
+            selector = Mongoc.BSON("""{ "delete" : false }""")
+            replacement = Mongoc.BSON("""{ "third" : 3, "new_field" : 1 }""")
+            result = Mongoc.replace_one(collection, selector, replacement)
+
+            @test result["modifiedCount"] == 1
+            @test result["matchedCount"] == 1
+            @test result["upsertedCount"] == 0
+
+            replaced_bson = Mongoc.find_one(collection, Mongoc.BSON("""{ "third" : 3 }"""))
+            @test replaced_bson !== nothing
+            @test !haskey(replaced_bson, "delete")
+            @test replaced_bson["new_field"] == 1
+
+            Mongoc.drop(collection)
+        end
+
         @testset "aggregation, map_reduce" begin
 
             @testset "QueryFlags" begin
