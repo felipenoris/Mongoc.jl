@@ -452,7 +452,7 @@ function mongoc_client_pool_destroy(client_pool_handle::Ptr{Cvoid})
 end
 
 function mongoc_client_pool_pop(client_pool_handle::Ptr{Cvoid})
-    ccall((:mongoc_client_pool_pop, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid},), client_pool_handle)
+    Base.@threadcall((:mongoc_client_pool_pop, libmongoc), Ptr{Cvoid}, (Ptr{Cvoid},), client_pool_handle)
 end
 
 function mongoc_client_pool_try_pop(client_pool_handle::Ptr{Cvoid})
