@@ -144,7 +144,17 @@ function Client(pool::ClientPool; try_pop::Bool=false)
     if try_pop
         client_handle = mongoc_client_pool_try_pop(pool.handle)
     else
-        client_handle = mongoc_client_pool_pop(pool.handle)
+        # NOTE: The blocking mongoc_client_pop() can deadlock the process
+        #       during GC, see https://github.com/felipenoris/Mongoc.jl/issues/84.
+        #       Would prefer to use @threadcall to avoid this issue, but
+        #       that appears to generate exceptions
+        #       (see https://github.com/felipenoris/Mongoc.jl/issues/84#issuecomment-926433352).
+        #       Periodically polling as a temporary workaround.
+        while true
+            client_handle = mongoc_client_pool_try_pop(pool.handle)
+            client_handle != C_NULL && break
+            sleep(0.01)
+        end
     end
 
     @assert client_handle != C_NULL "Failed to create client handle from Pool."
