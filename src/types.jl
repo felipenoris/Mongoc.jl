@@ -137,7 +137,7 @@ function Client(uri::URI)
     return client
 end
 
-function Client(pool::ClientPool; try_pop::Bool=false)
+function Client(pool::ClientPool; try_pop::Bool=false, pop_timeout_secs::Real=10.0)
 
     local client_handle::Ptr{Cvoid}
 
@@ -150,10 +150,17 @@ function Client(pool::ClientPool; try_pop::Bool=false)
         #       that appears to generate exceptions
         #       (see https://github.com/felipenoris/Mongoc.jl/issues/84#issuecomment-926433352).
         #       Periodically polling as a temporary workaround.
+
+        waiting_time = 0.0
+        sleep_period = 0.01
         while true
             client_handle = mongoc_client_pool_try_pop(pool.handle)
             client_handle != C_NULL && break
-            sleep(0.01)
+            sleep(sleep_period)
+            waiting_time += sleep_period
+            if waiting_time > pop_timeout_secs
+                error("Failed to create client handle from Pool.")
+            end
         end
     end
 
