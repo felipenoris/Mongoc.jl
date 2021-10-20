@@ -229,7 +229,7 @@ function bson_iter_timestamp(iter_ref::Ref{BSONIter})
         (Ref{BSONIter}, Ref{UInt32}, Ref{UInt32}),
         iter_ref, timestamp, increment
     )
-    (; timestamp = timestamp[], increment = increment[])
+    BSONTimestamp(timestamp[], increment[])
 end
 
 function bson_iter_recurse(iter_ref::Ref{BSONIter}, child_iter_ref::Ref{BSONIter})
