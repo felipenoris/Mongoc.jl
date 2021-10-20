@@ -168,6 +168,14 @@ struct BSONCode
 end
 
 """
+`BSONTimestamp` is a special internal type used by MongoDB replication and sharding.
+"""
+struct BSONTimestamp
+    timestamp::UInt32
+    increment::UInt32
+end
+
+"""
 A `BSON` represents a document in *Binary JSON* format,
 defined at http://bsonspec.org/.
 
