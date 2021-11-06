@@ -115,8 +115,22 @@ function update_many(collection::Collection, selector::BSON, update::BSON;
     return reply
 end
 
-function replace_one(collection::Collection, selector::BSON, replacement::BSON;
-        options::Union{Nothing, BSON}=nothing)
+"""
+    replace_one(
+            collection::Collection,
+            selector::BSON,
+            replacement::BSON;
+            options::Union{Nothing, BSON}=nothing
+        )
+
+Replace the result of querying by `selector` with `replacement`.
+"""
+function replace_one(
+            collection::Collection,
+            selector::BSON,
+            replacement::BSON;
+            options::Union{Nothing, BSON}=nothing
+        )
 
     reply = BSON()
     err_ref = Ref{BSONError}()
@@ -126,6 +140,7 @@ function replace_one(collection::Collection, selector::BSON, replacement::BSON;
     if !ok
         throw(err_ref[])
     end
+
     return reply
 end
 

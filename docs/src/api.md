@@ -60,6 +60,10 @@ Mongoc.count_documents
 Mongoc.drop
 Mongoc.find_and_modify
 Mongoc.FindAndModifyFlags
+Mongoc.find_one_and_delete
+Mongoc.find_one_and_replace
+Mongoc.find_one_and_update
+Mongoc.replace_one
 ```
 
 ## Aggregation
