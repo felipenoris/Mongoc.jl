@@ -2,15 +2,15 @@
 # Mongoc.jl
 
 [![License][license-img]](LICENSE)
-[![travis][travis-img]][travis-url]
+[![CI][ci-img]][ci-url]
 [![appveyor][appveyor-img]][appveyor-url]
 [![codecov][codecov-img]][codecov-url]
 [![dev][docs-dev-img]][docs-dev-url]
 [![stable][docs-stable-img]][docs-stable-url]
 
 [license-img]: http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
-[travis-img]: https://img.shields.io/travis/felipenoris/Mongoc.jl/master.svg?logo=travis&label=Linux&style=flat-square
-[travis-url]: https://travis-ci.org/felipenoris/Mongoc.jl
+[ci-img]: https://github.com/felipenoris/Mongoc.jl/workflows/CI/badge.svg
+[ci-url]: https://github.com/felipenoris/Mongoc.jl/actions?query=workflow%3ACI
 [appveyor-img]: https://img.shields.io/appveyor/ci/felipenoris/mongoc-jl/master.svg?logo=appveyor&label=Windows&style=flat-square
 [appveyor-url]: https://ci.appveyor.com/project/felipenoris/mongoc-jl/branch/master
 [codecov-img]: https://img.shields.io/codecov/c/github/felipenoris/Mongoc.jl/master.svg?label=codecov&style=flat-square
