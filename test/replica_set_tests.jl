@@ -2,6 +2,7 @@
 #=
 https://docs.mongodb.com/manual/tutorial/deploy-replica-set/
 
+```shell
 mkdir tmp
 cd tmp
 
@@ -9,11 +10,12 @@ mkdir db1
 mkdir db2
 mkdir db3
 
-mongod --dbpath ./db1 --port 27021 --replSet "rst" --bind_ip 127.0.0.1
-mongod --dbpath ./db2 --port 27022 --replSet "rst" --bind_ip 127.0.0.1
-mongod --dbpath ./db3 --port 27023 --replSet "rst" --bind_ip 127.0.0.1
+mongod --dbpath ./db1 --port 27021 --replSet "rst" --bind_ip 127.0.0.1 &
+mongod --dbpath ./db2 --port 27022 --replSet "rst" --bind_ip 127.0.0.1 &
+mongod --dbpath ./db3 --port 27023 --replSet "rst" --bind_ip 127.0.0.1 &
 
 mongo --port 27021 replica_set_initiate.js
+```
 =#
 
 let
