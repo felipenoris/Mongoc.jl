@@ -273,7 +273,7 @@ using Distributed
         @testset "no exclude keys" begin
             src = Mongoc.BSON("hey" => "you", "out" => 1)
             dst = Mongoc.BSON()
-            Mongoc.bson_copy_to_excluding_noinit(src.handle, dst.handle)
+            Mongoc.bson_copy_to_noinit(src.handle, dst.handle)
             @test Mongoc.as_dict(src) == Mongoc.as_dict(dst)
         end
     end

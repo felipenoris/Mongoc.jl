@@ -311,7 +311,7 @@ function bson_copy_to(src_bson_handle::Ptr{Cvoid}, dst_bson_handle::Ptr{Cvoid})
     ccall((:bson_copy_to, libbson), Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}), src_bson_handle, dst_bson_handle)
 end
 
-function bson_copy_to_excluding_noinit(src_bson_handle::Ptr{Cvoid}, dst_bson_handle::Ptr{Cvoid})
+function bson_copy_to_noinit(src_bson_handle::Ptr{Cvoid}, dst_bson_handle::Ptr{Cvoid})
 
     # This hack will create a key that is not present in src_bson
     # since bson_copy_to_excluding_noinit requires at least one `exclude` arg.

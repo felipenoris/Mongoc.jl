@@ -841,7 +841,7 @@ function write_bson(io::IO, bson::BSON;
 
     bson_writer(io, initial_buffer_capacity=initial_buffer_capacity) do writer
         write_bson(writer) do dest
-            bson_copy_to_excluding_noinit(bson.handle, dest.handle)
+            bson_copy_to_noinit(bson.handle, dest.handle)
         end
     end
 
@@ -908,7 +908,7 @@ function write_bson(io::IO, bson_list::Vector{BSON};
     bson_writer(io, initial_buffer_capacity=initial_buffer_capacity) do writer
         for src_bson in bson_list
             write_bson(writer) do dest
-                bson_copy_to_excluding_noinit(src_bson.handle, dest.handle)
+                bson_copy_to_noinit(src_bson.handle, dest.handle)
             end
         end
     end
