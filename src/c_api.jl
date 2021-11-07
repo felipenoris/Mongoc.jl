@@ -330,9 +330,7 @@ function bson_copy_to_excluding_noinit(src_bson_handle::Ptr{Cvoid}, dst_bson_han
 
     exclude = exclude_key(src_bson_handle)
 
-    ccall((:bson_copy_to_excluding_noinit, libbson), Cvoid,
-          (Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Cstring),
-          src_bson_handle, dst_bson_handle, exclude, C_NULL)
+    bson_copy_to_excluding_noinit(src_bson_handle, dst_bson_handle, exclude)
 end
 
 function bson_copy_to_excluding_noinit(src_bson_handle::Ptr{Cvoid}, dst_bson_handle::Ptr{Cvoid},
