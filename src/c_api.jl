@@ -336,10 +336,10 @@ end
 
 function bson_copy_to_excluding_noinit(src_bson_handle::Ptr{Cvoid}, dst_bson_handle::Ptr{Cvoid},
                                        exclude::AbstractString)
-
-    ccall((:bson_copy_to_excluding_noinit, libbson), Cvoid,
-          (Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Cstring),
-          src_bson_handle, dst_bson_handle, exclude, C_NULL)
+    @ccall libbson.bson_copy_to_excluding_noinit(src_bson_handle::Ptr{Cvoid},
+                                                 dst_bson_handle::Ptr{Cvoid},
+                                                 exclude::Cstring;
+                                                 C_NULL::Cstring)::Cvoid
 end
 
 function bson_json_reader_new_from_file(filepath::AbstractString, bson_error_ref::Ref{BSONError})
