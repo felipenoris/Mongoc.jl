@@ -313,8 +313,9 @@ end
 
 function bson_copy_to_excluding_noinit(src_bson_handle::Ptr{Cvoid}, dst_bson_handle::Ptr{Cvoid})
 
-    # this hack will create a key that is not present in src_bson
+    # This hack will create a key that is not present in src_bson
     # since bson_copy_to_excluding_noinit requires at least one `exclude` arg.
+    # This is needed because there's no `bson_copy_to_noinit` in libbson.
     function exclude_key(bson_handle::Ptr{Cvoid})
         new_exclude_key() = "___" * string(Int(rand(UInt16)))
 
