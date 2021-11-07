@@ -32,7 +32,7 @@ which provides a way to create and manipulate BSON documents.
 
 * MongoDB 3.0 or newer.
 
-* Julia v1.3 or newer.
+* Julia v1.5 or newer.
 
 * Linux, macOS, or Windows.
 
