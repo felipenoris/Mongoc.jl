@@ -51,8 +51,8 @@ function _log_handler(level::Cint, domain::Ptr{UInt8}, message::Ptr{UInt8}, ::Pt
     else
         error("Unexpected mongoc log level $level")
     end
-    domain=unsafe_string(domain)
-    message=unsafe_string(message)
+    domain = unsafe_string(domain)
+    message = unsafe_string(message)
     @logmsg jlevel "$domain $message"
     nothing
 end
