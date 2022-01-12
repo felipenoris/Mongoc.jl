@@ -940,3 +940,12 @@ function mongoc_gridfs_bucket_stream_error(
           (Ptr{Cvoid}, Ref{BSONError}),
            stream_handle, bson_error_ref)
 end
+
+function mongoc_set_log_handler(cfunction::Ptr{Cvoid})
+    ccall(
+        (:mongoc_log_set_handler, libmongoc),
+        Cvoid,
+        (Ptr{Cvoid}, Ptr{Cvoid}),
+        cfunction, C_NULL
+    )
+end
