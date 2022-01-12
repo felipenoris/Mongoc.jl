@@ -32,5 +32,5 @@ function _log_handler(level::Cint, domain::Ptr{UInt8}, message::Ptr{UInt8}, ::Pt
 end
 
 function init_log_handler()
-	mongoc_set_log_handler(@cfunction(_log_handler, Cvoid, (Cint, Ptr{UInt8}, Ptr{UInt8}, Ptr{Cvoid})))
+    mongoc_set_log_handler(@cfunction(_log_handler, Cvoid, (Cint, Ptr{UInt8}, Ptr{UInt8}, Ptr{Cvoid})))
 end
