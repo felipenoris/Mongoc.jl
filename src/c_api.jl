@@ -716,6 +716,17 @@ function mongoc_bulk_operation_insert_with_opts(bulk_operation_handle::Ptr{Cvoid
           bulk_operation_handle, bson_document, bson_options, bson_error_ref)
 end
 
+function mongoc_bulk_operation_replace_one_with_opts(bulk_operation_handle::Ptr{Cvoid},
+                                                     bson_selector::Ptr{Cvoid},
+                                                     bson_replacement::Ptr{Cvoid},
+                                                     bson_options::Ptr{Cvoid},
+                                                     bson_error_ref::Ref{BSONError})
+
+    ccall((:mongoc_bulk_operation_replace_one_with_opts, libmongoc), Bool,
+          (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ref{BSONError}),
+          bulk_operation_handle, bson_selector, bson_replacement, bson_options, bson_error_ref)
+end
+
 function mongoc_bulk_operation_execute(bulk_operation_handle::Ptr{Cvoid}, bson_reply::Ptr{Cvoid},
                                        bson_error_ref::Ref{BSONError})
 
