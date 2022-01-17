@@ -219,6 +219,41 @@ const DB_NAME = "mongoc"
             Mongoc.drop(collection)
         end
 
+        @testset "bulk_replace_one" begin
+            collection = client[DB_NAME]["replace_many"]
+            push!(collection, Mongoc.BSON("""{ "x": 1, "y": 100 }"""))
+            push!(collection, Mongoc.BSON("""{ "x": 2, "y": 200 }"""))
+            push!(collection, Mongoc.BSON("""{ "x": 3, "y": 300 }"""))
+
+            bulk = Mongoc.BulkOperation(collection)
+            Mongoc.bulk_replace_one!(
+                bulk,
+                Mongoc.BSON("""{ "x": 1 }"""),
+                Mongoc.BSON("""{ "x": 1, "y": -100 }"""),
+            )
+            Mongoc.bulk_replace_one!(
+                bulk,
+                Mongoc.BSON("""{ "x": 2 }"""),
+                Mongoc.BSON("""{ "x": 2, "y": -200 }"""),
+            )
+            Mongoc.bulk_replace_one!(
+                bulk,
+                Mongoc.BSON("""{ "x": 4 }"""),
+                Mongoc.BSON("""{ "x": 4, "y": 400 }""");
+                options = Mongoc.BSON("""{ "upsert": true }""")
+            )
+            result = Mongoc.execute!(bulk)
+            @test result.reply["nInserted"] == 0
+            @test result.reply["nMatched"] == 2
+            @test result.reply["nModified"] == 2
+            @test result.reply["nUpserted"] == 1
+            @test length(collection) == 4
+            @test length(collect(collection)) == 4
+
+            Mongoc.drop(collection)
+        end
+
+
         @testset "delete_one" begin
             collection = client[DB_NAME]["delete_one"]
             doc = Mongoc.BSON("""{ "to" : "delete", "hey" : "you" }""")
