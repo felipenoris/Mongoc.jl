@@ -696,6 +696,19 @@ function mongoc_cursor_set_limit(cursor_handle::Ptr{Cvoid}, limit::Int)
     ccall((:mongoc_cursor_set_limit, libmongoc), Bool, (Ptr{Cvoid}, Int64), cursor_handle, limit)
 end
 
+function mongoc_cursor_get_batch_size(cursor_handle::Ptr{Cvoid})
+    ccall((:mongoc_cursor_get_batch_size, libmongoc), UInt32, (Ptr{Cvoid},), cursor_handle)
+end
+
+function mongoc_cursor_set_batch_size(cursor_handle::Ptr{Cvoid}, batch_size::Integer)
+    ccall(
+        (:mongoc_cursor_set_batch_size, libmongoc),
+        Cvoid,
+        (Ptr{Cvoid}, UInt32,),
+        cursor_handle, UInt32(batch_size)
+    )
+end
+
 function mongoc_cursor_error(cursor_handle::Ptr{Cvoid}, bson_error_ref::Ref{BSONError})
     ccall((:mongoc_cursor_error, libmongoc), Bool,
           (Ptr{Cvoid}, Ref{BSONError}),
