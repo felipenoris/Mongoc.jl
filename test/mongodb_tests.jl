@@ -160,6 +160,14 @@ const DB_NAME = "mongoc"
             @test_throws Mongoc.BSONError Mongoc.find_one(collection, Mongoc.BSON(""" { "a" : 1 } """))
         end
 
+        @testset "cursor batch size" begin
+            collection = client[DB_NAME]["batch_size_test"]
+            cursor = Mongoc.find(collection)
+            @test Mongoc.batch_size(cursor) == 0
+            Mongoc.batch_size!(cursor, 10)
+            @test Mongoc.batch_size(cursor) == 10
+        end
+
         @static if !Sys.iswindows() # skipping binary tests for windows
             @testset "Binary data" begin
                 coll = client[DB_NAME]["new_collection"]

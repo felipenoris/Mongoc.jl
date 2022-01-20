@@ -237,6 +237,16 @@ mutable struct Cursor{T<:CursorSource}
     end
 end
 
+function batch_size(cursor::Cursor)
+    cursor.handle != C_NULL || error("Cursor destroyed")
+    GC.@preserve cursor mongoc_cursor_get_batch_size(cursor.handle)
+end
+
+function batch_size!(cursor::Cursor, batch_size::Integer)
+    cursor.handle != C_NULL || error("Cursor destroyed")
+    GC.@preserve cursor mongoc_cursor_set_batch_size(cursor.handle, batch_size)
+end
+
 mutable struct BulkOperation
     collection::Collection
     handle::Ptr{Cvoid}
