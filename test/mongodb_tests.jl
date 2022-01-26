@@ -253,6 +253,38 @@ const DB_NAME = "mongoc"
             Mongoc.drop(collection)
         end
 
+        @testset "bulk_update_one" begin
+            collection = client[DB_NAME]["bulk_update_one"]
+            push!(collection, Mongoc.BSON("""{ "x": 1, "y": 100 }"""))
+            push!(collection, Mongoc.BSON("""{ "x": 2, "y": 200 }"""))
+
+            bulk = Mongoc.BulkOperation(collection)
+            Mongoc.bulk_update_one!(
+                bulk,
+                Mongoc.BSON("""{ "x": 1 }"""),
+                Mongoc.BSON("""{ "\$set": { "y": 150 } }"""),
+            )
+            Mongoc.bulk_update_one!(
+                bulk,
+                Mongoc.BSON("""{ "x": 2 }"""),
+                Mongoc.BSON("""{ "\$inc": { "y": 13 } }"""),
+            )
+            result = Mongoc.execute!(bulk)
+            @test result.reply["nInserted"] == 0
+            @test result.reply["nMatched"] == 2
+            @test result.reply["nModified"] == 2
+            @test result.reply["nUpserted"] == 0
+            @test length(collection) == 2
+            @test length(collect(collection)) == 2
+            x1 = Mongoc.find_one(collection, Mongoc.BSON("x" => 1))
+            @test x1["x"] == 1
+            @test x1["y"] == 150
+            x2 = Mongoc.find_one(collection, Mongoc.BSON("x" => 2))
+            @test x2["x"] == 2
+            @test x2["y"] == 213
+
+            Mongoc.drop(collection)
+        end
 
         @testset "delete_one" begin
             collection = client[DB_NAME]["delete_one"]
