@@ -202,6 +202,26 @@ function bulk_replace_one!(bulk_operation::BulkOperation, selector::BSON, replac
     nothing
 end
 
+function bulk_update_one!(
+    bulk_operation::BulkOperation, selector::BSON, document::BSON;
+    options::Union{Nothing, BSON} = nothing
+)
+    err_ref = Ref{BSONError}()
+    options_handle = options === nothing ? C_NULL : options.handle
+    ok = mongoc_bulk_operation_update_one_with_opts(
+        bulk_operation.handle,
+        selector.handle,
+        document.handle,
+        options_handle,
+        err_ref
+    )
+    if !ok
+        throw(err_ref[])
+    end
+    nothing
+end
+
+
 function insert_many(collection::Collection, documents::Vector{BSON};
         bulk_options::Union{Nothing, BSON}=nothing, insert_options::Union{Nothing, BSON}=nothing)
 
