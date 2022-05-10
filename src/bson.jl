@@ -378,7 +378,7 @@ function BSON(args::Pair...)
     return result
 end
 
-BSON(dict::Dict) = BSON(dict...)
+BSON(dict::AbstractDict) = BSON(dict...)
 
 """
     as_json(bson::BSON; canonical::Bool=false) :: String
