@@ -7,7 +7,22 @@ const MONGOC_LOG_LEVEL_INFO = 4
 const MONGOC_LOG_LEVEL_DEBUG = 5
 const MONGOC_LOG_LEVEL_TRACE = 6
 
+if VERSION >= v"v1.7"
+    _isjuliathread() = @ccall(jl_get_pgcstack()::Ptr{Cvoid}) != C_NULL
+else
+    _isjuliathread() = false
+end
+
 function _log_handler(level::Cint, domain::Ptr{UInt8}, message::Ptr{UInt8}, ::Ptr{Cvoid})
+    # If called on a non-julia thread, e.g., from server monitor, fall back to default log handler.
+    # TODO: change this when Julia safely supports foreign thread calls.
+    _isjuliathread() || return ccall(
+        (:mongoc_log_default_handler, libmongoc),
+        Cvoid,
+        (Cint, Ptr{UInt8}, Ptr{UInt8}, Ptr{Cvoid}),
+        level, domain, message, C_NULL
+    )
+
     jlevel = if level == MONGOC_LOG_LEVEL_ERROR
         Logging.Error
     elseif level == MONGOC_LOG_LEVEL_CRITICAL
