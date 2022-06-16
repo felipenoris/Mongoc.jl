@@ -8,21 +8,12 @@ const MONGOC_LOG_LEVEL_DEBUG = 5
 const MONGOC_LOG_LEVEL_TRACE = 6
 
 if VERSION >= v"v1.7"
-    _isjuliathread() = @ccall(jl_get_pgcstack()::Ptr{Cvoid}) != C_NULL
+    @inline _isjuliathread() = @ccall(jl_get_pgcstack()::Ptr{Cvoid}) != C_NULL
 else
-    _isjuliathread() = false
+    @inline _isjuliathread() = false
 end
 
-function _log_handler(level::Cint, domain::Ptr{UInt8}, message::Ptr{UInt8}, ::Ptr{Cvoid})
-    # If called on a non-julia thread, e.g., from server monitor, fall back to default log handler.
-    # TODO: change this when Julia safely supports foreign thread calls.
-    _isjuliathread() || return ccall(
-        (:mongoc_log_default_handler, libmongoc),
-        Cvoid,
-        (Cint, Ptr{UInt8}, Ptr{UInt8}, Ptr{Cvoid}),
-        level, domain, message, C_NULL
-    )
-
+@noinline function _log_handler_do(level::Cint, domain::Ptr{UInt8}, message::Ptr{UInt8})
     jlevel = if level == MONGOC_LOG_LEVEL_ERROR
         Logging.Error
     elseif level == MONGOC_LOG_LEVEL_CRITICAL
@@ -46,6 +37,31 @@ function _log_handler(level::Cint, domain::Ptr{UInt8}, message::Ptr{UInt8}, ::Pt
     nothing
 end
 
+function _log_handler(level::Cint, domain::Ptr{UInt8}, message::Ptr{UInt8}, fallback::Ptr{Cvoid})
+    # If called on a non-julia thread, e.g., from server monitor, fall back to default log handler.
+    # TODO: change this when Julia safely supports foreign thread calls.
+    if _isjuliathread()
+        _log_handler_do(level, domain, message)
+    else
+        ccall(
+            fallback,
+            Cvoid,
+            (Cint, Ptr{UInt8}, Ptr{UInt8}, Ptr{Cvoid}),
+            level, domain, message, C_NULL
+        )
+    end
+end
+
 function init_log_handler()
-    mongoc_set_log_handler(@cfunction(_log_handler, Cvoid, (Cint, Ptr{UInt8}, Ptr{UInt8}, Ptr{Cvoid})))
+    _isjuliathread() || error("Intercepting mongo logging unsupported on $(VERSION)")
+    mongoc_set_log_handler(
+        @cfunction(_log_handler, Cvoid, (Cint, Ptr{UInt8}, Ptr{UInt8}, Ptr{Cvoid})),
+        cglobal((:mongoc_log_default_handler, libmongoc))
+    )
+end
+
+function init_log_handler_if_safe()
+    if _isjuliathread()
+        init_log_handler()
+    end
 end

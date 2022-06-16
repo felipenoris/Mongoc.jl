@@ -980,11 +980,11 @@ function mongoc_gridfs_bucket_stream_error(
            stream_handle, bson_error_ref)
 end
 
-function mongoc_set_log_handler(cfunction::Ptr{Cvoid})
+function mongoc_set_log_handler(cfunction::Ptr{Cvoid}, userdata::Ptr{Cvoid} = C_NULL)
     ccall(
         (:mongoc_log_set_handler, libmongoc),
         Cvoid,
         (Ptr{Cvoid}, Ptr{Cvoid}),
-        cfunction, C_NULL
+        cfunction, userdata
     )
 end
