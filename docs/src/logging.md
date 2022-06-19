@@ -5,6 +5,8 @@ The following example uses `Mongoc.mongoc_set_log_handler`
 to set a customized log handler. In this example, the setup is done by calling `init_log_handler_if_safe()`.
 
 ```julia
+using Logging
+
 const MONGOC_LOG_LEVEL_ERROR = 0
 const MONGOC_LOG_LEVEL_CRITICAL = 1
 const MONGOC_LOG_LEVEL_WARNING = 2
@@ -60,9 +62,9 @@ end
 
 function init_log_handler()
     _isjuliathread() || error("Intercepting mongo logging unsupported on $(VERSION)")
-    mongoc_set_log_handler(
+    Mongoc.mongoc_set_log_handler(
         @cfunction(_log_handler, Cvoid, (Cint, Ptr{UInt8}, Ptr{UInt8}, Ptr{Cvoid})),
-        cglobal((:mongoc_log_default_handler, libmongoc))
+        cglobal((:mongoc_log_default_handler, Mongoc.libmongoc))
     )
 end
 

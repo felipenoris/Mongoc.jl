@@ -3,7 +3,7 @@ module Mongoc
 using MongoC_jll
 
 import Base.UUID
-using Dates, DecFP, Logging, Serialization
+using Dates, DecFP, Serialization
 
 #
 # utility functions for date conversion
