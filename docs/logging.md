@@ -1,4 +1,10 @@
 
+# Logging
+
+The following example uses `Mongoc.mongoc_set_log_handler`
+to set a customized log handler. In this example, the setup is done by calling `init_log_handler_if_safe()`.
+
+```julia
 const MONGOC_LOG_LEVEL_ERROR = 0
 const MONGOC_LOG_LEVEL_CRITICAL = 1
 const MONGOC_LOG_LEVEL_WARNING = 2
@@ -65,3 +71,4 @@ function init_log_handler_if_safe()
         init_log_handler()
     end
 end
+```

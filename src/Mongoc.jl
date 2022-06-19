@@ -24,10 +24,8 @@ include("collection.jl")
 include("session.jl")
 include("streams.jl")
 include("gridfs.jl")
-include("logging.jl")
 
 function __init__()
-    init_log_handler_if_safe()
     mongoc_init()
     atexit(mongoc_cleanup)
 end
