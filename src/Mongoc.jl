@@ -3,7 +3,7 @@ module Mongoc
 using MongoC_jll
 
 import Base.UUID
-using Dates, DecFP, Logging, Serialization
+using Dates, DecFP, Serialization
 
 #
 # utility functions for date conversion
@@ -24,10 +24,8 @@ include("collection.jl")
 include("session.jl")
 include("streams.jl")
 include("gridfs.jl")
-include("logging.jl")
 
 function __init__()
-    init_log_handler()
     mongoc_init()
     atexit(mongoc_cleanup)
 end

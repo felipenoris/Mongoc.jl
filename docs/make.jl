@@ -11,7 +11,9 @@ makedocs(
               "Transactions" => "transaction.md",
               "Connection Pool" => "connection_pool.md",
               "GridFS" => "gridfs.md",
-              "API Reference" => "api.md" ]
+              "Logging" => "logging.md",
+              "API Reference" => "api.md",
+            ]
 )
 
 deploydocs(
