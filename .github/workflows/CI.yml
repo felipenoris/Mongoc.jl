@@ -18,6 +18,7 @@ jobs:
           - '1.5'
           - '1.6'
           - '^1.7.0-0'
+          - '1' # automatically expands to the latest stable 1.x release of Julia
           - 'nightly'
         os:
           - ubuntu-latest
