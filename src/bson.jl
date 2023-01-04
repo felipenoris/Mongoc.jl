@@ -223,8 +223,13 @@ mutable struct BSONValue
     handle::Ptr{Cvoid}
 end
 
-function Base.deepcopy(bson::BSON) :: BSON
-    return BSON(bson_copy(bson.handle))
+function Base.deepcopy_internal(x::BSON, stackdict::IdDict)
+    if haskey(stackdict, x)
+        return stackdict[x]
+    end
+    y = BSON(bson_copy(x.handle))
+    stackdict[x] = y
+    return y
 end
 
 abstract type AbstractBSONReader end
