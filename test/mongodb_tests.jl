@@ -141,7 +141,7 @@ const DB_NAME = "mongoc"
 
             @testset "collection in comprehension" begin
                 bsons = [bson for bson in coll]
-                @test length(bsons) == 1
+                @test length(bsons) == 4
                 @test eltype(bsons) == Mongoc.BSON
             end
 
