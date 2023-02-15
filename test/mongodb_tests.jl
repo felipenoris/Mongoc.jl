@@ -133,6 +133,18 @@ const DB_NAME = "mongoc"
             end
             @test i == 1
 
+            @testset "cursor in comprehension" begin
+                bsons = [bson for bson in Mongoc.find(coll, Mongoc.BSON("""{ "hello" : "world" }"""))]
+                @test length(bsons) == 1
+                @test eltype(bsons) == Mongoc.BSON
+            end
+
+            @testset "collection in comprehension" begin
+                bsons = [bson for bson in coll]
+                @test length(bsons) == 1
+                @test eltype(bsons) == Mongoc.BSON
+            end
+
             @testset "collection command_simple" begin
                 result = Mongoc.command_simple(coll, Mongoc.BSON("""{ "collStats" : "new_collection" }"""))
                 @test result["ok"] == 1

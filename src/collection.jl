@@ -547,7 +547,7 @@ const FIND_ONE_AND_DELETE_FIELDS = Dict(
 
 Delete a document and return it.
 
-See [db.collection.findOneAndDelete](https://docs.mongodb.com/manual/reference/method/db.collection.findOneAndDelete/) 
+See [db.collection.findOneAndDelete](https://docs.mongodb.com/manual/reference/method/db.collection.findOneAndDelete/)
 for a list of accepted options.
 """
 function find_one_and_delete(collection::Collection, bson_filter::BSON;
@@ -633,7 +633,7 @@ end
 
 Replace a document and return the original.
 
-See [db.collection.findOneAndReplace](https://docs.mongodb.com/manual/reference/method/db.collection.findOneAndReplace/) 
+See [db.collection.findOneAndReplace](https://docs.mongodb.com/manual/reference/method/db.collection.findOneAndReplace/)
 for a list of accepted options.
 """
 function find_one_and_replace(collection::Collection, bson_filter::BSON, bson_replacement::BSON;
@@ -656,7 +656,7 @@ end
 
 Update a document and return the original.
 
-See [db.collection.findOneAndUpdate](https://docs.mongodb.com/manual/reference/method/db.collection.findOneAndUpdate/) 
+See [db.collection.findOneAndUpdate](https://docs.mongodb.com/manual/reference/method/db.collection.findOneAndUpdate/)
 for a list of accepted options.
 """
 function find_one_and_update(collection::Collection, bson_filter::BSON, bson_update::BSON;
@@ -694,7 +694,17 @@ function _iterate(cursor::Cursor, state::Nothing=nothing)
     end
 end
 
+# Cursor implementation of the iteration interface
 Base.iterate(cursor::Cursor, state::Nothing=nothing) = _iterate(cursor, state)
+
+Base.IteratorSize(::Type{Cursor{T}}) where T = Base.SizeUnknown()
+Base.IteratorEltype(::Type{Cursor{T}}) where T = Base.HasEltype()
+Base.eltype(::Type{Cursor{T}}) where T = BSON
+
+# Collection implementation of the iteration interface
+Base.IteratorSize(::Type{<:AbstractCollection}) = Base.HasLength()
+Base.IteratorEltype(::Type{<:AbstractCollection}) = Base.HasEltype()
+Base.eltype(::Type{<:AbstractCollection}) = BSON
 
 function Base.iterate(coll::Collection)
     cursor = find(coll)
@@ -703,7 +713,7 @@ end
 
 function Base.iterate(coll::Collection, state::Cursor)
     next = _iterate(state)
-    if next == nothing
+    if next === nothing
         return nothing
     else
         doc, _ = next
