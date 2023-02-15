@@ -159,6 +159,7 @@ using Distributed
         @test_throws ErrorException doc["invalid key"]
 
         doc_dict = Mongoc.as_dict(doc)
+        @test keytype(doc_dict) === String
         @test doc_dict["a"] == 1
         @test doc_dict["b"] == 2.2
         @test doc_dict["str"] == "my string"
@@ -172,7 +173,7 @@ using Distributed
         # Type-stable API
         @test @inferred(Mongoc.get_array(doc, "float_array", Float64)) == [0.1, 0.2, 0.3, 0.4]
         @test @inferred(Mongoc.get_array(doc, "float_array", Float32)) == Float32[0.1, 0.2, 0.3, 0.4]
-        
+
         @test_throws MethodError Mongoc.get_array(doc, "float_array", String)
         @test_throws ErrorException Mongoc.get_array(doc, "document", Any)
     end
