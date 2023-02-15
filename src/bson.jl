@@ -504,20 +504,15 @@ function Base.iterate(itr::BSONIterator{IterateValues}, ::Nothing=nothing)
 end
 
 """
-    as_dict(document::BSON) :: Dict
+    as_dict(document::BSON) :: Dict{String}
 
 Converts a BSON document to a Julia `Dict`.
 """
-function as_dict(document::BSON) :: Dict
-    result = Dict()
-    for (k, v) in document
-        result[k] = v
-    end
-    return result
-end
+as_dict(document::BSON) =
+    Dict(k => v for (k, v) in document)
 
-function as_dict(iter_ref::Ref{BSONIter}) :: Dict
-    result = Dict()
+function as_dict(iter_ref::Ref{BSONIter})
+    result = Dict{String, Any}()
     while bson_iter_next(iter_ref)
         result[unsafe_string(bson_iter_key(iter_ref))] = get_value(iter_ref)
     end
