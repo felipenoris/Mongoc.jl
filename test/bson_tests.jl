@@ -75,10 +75,7 @@ using Distributed
         @test length(v) == length(unique(v))
 
         v_sorted = sort(v, lt = (a,b) -> Mongoc.bson_oid_compare(a,b) < 0)
-        @test length(v_sorted) == length(v)
-        for i in 1:length(v_sorted)
-            @test v_sorted[i] == v[i]
-        end
+        @test v_sorted == v
     end
 
     @testset "AbstractString support" begin
