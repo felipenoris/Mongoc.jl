@@ -620,6 +620,11 @@ function Base.getindex(document::BSON, key::AbstractString)
     return get_value(iter_ref)
 end
 
+function Base.get(document::BSON, key::AbstractString, default::Any)
+    iter_ref = Ref{BSONIter}()
+    return bson_iter_init_find(iter_ref, document.handle, key) ? get_value(iter_ref) : default
+end
+
 """
     get_as_bson_value(doc, key) :: BSONValue
 

@@ -154,6 +154,8 @@ using Distributed
         @test doc["null"] == nothing
 
         @test_throws KeyError doc["invalid key"]
+        @test isequal(get(doc, "invalid key", missing), missing)
+        @test get(doc, "_id", missing) == new_id
 
         doc_dict = Mongoc.as_dict(doc)
         @test keytype(doc_dict) === String
