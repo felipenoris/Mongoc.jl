@@ -448,16 +448,10 @@ end
 
 abstract type BSONIteratorMode end
 
-struct IterateKeyValuePairs <: BSONIteratorMode
-end
-
-# get the current value from iter_ref according to the mode
-_get(iter_ref::Ref{BSONIter}, ::Type{IterateKeyValuePairs}) =
-    unsafe_string(bson_iter_key(iter_ref)) => get_value(iter_ref)
-
 struct IterateKeys <: BSONIteratorMode
 end
 
+# get the current value from iter_ref according to the mode
 _get(iter_ref::Ref{BSONIter}, ::Type{IterateKeys}) =
     unsafe_string(bson_iter_key(iter_ref))
 
@@ -466,6 +460,12 @@ end
 
 _get(iter_ref::Ref{BSONIter}, ::Type{IterateValues}) =
     get_value(iter_ref)
+
+struct IterateKeyValuePairs <: BSONIteratorMode
+end
+
+_get(iter_ref::Ref{BSONIter}, ::Type{IterateKeyValuePairs}) =
+    _get(iter_ref, IterateKeys) => _get(iter_ref, IterateValues)
 
 struct BSONIterator{M<:BSONIteratorMode}
     bson_iter_ref::Ref{BSONIter}
@@ -631,7 +631,7 @@ as a `BSONValue`.
 See also [Mongoc.BSONValue](@ref).
 """
 function get_as_bson_value(document::BSON, key::AbstractString) :: BSONValue
-   iter_ref = Ref{BSONIter}()
+    iter_ref = Ref{BSONIter}()
     bson_iter_init_find(iter_ref, document.handle, key) || throw(KeyError(key))
     return get_as_bson_value(iter_ref)
 end
