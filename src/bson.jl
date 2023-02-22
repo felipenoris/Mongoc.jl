@@ -451,57 +451,42 @@ abstract type BSONIteratorMode end
 struct IterateKeyValuePairs <: BSONIteratorMode
 end
 
+# get the current value from iter_ref according to the mode
+_get(iter_ref::Ref{BSONIter}, ::Type{IterateKeyValuePairs}) =
+    unsafe_string(bson_iter_key(iter_ref)) => get_value(iter_ref)
+
 struct IterateKeys <: BSONIteratorMode
 end
 
+_get(iter_ref::Ref{BSONIter}, ::Type{IterateKeys}) =
+    unsafe_string(bson_iter_key(iter_ref))
+
 struct IterateValues <: BSONIteratorMode
 end
+
+_get(iter_ref::Ref{BSONIter}, ::Type{IterateValues}) =
+    get_value(iter_ref)
 
 struct BSONIterator{M<:BSONIteratorMode}
     bson_iter_ref::Ref{BSONIter}
     document::BSON
 
-    function BSONIterator(document::BSON, ::Type{M}) where {M<:BSONIteratorMode}
-        iter_ref = bson_iter_init(document)
-        return new{M}(iter_ref, document)
-    end
+    BSONIterator(document::BSON, ::Type{M}) where {M<:BSONIteratorMode} =
+        new{M}(bson_iter_init(document), document)
 end
 
-Base.iterate(document::BSON) = iterate(document, BSONIterator(document, IterateKeyValuePairs))
-Base.keys(document::BSON) = BSONIterator(document, IterateKeys)
-Base.values(document::BSON) = BSONIterator(document, IterateValues)
+Base.iterate(itr::BSONIterator{M}, state::Nothing = nothing) where M =
+    bson_iter_next(itr.bson_iter_ref) ?
+        (_get(itr.bson_iter_ref, M), state) : nothing
 
-function Base.iterate(::BSON, itr::BSONIterator{IterateKeyValuePairs})
-
-    if bson_iter_next(itr.bson_iter_ref)
-        key = unsafe_string(bson_iter_key(itr.bson_iter_ref))
-        value = get_value(itr.bson_iter_ref)
-
-        return key => value, itr
-    end
-
-    return nothing
+function Base.iterate(doc::BSON,
+                      itr::BSONIterator = BSONIterator(doc, IterateKeyValuePairs))
+    next = iterate(itr)
+    return isnothing(next) ? nothing : (first(next), itr)
 end
 
-function Base.iterate(itr::BSONIterator{IterateKeys}, ::Nothing=nothing)
-
-    if bson_iter_next(itr.bson_iter_ref)
-        key = unsafe_string(bson_iter_key(itr.bson_iter_ref))
-        return key, nothing
-    end
-
-    return nothing
-end
-
-function Base.iterate(itr::BSONIterator{IterateValues}, ::Nothing=nothing)
-
-    if bson_iter_next(itr.bson_iter_ref)
-        value = get_value(itr.bson_iter_ref)
-        return value, nothing
-    end
-
-    return nothing
-end
+Base.keys(doc::BSON) = BSONIterator(doc, IterateKeys)
+Base.values(doc::BSON) = BSONIterator(doc, IterateValues)
 
 """
     as_dict(document::BSON) :: Dict{String}
