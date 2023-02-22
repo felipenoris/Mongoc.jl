@@ -114,17 +114,12 @@ using Distributed
         bson["you"] = "aaa"
         bson["out"] = nothing
 
-        for (k, v) in bson
-            @test (k == "hey" && v == 10) || (k == "you" && v == "aaa") || (k == "out" && v == nothing)
-        end
+        @test ["hey" => 10, "you" => "aaa", "out" => nothing] == [k => v for (k, v) in bson]
+        @test ["hey" => 10, "you" => "aaa", "out" => nothing] == collect(pairs(bson))
 
-        for k in keys(bson)
-            @test k == "hey" || k == "you" || k == "out"
-        end
+        @test ["hey", "you", "out"] == collect(keys(bson))
 
-        for v in values(bson)
-            @test v == 10 || v == "aaa" || v == nothing
-        end
+        @test [10, "aaa", nothing] == collect(values(bson))
     end
 
     @testset "BSON Iterator" begin
