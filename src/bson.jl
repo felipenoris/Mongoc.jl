@@ -437,7 +437,7 @@ Base.length(document::BSON) = bson_count_keys(document.handle)
 has_field(bson::BSON, key::AbstractString) = bson_has_field(bson.handle, key)
 Base.haskey(bson::BSON, key::AbstractString) = has_field(bson, key)
 
-function bson_iter_init(document::BSON) :: Ref{BSONIter}
+function bson_iter_init(document::BSON)
     iter_ref = Ref{BSONIter}()
     ok = bson_iter_init(iter_ref, document.handle)
     if !ok
