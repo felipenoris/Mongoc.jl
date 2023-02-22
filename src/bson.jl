@@ -616,10 +616,7 @@ end
 
 function Base.getindex(document::BSON, key::AbstractString)
     iter_ref = Ref{BSONIter}()
-    ok = bson_iter_init_find(iter_ref, document.handle, key)
-    if !ok
-        error("Key $key not found.")
-    end
+    bson_iter_init_find(iter_ref, document.handle, key) || throw(KeyError(key))
     return get_value(iter_ref)
 end
 
@@ -633,10 +630,7 @@ See also [Mongoc.BSONValue](@ref).
 """
 function get_as_bson_value(document::BSON, key::AbstractString) :: BSONValue
    iter_ref = Ref{BSONIter}()
-    ok = bson_iter_init_find(iter_ref, document.handle, key)
-    if !ok
-        error("Key $key not found.")
-    end
+    bson_iter_init_find(iter_ref, document.handle, key) || throw(KeyError(key))
     return get_as_bson_value(iter_ref)
 end
 
