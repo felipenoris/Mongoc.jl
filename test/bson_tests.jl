@@ -153,7 +153,7 @@ using Distributed
         @test doc["document"] == Dict("a"=>1, "b"=>"b_string")
         @test doc["null"] == nothing
 
-        @test_throws ErrorException doc["invalid key"]
+        @test_throws KeyError doc["invalid key"]
 
         doc_dict = Mongoc.as_dict(doc)
         @test keytype(doc_dict) === String
