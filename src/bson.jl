@@ -496,13 +496,17 @@ end
 Base.keys(doc::BSON) = BSONIterator(doc, IterateKeys)
 Base.values(doc::BSON) = BSONIterator(doc, IterateValues)
 
+Base.convert(::Type{Dict}, document::BSON) =
+    Dict{String, Any}(k => v for (k, v) in document)
+Base.convert(::Type{Dict{K,V}}, document::BSON) where {K, V} =
+    Dict{K,V}(k => v for (k, v) in document)
+
 """
     as_dict(document::BSON) :: Dict{String}
 
 Converts a BSON document to a Julia `Dict`.
 """
-as_dict(document::BSON) =
-    Dict(k => v for (k, v) in document)
+as_dict(document::BSON) = convert(Dict, document)
 
 function as_dict(iter_ref::Ref{BSONIter})
     result = Dict{String, Any}()
