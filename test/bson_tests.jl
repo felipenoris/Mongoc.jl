@@ -164,6 +164,13 @@ using Distributed
         @test doc_dict["document"] == Dict("a"=>1, "b"=>"b_string")
         @test doc_dict["null"] == nothing
 
+        @testset "convert(Dict, BSON)" begin
+            doc_dict2 = @inferred(convert(Dict, doc))
+            @test doc_dict2 == doc_dict
+            doc_dict3 = @inferred(convert(Dict{String, Any}, doc))
+            @test doc_dict3 == doc_dict
+        end
+
         # Type-stable API
         @test @inferred(Mongoc.get_array(doc, "float_array", Float64)) == [0.1, 0.2, 0.3, 0.4]
         @test @inferred(Mongoc.get_array(doc, "float_array", Float32)) == Float32[0.1, 0.2, 0.3, 0.4]
