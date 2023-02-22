@@ -475,6 +475,14 @@ struct BSONIterator{M<:BSONIteratorMode}
         new{M}(bson_iter_init(document), document)
 end
 
+Base.IteratorSize(::Type{BSONIterator{M}}) where M = Base.HasLength()
+Base.length(iter::BSONIterator) = length(iter.document)
+
+Base.IteratorEltype(::Type{BSONIterator{M}}) where M = Base.EltypeUnknown()
+Base.IteratorEltype(::Type{BSONIterator{IterateKeys}}) = Base.HasEltype()
+
+Base.eltype(::Type{BSONIterator{IterateKeys}}) = String
+
 Base.iterate(itr::BSONIterator{M}, state::Nothing = nothing) where M =
     bson_iter_next(itr.bson_iter_ref) ?
         (_get(itr.bson_iter_ref, M), state) : nothing
