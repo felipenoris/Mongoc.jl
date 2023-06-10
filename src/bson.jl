@@ -317,15 +317,13 @@ end
 # API
 #
 
-Base.convert(::Type{String}, oid::BSONObjectId) = bson_oid_to_string(oid)
-Base.string(oid::BSONObjectId) = convert(String, oid)
+Base.String(oid::BSONObjectId) = bson_oid_to_string(oid)
 Base.convert(::Type{BSONObjectId}, oid_string::String) = BSONObjectId(oid_string)
 
-Base.convert(::Type{String}, code::BSONCode) = code.code
-Base.string(code::BSONCode) = convert(String, code)
+Base.String(code::BSONCode) = code.code
 Base.convert(::Type{BSONCode}, code_string::String) = BSONCode(code_string)
 
-Base.show(io::IO, oid::BSONObjectId) = print(io, "BSONObjectId(\"", string(oid), "\")")
+Base.show(io::IO, oid::BSONObjectId) = print(io, "BSONObjectId(\"", String(oid), "\")")
 Base.show(io::IO, bson::BSON) = print(io, "BSON(\"", as_json(bson), "\")")
 Base.show(io::IO, code::BSONCode) = print(io::IO, "BSONCode(\"$(code.code)\")")
 
