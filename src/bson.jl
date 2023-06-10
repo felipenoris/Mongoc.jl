@@ -496,11 +496,6 @@ end
 Base.keys(doc::BSON) = BSONIterator(doc, IterateKeys)
 Base.values(doc::BSON) = BSONIterator(doc, IterateValues)
 
-Base.convert(::Type{Dict}, document::BSON) =
-    Dict{String, Any}(k => v for (k, v) in document)
-Base.convert(::Type{Dict{K,V}}, document::BSON) where {K, V} =
-    Dict{K,V}(k => v for (k, v) in document)
-
 """
     as_dict(document::BSON) :: Dict{String}
 

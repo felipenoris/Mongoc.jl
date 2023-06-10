@@ -237,6 +237,10 @@ using Distributed
         @test doc["c"] == "string"
         @test doc["d"] == nothing
         @test dict == Mongoc.as_dict(doc)
+        @test dict == Dict(doc)
+        @test dict == Dict{String, Any}(doc)
+        @test dict == convert(Dict, doc)
+        @test dict == convert(Dict{String, Any}, doc)
     end
 
     @testset "BSON Dict API" begin
