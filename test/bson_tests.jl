@@ -18,8 +18,9 @@ using Distributed
     end
 
     @testset "oid conversion" begin
-        local oid::Mongoc.BSONObjectId = "5b9fb22b3192e3fa155693a1"
-        local oid_str::String = oid
+        str = "5b9fb22b3192e3fa155693a1"
+        local oid::Mongoc.BSONObjectId = str
+        @test String(oid) == str
     end
 
     @testset "oid compare" begin
@@ -47,7 +48,7 @@ using Distributed
 
     @testset "oid string" begin
         x = Mongoc.BSONObjectId()
-        y = Mongoc.BSONObjectId(string(x))
+        y = Mongoc.BSONObjectId(String(x))
         @test x == y
 
         @test_throws ErrorException Mongoc.BSONObjectId("invalid_objectid")
