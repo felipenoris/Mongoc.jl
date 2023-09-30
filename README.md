@@ -56,9 +56,3 @@ The source code for the package `Mongoc.jl` is licensed under the [MIT License](
 
 This repository distributes binary assets built from [mongo-c-driver](https://github.com/mongodb/mongo-c-driver) source code,
 which is licensed under [Apache-2.0](https://github.com/mongodb/mongo-c-driver/blob/master/COPYING).
-
-## Alternative Libraries
-
-* [LibBSON.jl](https://github.com/ScottPJones/LibBSON.jl.git)
-
-* [Mongo.jl](https://github.com/ScottPJones/Mongo.jl.git)
