@@ -210,6 +210,7 @@ function transaction(f::Function, client::Client; session_options::SessionOption
         if !aborted
             result = commit_transaction!(session)
         end
+        Mongoc.destroy!(session)
     end
 
     return result
