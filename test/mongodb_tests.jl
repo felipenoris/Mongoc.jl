@@ -44,7 +44,7 @@ const DB_NAME = "mongoc"
             showerror(io, err)
         end
 
-        @test client.uri == "mongodb://localhost:27017"
+        @test client.uri.uri == "mongodb://localhost:27017"
         Mongoc.set_appname!(client, "Runtests")
         db = client[DB_NAME]
         coll = db["new_collection"]

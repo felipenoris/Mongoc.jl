@@ -105,13 +105,13 @@ mutable struct URI
 end
 
 mutable struct ClientPool
-    uri::String
+    uri::URI
     handle::Ptr{Cvoid}
 
     function ClientPool(uri::URI; max_size::Union{Nothing, Integer}=nothing)
         client_pool_handle = mongoc_client_pool_new(uri.handle)
         @assert client_pool_handle != C_NULL "Failed to create client pool from URI $(uri.uri)."
-        client_pool = new(uri.uri, client_pool_handle)
+        client_pool = new(uri, client_pool_handle)
         finalizer(destroy!, client_pool)
 
         if max_size != nothing
@@ -124,7 +124,7 @@ end
 
 # `Client` is a wrapper for C struct `mongoc_client_t`.
 mutable struct Client{T<:Union{Nothing, ClientPool}}
-    uri::String
+    uri::URI
     handle::Ptr{Cvoid}
     pool::T
 end
@@ -132,7 +132,7 @@ end
 function Client(uri::URI)
     client_handle = mongoc_client_new_from_uri(uri.handle)
     @assert client_handle != C_NULL "Failed to create client handle from URI $(uri.uri)."
-    client = Client(uri.uri, client_handle, nothing)
+    client = Client(uri, client_handle, nothing)
     finalizer(destroy!, client)
     return client
 end

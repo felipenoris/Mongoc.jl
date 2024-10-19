@@ -1,6 +1,6 @@
 
-Base.show(io::IO, uri::URI) = print(io, "URI(\"", uri.uri, "\")")
-Base.show(io::IO, client::Client) = print(io, "Client(URI(\"", client.uri, "\"))")
+Base.show(io::IO, uri::URI) = print(io, "URI(\"", replace(uri.uri, r":.*@" => ":******@"), "\")")
+Base.show(io::IO, client::Client) = print(io, "Client(", client.uri, ")")
 Base.getindex(client::Client, database::String) = Database(client, database)
 
 """
