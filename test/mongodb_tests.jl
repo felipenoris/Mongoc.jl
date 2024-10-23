@@ -93,12 +93,12 @@ const DB_NAME = "mongoc"
                 show(io, result)
                 @test result.inserted_oid != nothing
                 first_inserted_oid = result.inserted_oid
-                @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
+                @test result.reply["insertedCount"] == 1
                 result = push!(coll, Mongoc.BSON("""{ "hey" : "you" }"""))
                 show(io, result)
                 @test result.inserted_oid != nothing
                 @test result.inserted_oid != first_inserted_oid
-                @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
+                @test result.reply["insertedCount"] == 1
             end
 
             @testset "Insert One with custom OID" begin
@@ -107,7 +107,7 @@ const DB_NAME = "mongoc"
                 result = push!(coll, bson)
                 show(io, result)
                 @test result.inserted_oid == nothing
-                @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
+                @test result.reply["insertedCount"] == 1
             end
 
             bson = Mongoc.BSON()
@@ -117,7 +117,7 @@ const DB_NAME = "mongoc"
             bson["date_2018"] = DateTime(2018)
 
             result = push!(coll, bson)
-            @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
+            @test result.reply["insertedCount"] == 1
 
             i = 0
             for bson in coll
@@ -188,7 +188,7 @@ const DB_NAME = "mongoc"
                 bsonDoc["someId"] = "1234"
                 bsonDoc["bindata"] = testdata
                 result = push!(coll, bsonDoc)
-                @test Mongoc.as_json(result.reply) == """{ "insertedCount" : 1 }"""
+                @test result.reply["insertedCount"] == 1
 
                 # read data out and confirm
                 selector = Mongoc.BSON("""{ "someId": "1234" }""")
