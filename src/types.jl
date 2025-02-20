@@ -61,7 +61,7 @@ const QueryOrFindAndModifyFlags = Union{QueryFlags, FindAndModifyFlags}
 
 Base.convert(::Type{T}, t::QueryOrFindAndModifyFlags) where {T<:Number} = reinterpret(Cint, t)
 Base.convert(::Type{Q}, n::T) where {Q<:QueryOrFindAndModifyFlags, T<:Number} = reinterpret(Q, n)
-Cint(flags::QueryOrFindAndModifyFlags) = convert(Cint, flags)
+Base.Cint(flags::QueryOrFindAndModifyFlags) = convert(Cint, flags)
 Base.:(|)(flag1::T, flag2::T) where {T<:QueryOrFindAndModifyFlags} = T( Cint(flag1) | Cint(flag2) )
 Base.:(&)(flag1::T, flag2::T) where {T<:QueryOrFindAndModifyFlags} = T( Cint(flag1) & Cint(flag2) )
 
