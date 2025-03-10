@@ -56,6 +56,19 @@ const DB_NAME = "mongoc"
         show(io, coll)
         show(io, Mongoc.BSONCode("function() = 1"))
         show(io, Mongoc.QUERY_FLAG_TAILABLE_CURSOR)
+
+        #=
+        # This test requires the mongo client to create unsupported values.
+        # 
+        @testset "reading" begin
+            script = "db.types.drop(); db.types.insertOne({ undefined: undefined, regex: /a regex/ });"
+            run(`mongo --eval "$(script)" $DB_NAME`)
+            doc = Mongoc.find_one(db["types"])
+
+            @test doc["undefined"] == Mongoc.BSONUnsupported(0x06)
+            @test doc["regex"] == Mongoc.BSONUnsupported(0x0b)
+        end
+        =#
     end
 
     @testset "Connection" begin
