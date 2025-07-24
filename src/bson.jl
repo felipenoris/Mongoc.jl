@@ -176,6 +176,14 @@ struct BSONTimestamp
 end
 
 """
+`BSONUnsupported` represents a type unsupported by this package.
+This includes BSON_TYPE_UNDEFINED which is deprecated and BSON_TYPE_REGEX which is not yet supported.
+"""
+struct BSONUnsupported
+    typecode::BSONType
+end
+
+"""
 A `BSON` represents a document in *Binary JSON* format,
 defined at http://bsonspec.org/.
 
@@ -600,7 +608,7 @@ function get_value(iter_ref::Ref{BSONIter})
     elseif bson_type == BSON_TYPE_NULL
         return nothing
     else
-        error("BSON Type not supported: $bson_type.")
+        return BSONUnsupported(bson_type)
     end
 end
 
